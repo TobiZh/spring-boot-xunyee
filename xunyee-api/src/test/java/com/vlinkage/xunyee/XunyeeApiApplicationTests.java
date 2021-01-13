@@ -1,4 +1,4 @@
-package com.vlinkage.api;
+package com.vlinkage.xunyee;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

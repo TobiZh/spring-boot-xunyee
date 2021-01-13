@@ -1,0 +1,11 @@
+server:
+  port: 80
+
+
+spring:
+  #  ˝æ›‘¥≈‰÷√
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:p6spy:postgresql://115.29.163.237:5432/vlkdj?currentSchema=xunyee&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+    username: vlkdj
+    password: weiling@qinghai118
