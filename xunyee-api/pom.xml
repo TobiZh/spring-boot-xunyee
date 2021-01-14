@@ -48,6 +48,11 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+        </dependency>
+
         <!-- pgsql -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -55,6 +60,13 @@
             <scope>runtime</scope>
         </dependency>
         <!-- pgsql -->
+
+        <!-- validation 参数校验 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- validation 参数校验 -->
 
 <!--        &lt;!&ndash; security 安全框架 &ndash;&gt;-->
 <!--        <dependency>-->
@@ -84,6 +96,8 @@
             <artifactId>knife4j-spring-boot-starter</artifactId>
         </dependency>
         <!-- api可视化 -->
+
+
 
     </dependencies>
 

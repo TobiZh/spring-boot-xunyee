@@ -69,11 +69,11 @@
                 <artifactId>swagger-annotations</artifactId>
                 <version>1.5.22</version>
             </dependency>
-<!--            <dependency>&lt;!&ndash; 增加两个配置 &ndash;&gt;-->
-<!--                <groupId>io.swagger</groupId>-->
-<!--                <artifactId>swagger-models</artifactId>-->
-<!--                <version>1.5.22</version>-->
-<!--            </dependency>-->
+            <dependency><!-- 增加两个配置 -->
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>1.5.22</version>
+            </dependency>
             <!-- api 可视化测试 -->
 
         </dependencies>
