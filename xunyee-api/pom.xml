@@ -30,6 +30,10 @@
                     <groupId>org.postgresql</groupId>
                     <artifactId>postgresql</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>io.springfox</groupId>
+                    <artifactId>springfox-swagger2</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -74,6 +78,12 @@
         </dependency>
         <!-- lombok -->
 
+        <!-- api可视化 -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- api可视化 -->
 
     </dependencies>
 
