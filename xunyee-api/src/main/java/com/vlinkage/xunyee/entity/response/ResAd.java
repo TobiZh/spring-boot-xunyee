@@ -1,15 +1,13 @@
-package com.vlinkage.xunyee.entity.request;
-
+package com.vlinkage.xunyee.entity.response;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.validation.constraints.Size;
-
 @Data
-public class ReqAd {
+public class ResAd {
 
     @ApiModelProperty("广告id")
     private int id;
-
+    @ApiModelProperty("标题")
+    private String title;
 }
