@@ -25,7 +25,7 @@ public class UserController {
     @GetMapping("test")
     public R<List<ResAd>> test(@Valid ReqAd reqAd){
 
-        return R.OK();
+        return R.OK(reqAd);
     }
 
     @ApiOperation("查看个人资料")

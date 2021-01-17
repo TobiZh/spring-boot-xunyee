@@ -3,7 +3,9 @@ package com.vlinkage.xunyee.handle;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.common.entity.result.code.ResultCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,12 +14,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@RestControllerAdvice
-@Slf4j
 /**
  * 全局异常处理
  */
+@RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
  
  
@@ -40,7 +43,15 @@ public class GlobalExceptionHandler {
         log.warn("URL:{} ,业务异常:{}", request.getRequestURI());
         return R.ERROR(e.getCode(),e.getClass().getName()+":--->"+e.getMessage());
     }
- 
+
+    //处理Get请求中 使用@Valid 验证路径中请求实体校验失败后抛出的异常，详情继续往下看代码
+    @ExceptionHandler(BindException.class)
+    public R BindExceptionHandler(BindException e,HttpServletRequest request){
+        String msgs = this.handle(e.getBindingResult().getFieldErrors());
+        log.warn("URL:{} ,参数校验异常:{}", request.getRequestURI(),msgs);
+        return R.ERROR(msgs);
+    }
+
     /**
      * validator 统一异常封装
      */
