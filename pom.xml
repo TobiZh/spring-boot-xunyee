@@ -23,6 +23,7 @@
         <velocity.version>2.2</velocity.version>
         <swagger.version>2.9.2</swagger.version>
         <knife4j.version>2.0.8</knife4j.version>
+        <wx.binarywang.version>4.0.0</wx.binarywang.version>
     </properties>
 
     <modules>
@@ -96,6 +97,25 @@
                 <version>3.10.0</version>
             </dependency>
             <!-- jwt -->
+
+
+            <!-- 微信支付 小程序 公众号 开放平台-->
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>wx-java-pay-spring-boot-starter</artifactId>
+                <version>${wx.binarywang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>wx-java-miniapp-spring-boot-starter</artifactId>
+                <version>${wx.binarywang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>wx-java-mp-spring-boot-starter</artifactId>
+                <version>${wx.binarywang.version}</version>
+            </dependency>
+            <!-- 微信支付 小程序 公众号-->
 
         </dependencies>
     </dependencyManagement>

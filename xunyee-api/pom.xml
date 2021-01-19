@@ -104,6 +104,21 @@
         </dependency>
         <!-- jwt -->
 
+        <!-- 微信支付 小程序 公众号 开放平台-->
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>wx-java-pay-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>wx-java-miniapp-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>wx-java-mp-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- 微信支付 小程序 公众号-->
+
     </dependencies>
 
     <build>
