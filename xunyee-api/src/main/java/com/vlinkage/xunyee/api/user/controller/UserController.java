@@ -1,5 +1,8 @@
 package com.vlinkage.xunyee.api.user.controller;
 
+import com.alibaba.fastjson.JSONArray;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.user.service.UserService;
 import com.vlinkage.xunyee.entity.request.ReqAd;
@@ -20,13 +23,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
-    @ApiOperation("测试")
-    @GetMapping("test")
-    public R<List<ResAd>> test(@Valid ReqAd reqAd){
-
-        return R.OK(reqAd);
-    }
 
     @ApiOperation("查看个人资料")
     @GetMapping("vcuser/info/{id}")

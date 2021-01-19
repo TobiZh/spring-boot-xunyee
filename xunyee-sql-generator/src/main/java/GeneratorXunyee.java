@@ -1,7 +1,11 @@
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.generator.AutoGenerator;
 import com.baomidou.mybatisplus.generator.config.*;
+import com.baomidou.mybatisplus.generator.config.converts.PostgreSqlTypeConvert;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
+import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
+import com.baomidou.mybatisplus.generator.config.rules.IColumnType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 
 /**
@@ -29,8 +33,8 @@ public class GeneratorXunyee {
         gc.setEnableCache(false);// XML 二级缓存
         gc.setBaseResultMap(true);// XML ResultMap
         gc.setBaseColumnList(false);// XML columList
+        gc.setIdType(IdType.AUTO);
         gc.setAuthor("tobi");
-        gc.setDateType(DateType.ONLY_DATE);
         mpg.setGlobalConfig(gc);
 
         // 数据源配置
@@ -41,13 +45,29 @@ public class GeneratorXunyee {
         dsc.setPassword("weiling@qinghai118");
         dsc.setSchemaName("xunyee");
         dsc.setUrl("jdbc:postgresql://115.29.163.237:5432/vlkdj?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8");
+
+        dsc.setTypeConvert(new PostgreSqlTypeConvert(){
+            @Override
+            public IColumnType processTypeConvert(GlobalConfig config, String fieldType) {
+
+                if (fieldType.toLowerCase().contains("date")){
+                    return DbColumnType.LOCAL_DATE;
+                }
+
+                if (fieldType.toLowerCase().contains("timestamp")){
+                    return DbColumnType.DATE;
+                }
+
+                return super.processTypeConvert(config, fieldType);
+            }
+        });
         mpg.setDataSource(dsc);
 
         // 策略配置
         StrategyConfig strategy = new StrategyConfig();
         strategy.setNaming(NamingStrategy.underline_to_camel);// 表名生成策略
+        strategy.setColumnNaming(NamingStrategy.no_change);
         strategy.setEntityLombokModel(true);
-
         mpg.setStrategy(strategy);
 
         // 包配置

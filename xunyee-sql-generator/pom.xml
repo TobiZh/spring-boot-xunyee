@@ -15,6 +15,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -26,10 +27,12 @@
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-generator</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.apache.velocity</groupId>
             <artifactId>velocity-engine-core</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>

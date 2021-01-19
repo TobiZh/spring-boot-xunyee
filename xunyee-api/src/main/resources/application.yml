@@ -1,11 +1,18 @@
 server:
   port: 80
-
-
 spring:
-  # 数据源配置
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://115.29.163.237:5432/vlkdj?currentSchema=xunyee&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
-    username: vlkdj
-    password: weiling@qinghai118
+  profiles:
+    active: test
+  # 返回参数时间格式化
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+  mvc:
+    # 配置传参时间格式化
+    format:
+      date: yyyy-MM-dd
+      date-time: yyyy-MM-dd HH:mm:ss
+# mybatis-plus配置
+mybatis-plus:
+  configuration:
+    # 关闭下划线转驼峰
+    map-underscore-to-camel-case: false

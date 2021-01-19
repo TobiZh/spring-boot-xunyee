@@ -1,4 +1,4 @@
-package com.vlinkage.xunyee.handle;
+package com.vlinkage.xunyee.exception;
 
 import com.vlinkage.common.entity.result.code.ResultCode;
 import lombok.Data;

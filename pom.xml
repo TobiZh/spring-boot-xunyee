@@ -17,7 +17,9 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <mybatis.plus.version>3.4.1</mybatis.plus.version>
+        <mybatis.plus.version>3.4.2</mybatis.plus.version>
+        <mybatis.plus.generator.version>3.4.1</mybatis.plus.generator.version>
+        <p6spy.version>3.8.7</p6spy.version>
         <velocity.version>2.2</velocity.version>
         <swagger.version>2.9.2</swagger.version>
         <knife4j.version>2.0.8</knife4j.version>
@@ -41,12 +43,17 @@
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-generator</artifactId>
-                <version>${mybatis.plus.version}</version>
+                <version>${mybatis.plus.generator.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
                 <artifactId>velocity-engine-core</artifactId>
                 <version>${velocity.version}</version>
+            </dependency>
+            <dependency><!-- 执行 SQL 分析打印 -->
+                <groupId>p6spy</groupId>
+                <artifactId>p6spy</artifactId>
+                <version>${p6spy.version}</version>
             </dependency>
             <!-- mybatis-plus -->
 
@@ -75,6 +82,20 @@
                 <version>1.5.22</version>
             </dependency>
             <!-- api 可视化测试 -->
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.7</version>
+            </dependency>
+
+            <!-- jwt -->
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>3.10.0</version>
+            </dependency>
+            <!-- jwt -->
 
         </dependencies>
     </dependencyManagement>
