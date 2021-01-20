@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.common.redis.RedisUtil;
 import com.vlinkage.xunyee.config.weixin.WxMaConfiguration;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccess;
 import com.vlinkage.xunyee.jwt.JwtUtil;
@@ -19,14 +20,18 @@ import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.service.WxOAuth2Service;
 import me.chanjar.weixin.mp.api.WxMpService;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
+
 @Slf4j
 @Service
 public class LoginService {
+
+    @Resource
+    private RedisUtil redisUtil;
 
     @Autowired
     private WxMpService wxMpService;
@@ -43,56 +48,14 @@ public class LoginService {
             WxOAuth2UserInfo userInfo=wxOAuth2Service.getUserInfo(oAuth2AccessToken,"zh_CN");
             String unionid= userInfo.getUnionId();
             String openid=userInfo.getOpenid();
+            return doLoginMethod(unionid,openid,
+                    userInfo.getNickname(),
+                    userInfo.getHeadImgUrl(),
+                    userInfo.getCity(),
+                    userInfo.getCountry(),
+                    userInfo.getProvince(),
+                    userInfo.getSex());
 
-            // 每个客户端的 openid 都是唯一的
-            QueryWrapper qw = new QueryWrapper();
-            qw.eq("unionid", unionid);
-            qw.eq("openid", openid);
-            XunyeeVcuserOauth temp = new XunyeeVcuserOauth().selectOne(qw);
-            if (temp == null) {
-                // 新增账号
-                XunyeeVcuser user = new XunyeeVcuser();
-                user.setNickname(userInfo.getNickname());
-                user.setAvatar(userInfo.getHeadImgUrl());
-                user.setWx_city(userInfo.getCity());
-                user.setWx_country(userInfo.getCountry());
-                user.setWx_province(userInfo.getProvince());
-                user.setSex(userInfo.getSex());
-                if (user.insert()) {
-                    // 新增第三方账号
-                    XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
-                    userThird.setSite(5);
-                    userThird.setOpenid(openid);
-                    if (StringUtils.isNotEmpty(unionid)) {
-                        userThird.setUnionid(unionid);
-                    }
-                    userThird.setVcuser_id(user.getId());
-                    userThird.insert();
-
-                    // 登录成功 生成token
-                    String token = JwtUtil.getToken(String.valueOf(user.getId()));
-                    //写入token
-                    user.updateById();
-                    ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
-                    BeanUtil.copyProperties(user, resLoginSuccess);
-                    resLoginSuccess.setToken(token);
-                    return R.OK(resLoginSuccess);
-                }
-
-                return R.ERROR();
-
-            } else {
-
-                // 查询当前用户信息
-                XunyeeVcuser user = new XunyeeVcuser().selectById(temp.getVcuser_id());
-                // 登录成功 生成token
-                String token = JwtUtil.getToken(String.valueOf(user.getId()));
-                //写入token
-                ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
-                BeanUtil.copyProperties(user, resLoginSuccess);
-                resLoginSuccess.setToken(token);
-                return R.OK(resLoginSuccess);
-            }
         } catch (WxErrorException e) {
             e.printStackTrace();
             return R.ERROR(e.getMessage());
@@ -114,56 +77,79 @@ public class LoginService {
             String unionid= userInfo.getUnionId();
             String openid=userInfo.getOpenId();
 
-            QueryWrapper qw = new QueryWrapper();
-            qw.eq("unionid", unionid);
-            qw.eq("openid", openid);
-            XunyeeVcuserOauth temp = new XunyeeVcuserOauth().selectOne(qw);
-            if (temp == null) {
-                // 新增账号
-                XunyeeVcuser user = new XunyeeVcuser();
-                user.setNickname(userInfo.getNickName());
-                user.setAvatar(userInfo.getAvatarUrl());
-                user.setWx_city(userInfo.getCity());
-                user.setWx_country(userInfo.getCountry());
-                user.setWx_province(userInfo.getProvince());
-                user.setSex(Integer.valueOf(userInfo.getGender()));
-                if (user.insert()) {
-                    // 新增第三方账号
-                    XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
-                    userThird.setSite(5);
-                    userThird.setOpenid(openid);
-                    if (StringUtils.isNotEmpty(unionid)) {
-                        userThird.setUnionid(unionid);
-                    }
-                    userThird.setVcuser_id(user.getId());
-                    userThird.insert();
+            return doLoginMethod(unionid,openid,
+                    userInfo.getNickName(),
+                    userInfo.getAvatarUrl(),
+                    userInfo.getCity(),
+                    userInfo.getCountry(),
+                    userInfo.getProvince(),
+                    Integer.valueOf(userInfo.getGender()));
 
-                    // 登录成功 生成token
-                    String token = JwtUtil.getToken(String.valueOf(user.getId()));
-                    //写入token
-                    user.updateById();
-                    ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
-                    BeanUtil.copyProperties(user, resLoginSuccess);
-                    resLoginSuccess.setToken(token);
-                    return R.OK(resLoginSuccess);
-                }
-                return R.ERROR();
-            } else {
-                // 查询当前用户信息
-                XunyeeVcuser user = new XunyeeVcuser().selectById(temp.getVcuser_id());
-                // 登录成功 生成token
-                String token = JwtUtil.getToken(String.valueOf(user.getId()));
-                //写入token
-                ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
-                BeanUtil.copyProperties(user, resLoginSuccess);
-                resLoginSuccess.setToken(token);
-                return R.OK(resLoginSuccess);
-            }
         } catch (WxErrorException e) {
             log.error(e.getMessage(), e);
             return R.ERROR(e.getMessage());
         }
     }
+
+    private R doLoginMethod(String unionid,String openid,String nickname,String avatar,String city,String country,String province,Integer sex){
+        // 每个客户端的 openid 都是唯一的
+        QueryWrapper qw = new QueryWrapper();
+        qw.eq("unionid", unionid);
+        qw.eq("openid", openid);
+        XunyeeVcuserOauth temp = new XunyeeVcuserOauth().selectOne(qw);
+        if (temp == null) {
+            // 新增账号
+            XunyeeVcuser user = new XunyeeVcuser();
+            user.setNickname(nickname);
+            user.setAvatar(avatar);
+            user.setWx_city(city);
+            user.setWx_country(country);
+            user.setWx_province(province);
+            user.setSex(sex);
+            if (user.insert()) {
+                // 新增第三方账号
+                XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
+                userThird.setSite(5);
+                userThird.setOpenid(openid);
+                if (StringUtils.isNotEmpty(unionid)) {
+                    userThird.setUnionid(unionid);
+                }
+                userThird.setVcuser_id(user.getId());
+                userThird.insert();
+
+                // 登录成功 生成token
+                String token = JwtUtil.getToken(String.valueOf(user.getId()));
+                redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
+                ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
+                BeanUtil.copyProperties(user, resLoginSuccess);
+                resLoginSuccess.setToken(token);
+                return R.OK(resLoginSuccess);
+            }
+
+            return R.ERROR();
+
+        } else {
+
+            // 查询当前用户信息
+            XunyeeVcuser user = new XunyeeVcuser().selectById(temp.getVcuser_id());
+            // 1.先判断token是否过期
+            String token = "";
+            if (!redisUtil.hasKey("user_toke:"+temp.getVcuser_id())) {
+                token = JwtUtil.getToken(String.valueOf(user.getId()));
+                redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
+            }else{
+                token=redisUtil.get("user_toke:"+temp.getVcuser_id()).toString();
+            }
+            // 登录成功 生成token
+
+
+            ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
+            BeanUtil.copyProperties(user, resLoginSuccess);
+            resLoginSuccess.setToken(token);
+            return R.OK(resLoginSuccess);
+        }
+    }
+
 
     public R getOpenId(String appId, String code) {
         if (!this.wxMpService.switchover(appId)) {
