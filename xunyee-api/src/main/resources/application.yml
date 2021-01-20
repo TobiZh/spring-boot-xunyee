@@ -14,5 +14,27 @@ spring:
 # mybatis-plus配置
 mybatis-plus:
   configuration:
-    # 关闭下划线转驼峰
+    # 关闭下划线转驼峰 不让获取数据为null
     map-underscore-to-camel-case: false
+
+
+
+#微信配置
+wx:
+  mp:
+    configs:
+      #移动应用
+      - appId: wxf71bf12e04438f45
+        secret: eef504d0d24fe79d0395d7a1095c6e06
+      #公众号
+      - appId: wx849245fa6b1e3cd3
+        secret: 0c38dbc224ab028d37642037cfa22dac
+  # 小程序
+  miniapp:
+    appId: wx1f4331a4b9f1cb4d
+    secret: c48fca78166d4b148b6fb74797195267
+  #支付
+  pay:
+    # 微信支付普通商户号 app支付 appId: wxf71bf12e04438f45
+    mchId: 1562213661
+    mchKey: Vlinkage20191108vvkk321Qinghailu
