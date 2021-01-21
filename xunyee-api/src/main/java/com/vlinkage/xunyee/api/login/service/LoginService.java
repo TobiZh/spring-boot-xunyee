@@ -24,13 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-
 @Slf4j
 @Service
 public class LoginService {
 
-    @Resource
+    @Autowired
     private RedisUtil redisUtil;
 
     @Autowired
@@ -62,7 +60,7 @@ public class LoginService {
         }
     }
 
-    public R wxOpenLoginMini(String appId, String code,String signature, String rawData, String encryptedData, String iv) {
+    public R wxLoginMini(String appId, String code,String signature, String rawData, String encryptedData, String iv) {
         final WxMaService wxService = WxMaConfiguration.getMaService(appId);
         // 用户信息校验
         try {

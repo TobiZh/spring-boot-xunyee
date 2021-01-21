@@ -25,7 +25,7 @@ public class WxPayConfiguration {
   @ConditionalOnMissingBean
   public WxPayService wxService() {
     WxPayConfig payConfig = new WxPayConfig();
-    payConfig.setAppId(StringUtils.trimToNull(this.properties.getAppId()));
+    payConfig.setAppId(StringUtils.trimToNull(this.properties.getAppid()));
     payConfig.setMchId(StringUtils.trimToNull(this.properties.getMchId()));
     payConfig.setMchKey(StringUtils.trimToNull(this.properties.getMchKey()));
     payConfig.setSubAppId(StringUtils.trimToNull(this.properties.getSubAppId()));

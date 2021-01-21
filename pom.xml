@@ -101,33 +101,36 @@
 
 
             <!-- 微信支付 小程序 公众号 开放平台-->
+            <!-- 这里不使用spring boot stater的包 方便扩展 在/java/config/weixin 里面有对应的配置类-->
             <dependency>
                 <groupId>com.github.binarywang</groupId>
-                <artifactId>wx-java-pay-spring-boot-starter</artifactId>
+                <artifactId>weixin-java-pay</artifactId>
                 <version>${wx.binarywang.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.binarywang</groupId>
-                <artifactId>wx-java-miniapp-spring-boot-starter</artifactId>
+                <artifactId>weixin-java-miniapp</artifactId>
                 <version>${wx.binarywang.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.binarywang</groupId>
-                <artifactId>wx-java-mp-spring-boot-starter</artifactId>
+                <artifactId>weixin-java-mp</artifactId>
                 <version>${wx.binarywang.version}</version>
             </dependency>
-            <!-- 微信支付 小程序 公众号-->
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-open</artifactId>
+                <version>${wx.binarywang.version}</version>
+            </dependency>
+            <!-- 微信支付 小程序 公众号 开放平台 -->
 
             <dependency>
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
             </dependency>
-            <dependency>
-                <groupId>redis.clients</groupId>
-                <artifactId>jedis</artifactId>
-                <version>2.9.0</version>
-            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 

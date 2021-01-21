@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 @Configuration
 @EnableConfigurationProperties(WxMaProperties.class)
 public class WxMaConfiguration {
+
     private final WxMaProperties properties;
 
     private static final Map<String, WxMaMessageRouter> routers = Maps.newHashMap();
@@ -58,21 +59,21 @@ public class WxMaConfiguration {
         }
 
         maServices = configs.stream()
-            .map(a -> {
-                WxMaDefaultConfigImpl config = new WxMaDefaultConfigImpl();
+                .map(a -> {
+                    WxMaDefaultConfigImpl config = new WxMaDefaultConfigImpl();
 //                WxMaDefaultConfigImpl config = new WxMaRedisConfigImpl(new JedisPool());
-                // 使用上面的配置时，需要同时引入jedis-lock的依赖，否则会报类无法找到的异常
-                config.setAppid(a.getAppid());
-                config.setSecret(a.getSecret());
-                config.setToken(a.getToken());
-                config.setAesKey(a.getAesKey());
-                config.setMsgDataFormat(a.getMsgDataFormat());
+                    // 使用上面的配置时，需要同时引入jedis-lock的依赖，否则会报类无法找到的异常
+                    config.setAppid(a.getAppid());
+                    config.setSecret(a.getSecret());
+                    config.setToken(a.getToken());
+                    config.setAesKey(a.getAesKey());
+                    config.setMsgDataFormat(a.getMsgDataFormat());
 
-                WxMaService service = new WxMaServiceImpl();
-                service.setWxMaConfig(config);
-                routers.put(a.getAppid(), this.newRouter(service));
-                return service;
-            }).collect(Collectors.toMap(s -> s.getWxMaConfig().getAppid(), a -> a));
+                    WxMaService service = new WxMaServiceImpl();
+                    service.setWxMaConfig(config);
+                    routers.put(a.getAppid(), this.newRouter(service));
+                    return service;
+                }).collect(Collectors.toMap(s -> s.getWxMaConfig().getAppid(), a -> a));
     }
 
     private WxMaMessageRouter newRouter(WxMaService service) {

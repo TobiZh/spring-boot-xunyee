@@ -4,9 +4,11 @@ import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.common.entity.result.code.ResultCode;
+import com.vlinkage.common.redis.RedisUtil;
 import com.vlinkage.xunyee.exception.BusinessException;
 import com.vlinkage.xunyee.jwt.JwtUtil;
 import com.vlinkage.xunyee.jwt.PassToken;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -21,6 +23,9 @@ import java.lang.reflect.Method;
  */
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
+    @Autowired
+    private RedisUtil redisUtil;
+
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object) throws Exception {
         String token = httpServletRequest.getHeader("token");// 从 http 请求头中取出 token
@@ -33,24 +38,9 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         Method method = handlerMethod.getMethod();
 
         //检查是否有passtoken注释，有则跳过认证
-        // 其它都需要登录认证
         if (method.isAnnotationPresent(PassToken.class)) {
             PassToken passToken = method.getAnnotation(PassToken.class);
             if (passToken.required()) {
-                if(token!=null){
-                    // 获取 token 中的 user id
-                    String userId;
-                    try {
-                        userId = JwtUtil.getUserId(token);
-                        if (StringUtils.isNotBlank(userId)){
-                            // 将userId写入request
-                            httpServletRequest.setAttribute("userId", userId);
-                        }
-
-                    } catch (JWTDecodeException j) {
-                        throw new BusinessException(ResultCode.NO_TOKEN);
-                    }
-                }
                 return true;
             }
         }
@@ -74,17 +64,12 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         } catch (JWTDecodeException j) {
             throw new BusinessException(ResultCode.TOKEN_ILLEGAL);
         }
-        XunyeeVcuser user = new XunyeeVcuser().selectById(userId);
-        if (user == null) {
+        if (!redisUtil.hasKey("user_toke:"+userId)) {
             throw new BusinessException(ResultCode.TOKEN_ILLEGAL);
         }
-//        if (!token.equals(user.getToken())){
-//            throw new BusinessException(ResultCode.TOKEN_ILLEGAL);
-//        }
 
         // 将userId写入request
         httpServletRequest.setAttribute("userId", userId);
-
 
         return true;
     }

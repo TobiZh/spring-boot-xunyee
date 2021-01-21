@@ -26,18 +26,17 @@ public class LoginController {
     @PassToken
     @PostMapping("login/wx/app/{code}")
     public R appWxLogin(@NotNull(message = "code不能为空") @PathVariable("code") String code) {
-        String appId=wxMpProperties.getConfigs().get(0).getAppId();
+        String appId=wxMpProperties.getConfigs().get(0).getAppid();
         return loginService.wxOpenLogin(appId,code);
     }
 
     @ApiOperation(value="微信登录 小程序")
     @PassToken
-    @PostMapping("login/wx/miniprogram/{code}")
-    public R miniWxLogin(@NotNull(message = "code不能为空") @PathVariable("code") String code,
-                         String signature, String rawData, String encryptedData, String iv) {
-        String appId=wxMaProperties.getConfigs().get(0).getAppId();
+    @PostMapping("login/wx/miniprogram")
+    public R miniWxLogin(String code, String signature, String rawData, String encryptedData, String iv) {
+        String appId=wxMaProperties.getConfigs().get(0).getAppid();
 
-        return loginService.wxOpenLoginMini(appId,code,signature,rawData,encryptedData,iv);
+        return loginService.wxLoginMini(appId,code,signature,rawData,encryptedData,iv);
     }
 
 
@@ -45,7 +44,7 @@ public class LoginController {
     @PassToken
     @GetMapping("h5/openid")
     public R getOpenId(String code) {
-        String appId=wxMpProperties.getConfigs().get(1).getAppId();
+        String appId=wxMpProperties.getConfigs().get(1).getAppid();
 
         return loginService.getOpenId(appId,code);
     }
@@ -54,7 +53,7 @@ public class LoginController {
     @PassToken
     @GetMapping("h5/authorization/redirectUri")
     public R buildAuthorizationUrl(String redirectUri,String scope) {
-        String appId=wxMpProperties.getConfigs().get(1).getAppId();
+        String appId=wxMpProperties.getConfigs().get(1).getAppid();
 
         return loginService.buildAuthorizationUrl(appId,redirectUri,scope);
     }
@@ -63,7 +62,7 @@ public class LoginController {
     @PassToken
     @PostMapping("h5/login")
     public R h5Login(@NotNull(message = "code不能为空") String code) {
-        String appId=wxMpProperties.getConfigs().get(1).getAppId();
+        String appId=wxMpProperties.getConfigs().get(1).getAppid();
         return loginService.wxOpenLogin(appId,code);
     }
 }

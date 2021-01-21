@@ -15,7 +15,7 @@ public class WxPayProperties {
     /**
      * 设置微信公众号或者小程序等的appid
      */
-    private String appId;
+    private String appid;
 
     /**
      * 微信支付商户号

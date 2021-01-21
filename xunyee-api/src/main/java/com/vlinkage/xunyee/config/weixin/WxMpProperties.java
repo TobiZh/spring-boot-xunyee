@@ -46,7 +46,7 @@ public class WxMpProperties {
         /**
          * 设置微信公众号的appid
          */
-        private String appId;
+        private String appid;
 
         /**
          * 设置微信公众号的app secret

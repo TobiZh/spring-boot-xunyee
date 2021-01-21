@@ -113,24 +113,25 @@
         <!-- 微信支付 小程序 公众号 开放平台-->
         <dependency>
             <groupId>com.github.binarywang</groupId>
-            <artifactId>wx-java-pay-spring-boot-starter</artifactId>
+            <artifactId>weixin-java-pay</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.binarywang</groupId>
-            <artifactId>wx-java-miniapp-spring-boot-starter</artifactId>
+            <artifactId>weixin-java-miniapp</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.binarywang</groupId>
-            <artifactId>wx-java-mp-spring-boot-starter</artifactId>
+            <artifactId>weixin-java-mp</artifactId>
         </dependency>
-        <!-- 微信支付 小程序 公众号-->
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>weixin-java-open</artifactId>
+        </dependency>
+        <!-- 微信支付 小程序 公众号 开放平台 -->
+
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
         </dependency>
     </dependencies>
 

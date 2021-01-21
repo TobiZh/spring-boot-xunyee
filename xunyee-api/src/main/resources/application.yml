@@ -19,20 +19,29 @@ mybatis-plus:
 
 
 
+logging:
+  level:
+    org.springframework.web: info
+    com.github.binarywang.demo.wx.miniapp: debug
+    cn.binarywang.wx.miniapp: debug
 #微信配置
 wx:
   mp:
     configs:
       #移动应用
-      - appId: wxf71bf12e04438f45
-        secret: eef504d0d24fe79d0395d7a1095c6e06
+      - appid: wx40d52ce384db3975
+        secret: 94189b599b464724996d684f93cbca52
       #公众号
-      - appId: wx849245fa6b1e3cd3
-        secret: 0c38dbc224ab028d37642037cfa22dac
-  # 小程序
+      - appid: wxbe19aba223c2632a
+        secret: 57688bf5611825cab2843907a0140198
   miniapp:
-    appId: wx1f4331a4b9f1cb4d
-    secret: c48fca78166d4b148b6fb74797195267
+    configs:
+        # 寻艺小程序
+      - appid: wx6959ba05bf03effa
+        secret: 02c55d754ecfe493f744c98d70c55028
+        token: xunyee_miniprogram
+        aesKey: DeRcJaD7SW4DKw6ADgu5ycxlHVoAY9lWI7maQx9v5zE
+        msgDataFormat: JSON
   #支付
   pay:
     # 微信支付普通商户号 app支付 appId: wxf71bf12e04438f45
