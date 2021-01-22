@@ -1,8 +1,10 @@
 package com.vlinkage.xunyee.api.xunyee.controller;
 
+import com.vlinkage.ant.xunyee.entity.XunyeeNavigation;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
 import com.vlinkage.xunyee.entity.request.ReqPic;
+import com.vlinkage.xunyee.entity.response.ResNavigation;
 import com.vlinkage.xunyee.entity.response.ResPic;
 import com.vlinkage.xunyee.jwt.PassToken;
 import io.swagger.annotations.Api;
@@ -28,5 +30,13 @@ public class XunyeeController {
     public R<List<ResPic>> getPic(@Valid ReqPic req){
 
         return xunyeeService.getPic(req);
+    }
+
+    @ApiOperation("快速导航按钮")
+    @PassToken
+    @GetMapping("navigation")
+    public R<List<ResNavigation>> getNavigation(){
+
+        return xunyeeService.getNavigation();
     }
 }

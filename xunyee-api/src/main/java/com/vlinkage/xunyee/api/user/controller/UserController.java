@@ -34,5 +34,4 @@ public class UserController {
         int userId= UserUtil.getUserId(request);
         return userService.editUser(userId,req);
     }
-
 }

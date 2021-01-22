@@ -17,8 +17,16 @@ public interface MyMapper {
      * @param page
      * @return
      */
-    @Select("select b.id,b.vcuser_id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.nickname,u.avatar " +
-            "from xunyee_blog b left join xunyee_vcuser u on b.vcuser_id=u.id where (b.vcuser_id=${userId})")
-    IPage<ResBlogPage> selectGoodDeedPage(Page page, int userId);
+    @Select("select b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
+            "from xunyee_blog b left join xunyee_vcuser u on b.vcuser_id=u.id where (b.vcuser_id=${userId}) order by b.star_count desc")
+    IPage<ResBlogPage> selectUserBlogPage(Page page, int userId);
 
+    /**
+     * 获取动态根据发布类型
+     * @param page
+     * @return
+     */
+    @Select("select b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
+            "from xunyee_blog b left join xunyee_vcuser u on b.vcuser_id=u.id where (b.type=${type}) order by b.star_count desc")
+    IPage<ResBlogPage> selectCategoryBlogPage(Page page, Integer type);
 }

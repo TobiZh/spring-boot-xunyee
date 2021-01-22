@@ -38,9 +38,24 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         Method method = handlerMethod.getMethod();
 
         //检查是否有passtoken注释，有则跳过认证
+        // 其它都需要登录认证
         if (method.isAnnotationPresent(PassToken.class)) {
             PassToken passToken = method.getAnnotation(PassToken.class);
             if (passToken.required()) {
+                if(token!=null){
+                    // 获取 token 中的 user id
+                    String userId;
+                    try {
+                        userId = JwtUtil.getUserId(token);
+                        if (StringUtils.isNotBlank(userId)){
+                            // 将userId写入request
+                            httpServletRequest.setAttribute("userId", userId);
+                        }
+
+                    } catch (JWTDecodeException j) {
+                        throw new BusinessException(ResultCode.NO_TOKEN);
+                    }
+                }
                 return true;
             }
         }
