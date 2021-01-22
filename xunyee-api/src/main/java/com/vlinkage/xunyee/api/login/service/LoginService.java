@@ -147,30 +147,4 @@ public class LoginService {
             return R.OK(resLoginSuccess);
         }
     }
-
-
-    public R getOpenId(String appId, String code) {
-        if (!this.wxMpService.switchover(appId)) {
-            throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appId));
-        }
-        try {
-            WxOAuth2Service wxOAuth2Service=wxMpService.getOAuth2Service();
-            WxOAuth2AccessToken oAuth2AccessToken=wxOAuth2Service.getAccessToken(code);
-            WxOAuth2UserInfo wxMpUser=wxOAuth2Service.getUserInfo(oAuth2AccessToken,"zh_CN");
-            String openid=wxMpUser.getOpenid();
-            return R.OK(openid);
-        } catch (WxErrorException e) {
-            e.printStackTrace();
-            return R.ERROR(e.getMessage());
-        }
-    }
-
-    public R buildAuthorizationUrl(String appId, String url,String scope) {
-        if (!this.wxMpService.switchover(appId)) {
-            throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appId));
-        }
-        String returnRul=wxMpService.getOAuth2Service().buildAuthorizationUrl(url, scope, null);
-        return R.OK(returnRul);
-    }
-
 }

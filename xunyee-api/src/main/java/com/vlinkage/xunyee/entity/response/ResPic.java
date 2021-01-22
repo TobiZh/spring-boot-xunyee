@@ -15,8 +15,6 @@ public class ResPic {
     private String memo;
     @ApiModelProperty("图片")
     private String pic;
-    @ApiModelProperty("sequence")
-    private Integer sequence;
     @ApiModelProperty("url")
     private String url;
     @ApiModelProperty("type_id")

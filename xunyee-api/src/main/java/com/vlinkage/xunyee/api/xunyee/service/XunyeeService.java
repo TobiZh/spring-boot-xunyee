@@ -22,6 +22,7 @@ public class XunyeeService {
         qw.eq("type_id",req.getType_id());
         qw.eq("is_enabled_5",req.getIs_enabled_5());
         qw.eq("is_enabled_6",req.getIs_enabled_6());
+        qw.orderByAsc("sequence");
         qw.le("start_time",nowDate);// >=
         qw.ge("finish_time",nowDate);// <=
         List<XunyeePic> xunyeePics=new XunyeePic().selectList(qw);

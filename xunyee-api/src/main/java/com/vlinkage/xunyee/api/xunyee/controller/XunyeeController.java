@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 
-@Api("寻艺接口")
+@Api(tags = "寻艺基础接口")
 @RestController
 public class XunyeeController {
 
