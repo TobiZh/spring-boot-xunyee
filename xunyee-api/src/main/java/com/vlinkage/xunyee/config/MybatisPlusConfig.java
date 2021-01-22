@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 //Spring boot方式
 @Configuration
-@MapperScan({"com.vlinkage.ant.xunyee.mapper"})
+@MapperScan({"com.vlinkage.ant.xunyee.mapper","com.vlinkage.xunyee.mapper"})
 public class MybatisPlusConfig {
 
     /**

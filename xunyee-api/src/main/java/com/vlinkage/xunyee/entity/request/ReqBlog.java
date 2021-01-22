@@ -1,6 +1,5 @@
 package com.vlinkage.xunyee.entity.request;
 
-import com.vlinkage.ant.xunyee.entity.XunyeeBlog;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
