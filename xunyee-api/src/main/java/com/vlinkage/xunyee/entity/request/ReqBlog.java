@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 public class ReqBlog {
 
     @ApiModelProperty(value = "艺人id")
-    private Integer person_id;
+    private Integer personId;
 
     @Length(max = 15)
     @ApiModelProperty(value = "标题")
@@ -30,5 +30,5 @@ public class ReqBlog {
     private Integer type;
 
     @ApiModelProperty(value = "类型 id")
-    private Integer type_id;
+    private Integer typeId;
 }

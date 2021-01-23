@@ -18,6 +18,6 @@ public class ResPic {
     @ApiModelProperty("url")
     private String url;
     @ApiModelProperty("type_id")
-    private Integer type_id;
+    private Integer typeId;
 
 }

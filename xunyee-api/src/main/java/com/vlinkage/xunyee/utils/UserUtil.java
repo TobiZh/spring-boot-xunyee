@@ -13,8 +13,8 @@ public class UserUtil {
      * @param request
      * @return
      */
-    public static int getUserId(HttpServletRequest request){
-        int userId= Integer.parseInt(request.getAttribute("userId").toString());
+    public static Integer getUserId(HttpServletRequest request){
+        Integer userId= Integer.parseInt(request.getAttribute("userId").toString());
         return userId;
     }
 }

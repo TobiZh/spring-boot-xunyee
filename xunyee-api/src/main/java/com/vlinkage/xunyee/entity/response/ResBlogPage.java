@@ -9,7 +9,7 @@ public class ResBlogPage {
     @ApiModelProperty("创作id")
     private int id;
     @ApiModelProperty("用户id")
-    private int vcuser_id;
+    private int vcuserId;
     @ApiModelProperty("用户昵称")
     private String nickname;
     @ApiModelProperty("用户头像")
@@ -19,7 +19,8 @@ public class ResBlogPage {
     @ApiModelProperty("标题")
     private String title;
     @ApiModelProperty("点赞数量")
-    private int star_count;
-
+    private int starCount;
+    @ApiModelProperty("是否点赞")
+    private Boolean isStar = false;
 
 }

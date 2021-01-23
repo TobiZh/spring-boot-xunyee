@@ -40,8 +40,8 @@ public class BlogController {
     @ApiOperation("获取TA的动态")
     @GetMapping("user")
     public R<IPage<ResBlogPage>> getBlogByUserId(HttpServletRequest request,ReqPageBlogUser req){
-        if (req.getVcuser_id()==null){
-            req.setVcuser_id(UserUtil.getUserId(request));
+        if (req.getVcuserId()==null){
+            req.setVcuserId(UserUtil.getUserId(request));
         }
         return blogService.getBlogByUserId(req);
     }
@@ -58,23 +58,23 @@ public class BlogController {
     @ApiOperation("动态详情")
     @PassToken
     @GetMapping("info")
-    public R<ResBlogInfo> blogInfo(HttpServletRequest request,int blog_id){
+    public R<ResBlogInfo> blogInfo(HttpServletRequest request,int blogId){
         Integer userId=UserUtil.getUserId(request);
-        return blogService.blogInfo(userId,blog_id);
+        return blogService.blogInfo(userId,blogId);
     }
 
 
     @ApiOperation("点赞（取消点赞）/点踩（取消点踩）")
     @GetMapping("star")
-    public R blogStar(HttpServletRequest request,int blog_id,int type){
+    public R blogStar(HttpServletRequest request,int blogId,int type){
         Integer userId=UserUtil.getUserId(request);
-        return blogService.blogStar(userId,blog_id,type);
+        return blogService.blogStar(userId,blogId,type);
     }
 
     @ApiOperation("收藏/取消收藏")
     @GetMapping("favorite")
-    public R blogFavorite(HttpServletRequest request,int blog_id){
+    public R blogFavorite(HttpServletRequest request,int blogId){
         Integer userId=UserUtil.getUserId(request);
-        return blogService.blogFavorite(userId,blog_id);
+        return blogService.blogFavorite(userId,blogId);
     }
 }

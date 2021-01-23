@@ -100,9 +100,9 @@ public class LoginService {
             XunyeeVcuser user = new XunyeeVcuser();
             user.setNickname(nickname);
             user.setAvatar(avatar);
-            user.setWx_city(city);
-            user.setWx_country(country);
-            user.setWx_province(province);
+            user.setWxCity(city);
+            user.setWxCountry(country);
+            user.setWxProvince(province);
             user.setSex(sex);
             if (user.insert()) {
                 // 新增第三方账号
@@ -112,12 +112,12 @@ public class LoginService {
                 if (StringUtils.isNotEmpty(unionid)) {
                     userThird.setUnionid(unionid);
                 }
-                userThird.setVcuser_id(user.getId());
+                userThird.setVcuserId(user.getId());
                 userThird.insert();
 
                 // 登录成功 生成token
                 String token = JwtUtil.getToken(String.valueOf(user.getId()));
-                redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
+                redisUtil.set("user_toke:"+temp.getVcuserId(),token);
                 ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
                 BeanUtil.copyProperties(user, resLoginSuccess);
                 resLoginSuccess.setToken(token);
@@ -129,14 +129,14 @@ public class LoginService {
         } else {
 
             // 查询当前用户信息
-            XunyeeVcuser user = new XunyeeVcuser().selectById(temp.getVcuser_id());
+            XunyeeVcuser user = new XunyeeVcuser().selectById(temp.getVcuserId());
             // 1.先判断token是否过期
             String token = "";
-            if (!redisUtil.hasKey("user_toke:"+temp.getVcuser_id())) {
+            if (!redisUtil.hasKey("user_toke:"+temp.getVcuserId())) {
                 token = JwtUtil.getToken(String.valueOf(user.getId()));
-                redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
+                redisUtil.set("user_toke:"+temp.getVcuserId(),token);
             }else{
-                token=redisUtil.get("user_toke:"+temp.getVcuser_id()).toString();
+                token=redisUtil.get("user_toke:"+temp.getVcuserId()).toString();
             }
             // 登录成功 生成token
 

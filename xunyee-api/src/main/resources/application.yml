@@ -11,13 +11,6 @@ spring:
     format:
       date: yyyy-MM-dd
       date-time: yyyy-MM-dd HH:mm:ss
-# mybatis-plus配置
-mybatis-plus:
-  configuration:
-    # 关闭下划线转驼峰 不让获取数据为null
-    map-underscore-to-camel-case: false
-
-
 
 logging:
   level:
