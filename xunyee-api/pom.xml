@@ -51,7 +51,10 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
-
+        <dependency><!-- 多数据源 -->
+            <groupId>com.baomidou</groupId>
+            <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
+        </dependency>
         <!-- pgsql -->
         <dependency>
             <groupId>org.postgresql</groupId>

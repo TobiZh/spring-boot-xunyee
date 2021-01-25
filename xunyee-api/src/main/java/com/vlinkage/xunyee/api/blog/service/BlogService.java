@@ -5,14 +5,19 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqBlog;
+import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageBlogUser;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
+import com.vlinkage.xunyee.entity.response.ResPerson;
 import com.vlinkage.xunyee.mapper.MyMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +27,10 @@ public class BlogService {
 
     @Autowired
     private MyMapper myMapper;
+
+    @Autowired
+    private MetaService metaService;
+
 
     public R blog(int userId, ReqBlog req) {
         XunyeeBlog xunyeeBlog=new XunyeeBlog();
@@ -65,31 +74,37 @@ public class BlogService {
 
         // 用户信息
         XunyeeVcuser vcuser=new XunyeeVcuser().selectById(blog.getVcuser_id());
-        info.setVcuser_iId(vcuser.getId());
+        info.setVcuser_id(vcuser.getId());
         info.setNickname(vcuser.getNickname());
         info.setAvatar(vcuser.getAvatar());
         // 相关艺人
+        ResPerson resPerson=metaService.getPersonById(blog.getPerson_id());
+        info.setPerson_name(resPerson.getZh_name());
+        info.setPerson_avatar_customer(resPerson.getAvatar_custom());
 
-        // 如果是品牌 显示相关品牌
+        // 是否 点赞 点踩 收藏
+        boolean isStar=false;
+        boolean isUnStar=false;
+        boolean isFavorite=false;
+        if (userId!=null){
+            QueryWrapper sqw=new QueryWrapper();
+            sqw.eq("vcuser_id",userId);
+            sqw.eq("blog_id",blogId);
+            sqw.eq("status",1);
+            isStar=new XunyeeBlogStar().selectCount(sqw)>0;
+            sqw.eq("type",0);
+            isUnStar=new XunyeeBlogStar().selectCount(sqw)>0;
 
-        // 点赞 点踩
-        QueryWrapper sqw=new QueryWrapper();
-        sqw.eq("vcuser_id",userId);
-        sqw.eq("blog_id",blogId);
-        sqw.eq("status",1);
-        int isStar=new XunyeeBlogStar().selectCount(sqw);
-        sqw.eq("type",0);
-        int isUnStar=new XunyeeBlogStar().selectCount(sqw);
-        info.setIs_star(isStar==0?false:true);
-        info.setIs_unstar(isUnStar==0?false:true);
-
-        //收藏 关注
-        QueryWrapper fqw=new QueryWrapper();
-        fqw.eq("vcuser_id",userId);
-        fqw.eq("blog_id",blogId);
-        sqw.eq("status",1);
-        int isFavorite=new XunyeeBlogFavorite().selectCount(fqw);
-        info.setIs_favorite(isFavorite==0?false:true);
+            //收藏 关注
+            QueryWrapper fqw=new QueryWrapper();
+            fqw.eq("vcuser_id",userId);
+            fqw.eq("blog_id",blogId);
+            fqw.eq("status",1);
+            isFavorite=new XunyeeBlogFavorite().selectCount(fqw)>0;
+        }
+        info.setIs_star(isStar);
+        info.setIs_unstar(isUnStar);
+        info.setIs_favorite(isFavorite);
 
         return R.OK(info);
     }
@@ -172,5 +187,13 @@ public class BlogService {
             }
         }
         return R.ERROR("收藏失败");
+    }
+
+    public R blogReport(ReqBlogReport req) {
+        XunyeeBlogReport report=BeanUtil.copyProperties(req,XunyeeBlogReport.class);
+        if (report.insert()){
+            return R.OK();
+        }
+        return R.ERROR("举报失败");
     }
 }

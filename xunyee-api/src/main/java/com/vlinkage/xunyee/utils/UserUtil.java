@@ -14,7 +14,11 @@ public class UserUtil {
      * @return
      */
     public static Integer getUserId(HttpServletRequest request){
-        Integer userId= Integer.parseInt(request.getAttribute("userId").toString());
+        Integer userId=null;
+        if (request.getAttribute("userId")!=null){
+            userId= Integer.parseInt(request.getAttribute("userId").toString());
+        }
+
         return userId;
     }
 }

@@ -5,6 +5,7 @@ import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.blog.service.BlogService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqBlog;
+import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageBlogUser;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
@@ -77,4 +78,14 @@ public class BlogController {
         Integer userId=UserUtil.getUserId(request);
         return blogService.blogFavorite(userId,blogId);
     }
+
+
+    @ApiOperation("举报动态")
+    @GetMapping("report")
+    public R blogReport(HttpServletRequest request, ReqBlogReport req){
+        Integer userId=UserUtil.getUserId(request);
+        req.setVcuser_id(userId);
+        return blogService.blogReport(req);
+    }
+
 }
