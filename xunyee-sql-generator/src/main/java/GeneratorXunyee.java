@@ -73,6 +73,7 @@ public class GeneratorXunyee {
         // 策略配置
         StrategyConfig strategy = new StrategyConfig();
         strategy.setNaming(NamingStrategy.underline_to_camel);// 表名生成策略
+        strategy.setColumnNaming(NamingStrategy.no_change);
         strategy.setEntityLombokModel(true);
         mpg.setStrategy(strategy);
 

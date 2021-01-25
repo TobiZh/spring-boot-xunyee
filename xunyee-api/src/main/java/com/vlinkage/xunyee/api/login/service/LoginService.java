@@ -2,16 +2,14 @@ package com.vlinkage.xunyee.api.login.service;
 
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
-import cn.binarywang.wx.miniapp.bean.WxMaUserInfo;
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.common.redis.RedisUtil;
 import com.vlinkage.xunyee.config.weixin.WxMaConfiguration;
-import com.vlinkage.xunyee.entity.response.ResLoginSuccess;
+import com.vlinkage.xunyee.entity.response.ResLoginSuccessApp;
+import com.vlinkage.xunyee.entity.response.ResLoginSuccessMini;
 import com.vlinkage.xunyee.jwt.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
@@ -41,70 +39,37 @@ public class LoginService {
         }
 
         try {
+            // ======================= 通过微信接口获取微信用户信息 ===================================
             WxOAuth2Service wxOAuth2Service=wxMpService.getOAuth2Service();
             WxOAuth2AccessToken oAuth2AccessToken=wxOAuth2Service.getAccessToken(code);
             WxOAuth2UserInfo userInfo=wxOAuth2Service.getUserInfo(oAuth2AccessToken,"zh_CN");
             String unionid= userInfo.getUnionId();
             String openid=userInfo.getOpenid();
-            return doLoginMethod(unionid,openid,
-                    userInfo.getNickname(),
-                    userInfo.getHeadImgUrl(),
-                    userInfo.getCity(),
-                    userInfo.getCountry(),
-                    userInfo.getProvince(),
-                    userInfo.getSex());
+            String nickname=userInfo.getNickname();
+            String avatar=userInfo.getHeadImgUrl();
+            String city=userInfo.getCity();
+            String country=userInfo.getCountry();
+            String province=userInfo.getProvince();
+            Integer sex=userInfo.getSex();
+            // ======================= 通过微信接口获取微信用户信息 ===================================
 
-        } catch (WxErrorException e) {
-            e.printStackTrace();
-            return R.ERROR(e.getMessage());
-        }
-    }
-
-    public R wxLoginMini(String appId, String code,String signature, String rawData, String encryptedData, String iv) {
-        final WxMaService wxService = WxMaConfiguration.getMaService(appId);
-        // 用户信息校验
-        try {
-            WxMaJscode2SessionResult session = wxService.getUserService().getSessionInfo(code);
-            String sessionKey=session.getSessionKey();
-            if (!wxService.getUserService().checkUserInfo(sessionKey, rawData, signature)) {
-                return R.ERROR("user check failed");
-            }
-            // 解密用户信息
-            WxMaUserInfo userInfo = wxService.getUserService().getUserInfo(sessionKey, encryptedData, iv);
-            // 每个客户端的 openid 都是唯一的
-            String unionid= userInfo.getUnionId();
-            String openid=userInfo.getOpenId();
-
-            return doLoginMethod(unionid,openid,
-                    userInfo.getNickName(),
-                    userInfo.getAvatarUrl(),
-                    userInfo.getCity(),
-                    userInfo.getCountry(),
-                    userInfo.getProvince(),
-                    Integer.valueOf(userInfo.getGender()));
-
-        } catch (WxErrorException e) {
-            log.error(e.getMessage(), e);
-            return R.ERROR(e.getMessage());
-        }
-    }
-
-    private R doLoginMethod(String unionid,String openid,String nickname,String avatar,String city,String country,String province,Integer sex){
-        // 每个客户端的 openid 都是唯一的
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("unionid", unionid);
-        qw.eq("openid", openid);
-        XunyeeVcuserOauth temp = new XunyeeVcuserOauth().selectOne(qw);
-        if (temp == null) {
-            // 新增账号
-            XunyeeVcuser user = new XunyeeVcuser();
-            user.setNickname(nickname);
-            user.setAvatar(avatar);
-            user.setWxCity(city);
-            user.setWxCountry(country);
-            user.setWxProvince(province);
-            user.setSex(sex);
-            if (user.insert()) {
+            // ======================= 自己系统的登录逻辑 ===================================
+            QueryWrapper qw = new QueryWrapper();
+            qw.eq("unionid", unionid);
+            qw.eq("openid", openid);
+            XunyeeVcuserOauth temp = new XunyeeVcuserOauth().selectOne(qw);
+            if (temp == null) {
+                // 新增账号
+                XunyeeVcuser user = new XunyeeVcuser();
+                user.setNickname(nickname);
+                user.setAvatar(avatar);
+                user.setWx_city(city);
+                user.setWx_country(country);
+                user.setWx_province(province);
+                user.setSex(sex);
+                if (!user.insert()) {
+                    return R.ERROR();
+                }
                 // 新增第三方账号
                 XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
                 userThird.setSite(5);
@@ -112,39 +77,76 @@ public class LoginService {
                 if (StringUtils.isNotEmpty(unionid)) {
                     userThird.setUnionid(unionid);
                 }
-                userThird.setVcuserId(user.getId());
+                userThird.setVcuser_id(user.getId());
                 userThird.insert();
-
-                // 登录成功 生成token
+                // 生成token
                 String token = JwtUtil.getToken(String.valueOf(user.getId()));
-                redisUtil.set("user_toke:"+temp.getVcuserId(),token);
-                ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
-                BeanUtil.copyProperties(user, resLoginSuccess);
+                redisUtil.set("user_toke:"+user.getId(),token);
+                ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
                 resLoginSuccess.setToken(token);
                 return R.OK(resLoginSuccess);
             }
-
-            return R.ERROR();
-
-        } else {
-
-            // 查询当前用户信息
-            XunyeeVcuser user = new XunyeeVcuser().selectById(temp.getVcuserId());
-            // 1.先判断token是否过期
-            String token = "";
-            if (!redisUtil.hasKey("user_toke:"+temp.getVcuserId())) {
-                token = JwtUtil.getToken(String.valueOf(user.getId()));
-                redisUtil.set("user_toke:"+temp.getVcuserId(),token);
-            }else{
-                token=redisUtil.get("user_toke:"+temp.getVcuserId()).toString();
-            }
-            // 登录成功 生成token
-
-
-            ResLoginSuccess resLoginSuccess = new ResLoginSuccess();
-            BeanUtil.copyProperties(user, resLoginSuccess);
+            // 生成token
+            String token = JwtUtil.getToken(String.valueOf(temp.getVcuser_id()));
+            redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
+            ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
             resLoginSuccess.setToken(token);
             return R.OK(resLoginSuccess);
+            // ======================= 自己系统的登录逻辑 ===================================
+        } catch (WxErrorException e) {
+            e.printStackTrace();
+            return R.ERROR(e.getMessage());
+        }
+    }
+
+    public R wxLoginMini(String appId, String code) {
+        final WxMaService wxService = WxMaConfiguration.getMaService(appId);
+        // 用户信息校验
+        try {
+            WxMaJscode2SessionResult session = wxService.getUserService().getSessionInfo(code);
+            String sessionKey=session.getSessionKey();
+            String unionid= session.getUnionid();
+            String openid=session.getOpenid();
+
+            // 每个客户端的 openid 都是唯一的
+            QueryWrapper qw = new QueryWrapper();
+            qw.eq("unionid", unionid);
+            qw.eq("openid", openid);
+            XunyeeVcuserOauth temp = new XunyeeVcuserOauth().selectOne(qw);
+            if (temp == null) {
+                // 新增账号
+                XunyeeVcuser user = new XunyeeVcuser();
+                user.setSex(1);//默认给1
+                if (!user.insert()) {
+                    return R.ERROR();
+                }
+                // 新增第三方账号
+                XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
+                userThird.setSite(5);
+                userThird.setOpenid(openid);
+                if (StringUtils.isNotEmpty(unionid)) {
+                    userThird.setUnionid(unionid);
+                }
+                userThird.setVcuser_id(user.getId());
+                userThird.insert();
+                // 登录成功 生成token
+                String token = JwtUtil.getToken(String.valueOf(user.getId()));
+                redisUtil.set("user_toke:"+user.getId(),token);
+                ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
+                resLoginSuccess.setSession_key(sessionKey);
+                resLoginSuccess.setToken(token);
+                return R.OK(resLoginSuccess);
+            }
+            // 登录成功 生成token
+            String token = JwtUtil.getToken(String.valueOf(temp.getVcuser_id()));
+            redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
+            ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
+            resLoginSuccess.setSession_key(sessionKey);
+            resLoginSuccess.setToken(token);
+            return R.OK(resLoginSuccess);
+        } catch (WxErrorException e) {
+            log.error(e.getMessage(), e);
+            return R.ERROR(e.getMessage());
         }
     }
 }

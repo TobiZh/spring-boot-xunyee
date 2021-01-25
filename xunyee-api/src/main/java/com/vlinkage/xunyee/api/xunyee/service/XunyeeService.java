@@ -22,9 +22,9 @@ public class XunyeeService {
         LocalDateTime nowDate=LocalDateTime.now();
 
         QueryWrapper qw=new QueryWrapper();
-        qw.eq("type_id",req.getTypeId());
-        qw.eq("is_enabled_5",req.getIsEnabledMini());
-        qw.eq("is_enabled_6",req.getIsEnabledApp());
+        qw.eq("type_id",req.getType_id());
+        qw.eq("is_enabled_5",req.getIs_enabled_mini());
+        qw.eq("is_enabled_6",req.getIs_enabled_app());
         qw.orderByAsc("sequence");
         qw.le("start_time",nowDate);// >=
         qw.ge("finish_time",nowDate);// <=

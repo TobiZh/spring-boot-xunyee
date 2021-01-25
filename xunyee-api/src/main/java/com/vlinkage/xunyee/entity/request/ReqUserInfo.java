@@ -6,7 +6,6 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotEmpty;
 
-
 @Data
 public class ReqUserInfo {
 
@@ -18,4 +17,14 @@ public class ReqUserInfo {
     @ApiModelProperty("头像 传绝对路径连接")
     @NotEmpty
     private String avatar;
+
+    @ApiModelProperty("性别")
+    private Integer sex;
+
+    @ApiModelProperty("微信city")
+    private String wx_city;
+    @ApiModelProperty("微信country")
+    private String wx_country;
+    @ApiModelProperty("微信province")
+    private String wx_province;
 }

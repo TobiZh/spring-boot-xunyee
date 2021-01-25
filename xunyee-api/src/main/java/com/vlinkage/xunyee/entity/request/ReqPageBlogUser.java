@@ -8,5 +8,5 @@ import lombok.Data;
 public class ReqPageBlogUser extends ReqMyPage {
 
     @ApiModelProperty("不传表示查询当前登录用户的")
-    private Integer vcuserId;
+    private Integer vcuser_id;
 }

@@ -40,8 +40,8 @@ public class BlogController {
     @ApiOperation("获取TA的动态")
     @GetMapping("user")
     public R<IPage<ResBlogPage>> getBlogByUserId(HttpServletRequest request,ReqPageBlogUser req){
-        if (req.getVcuserId()==null){
-            req.setVcuserId(UserUtil.getUserId(request));
+        if (req.getVcuser_id()==null){
+            req.setVcuser_id(UserUtil.getUserId(request));
         }
         return blogService.getBlogByUserId(req);
     }

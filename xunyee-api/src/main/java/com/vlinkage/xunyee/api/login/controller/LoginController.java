@@ -24,18 +24,18 @@ public class LoginController {
 
     @ApiOperation(value="微信登录 app")
     @PassToken
-    @PostMapping("login/wx/app/{code}")
-    public R appWxLogin(@NotNull(message = "code不能为空") @PathVariable("code") String code) {
+    @PostMapping("login/wx/app")
+    public R appWxLogin(@NotNull(message = "code不能为空")String code) {
         String appId=wxMpProperties.getConfigs().get(0).getAppid();
         return loginService.wxOpenLogin(appId,code);
     }
 
     @ApiOperation(value="微信登录 小程序")
     @PassToken
-    @PostMapping("login/wx/miniprogram")
-    public R miniWxLogin(String code, String signature, String rawData, String encryptedData, String iv) {
+    @GetMapping("login/wx/miniprogram")
+    public R miniWxLogin(String code) {
         String appId=wxMaProperties.getConfigs().get(0).getAppid();
 
-        return loginService.wxLoginMini(appId,code,signature,rawData,encryptedData,iv);
+        return loginService.wxLoginMini(appId,code);
     }
 }

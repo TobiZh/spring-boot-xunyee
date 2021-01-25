@@ -26,7 +26,7 @@ public class BlogService {
     public R blog(int userId, ReqBlog req) {
         XunyeeBlog xunyeeBlog=new XunyeeBlog();
         BeanUtil.copyProperties(req,xunyeeBlog);
-        xunyeeBlog.setVcuserId(userId);
+        xunyeeBlog.setVcuser_id(userId);
         if (xunyeeBlog.insert()){
             return R.OK();
         }
@@ -35,7 +35,7 @@ public class BlogService {
 
     public R<IPage<ResBlogPage>> getBlogByUserId(ReqPageBlogUser req) {
         Page page=new Page(req.getCurrent(),req.getSize());
-        IPage<ResBlogPage> iPage=myMapper.selectUserBlogPage(page,req.getVcuserId());
+        IPage<ResBlogPage> iPage=myMapper.selectUserBlogPage(page,req.getVcuser_id());
         return R.OK(iPage);
     }
 
@@ -50,22 +50,22 @@ public class BlogService {
 
         // 动态信息
         XunyeeBlog blog=new XunyeeBlog().selectById(blogId);
-        info.setBlogId(blog.getId());
+        info.setBlog_id(blog.getId());
         info.setTitle(blog.getTitle());
         info.setContent(blog.getContent());
         info.setImages(blog.getImages());
         info.setCreated(blog.getCreated());
         info.setType(blog.getType());
-        info.setTypeId(blog.getTypeId());
-        info.setPersonId(blog.getPersonId());
+        info.setType_id(blog.getType_id());
+        info.setPerson_id(blog.getPerson_id());
 
-        info.setStarCount(blog.getStarCount());
-        info.setUnstarCount(blog.getUnstarCount());
-        info.setFavoriteCount(blog.getFavoriteCount());
+        info.setStar_count(blog.getStar_count());
+        info.setUnstar_count(blog.getUnstar_count());
+        info.setFavorite_count(blog.getFavorite_count());
 
         // 用户信息
-        XunyeeVcuser vcuser=new XunyeeVcuser().selectById(blog.getVcuserId());
-        info.setVcuserId(vcuser.getId());
+        XunyeeVcuser vcuser=new XunyeeVcuser().selectById(blog.getVcuser_id());
+        info.setVcuser_iId(vcuser.getId());
         info.setNickname(vcuser.getNickname());
         info.setAvatar(vcuser.getAvatar());
         // 相关艺人
@@ -80,8 +80,8 @@ public class BlogService {
         int isStar=new XunyeeBlogStar().selectCount(sqw);
         sqw.eq("type",0);
         int isUnStar=new XunyeeBlogStar().selectCount(sqw);
-        info.setIsStar(isStar==0?false:true);
-        info.setIsUnstar(isUnStar==0?false:true);
+        info.setIs_star(isStar==0?false:true);
+        info.setIs_unstar(isUnStar==0?false:true);
 
         //收藏 关注
         QueryWrapper fqw=new QueryWrapper();
@@ -89,7 +89,7 @@ public class BlogService {
         fqw.eq("blog_id",blogId);
         sqw.eq("status",1);
         int isFavorite=new XunyeeBlogFavorite().selectCount(fqw);
-        info.setIsFavorite(isFavorite==0?false:true);
+        info.setIs_favorite(isFavorite==0?false:true);
 
         return R.OK(info);
     }
@@ -103,8 +103,8 @@ public class BlogService {
         XunyeeBlogStar temp=new XunyeeBlogStar().selectOne(qw);
         if (temp==null){
             XunyeeBlogStar blogSatr=new XunyeeBlogStar();
-            blogSatr.setVcuserId(userId);
-            blogSatr.setBlogId(blogId);
+            blogSatr.setVcuser_id(userId);
+            blogSatr.setBlog_id(blogId);
             blogSatr.setType(type);
             blogSatr.setStatus(1);
             if (blogSatr.insert()){
@@ -112,10 +112,10 @@ public class BlogService {
                 XunyeeBlog blog=new XunyeeBlog().selectById(blogId);
                 if (type==0){
                     //点踩
-                    blog.setUnstarCount(blog.getUnstarCount()+1);
+                    blog.setUnstar_count(blog.getUnstar_count()+1);
                 }else if (type==1){
                     //点赞
-                    blog.setStarCount(blog.getStarCount()+1);
+                    blog.setStar_count(blog.getStar_count()+1);
                 }
                 blog.updateById();
                 return R.OK();
@@ -127,14 +127,14 @@ public class BlogService {
                 XunyeeBlog blog=new XunyeeBlog().selectById(blogId);
                 if (type==0){
                     //点踩
-                    int unstarCount=blog.getUnstarCount();
-                    blog.setUnstarCount(temp.getStatus()==0?unstarCount-1:unstarCount+1);
+                    int unstarCount=blog.getUnstar_count();
+                    blog.setUnstar_count(temp.getStatus()==0?unstarCount-1:unstarCount+1);
                 }else if (type==1){
                     //点赞
-                    int starCount=blog.getStarCount();
-                    blog.setStarCount(temp.getStatus()==0?starCount-1:starCount+1);
+                    int starCount=blog.getStar_count();
+                    blog.setStar_count(temp.getStatus()==0?starCount-1:starCount+1);
                 }
-                blog.setStarCount(blog.getStarCount()+1);
+                blog.setStar_count(blog.getStar_count()+1);
                 blog.updateById();
                 return R.OK();
             }
@@ -149,14 +149,14 @@ public class BlogService {
         XunyeeBlogFavorite temp=new XunyeeBlogFavorite().selectOne(qw);
         if (temp==null){
             XunyeeBlogFavorite favorite=new XunyeeBlogFavorite();
-            favorite.setVcuserId(userId);
-            favorite.setBlogId(blogId);
+            favorite.setVcuser_id(userId);
+            favorite.setBlog_id(blogId);
             favorite.setStatus(1);
             if (favorite.insert()){
                 // 该动态添加 favorite_count 计数+1
                 XunyeeBlog blog=new XunyeeBlog().selectById(blogId);
-                int starCount=blog.getFavoriteCount();
-                blog.setFavoriteCount(starCount+1);
+                int starCount=blog.getFavorite_count();
+                blog.setFavorite_count(starCount+1);
                 blog.updateById();
                 return R.OK();
             }
@@ -165,8 +165,8 @@ public class BlogService {
             if (temp.updateById()) {
                 // 该动态添加 favorite_count 计数+1
                 XunyeeBlog blog=new XunyeeBlog().selectById(blogId);
-                int favoriteCount=blog.getFavoriteCount();
-                blog.setFavoriteCount(temp.getStatus()==0?favoriteCount-1:favoriteCount+1);
+                int favoriteCount=blog.getFavorite_count();
+                blog.setFavorite_count(temp.getStatus()==0?favoriteCount-1:favoriteCount+1);
                 blog.updateById();
                 return R.OK();
             }
