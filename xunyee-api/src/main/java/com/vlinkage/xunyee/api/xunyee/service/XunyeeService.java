@@ -3,10 +3,12 @@ package com.vlinkage.xunyee.api.xunyee.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.vlinkage.ant.xunyee.entity.XunyeeNavigation;
 import com.vlinkage.ant.xunyee.entity.XunyeePic;
+import com.vlinkage.ant.xunyee.entity.XunyeeSearchHot;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.ResNavigation;
 import com.vlinkage.xunyee.entity.response.ResPic;
+import com.vlinkage.xunyee.entity.response.ResSearchHot;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.stereotype.Service;
@@ -41,5 +43,15 @@ public class XunyeeService {
         List<XunyeeNavigation> navigation=new XunyeeNavigation().selectList(qw);
         List<ResNavigation> resNavigations=CopyListUtil.copyListProperties(navigation,ResNavigation.class);
         return R.OK(resNavigations);
+    }
+
+    public R<List<ResSearchHot>> getSearchHot() {
+        QueryWrapper qw=new QueryWrapper();
+        qw.eq("is_deleted",false);
+        qw.orderByAsc("orderby");
+        qw.select("id","name");
+        List<XunyeeSearchHot> searchHot=new XunyeeSearchHot().selectList(qw);
+        List<ResSearchHot> resSearchHots=CopyListUtil.copyListProperties(searchHot,ResSearchHot.class);
+        return R.OK(resSearchHots);
     }
 }

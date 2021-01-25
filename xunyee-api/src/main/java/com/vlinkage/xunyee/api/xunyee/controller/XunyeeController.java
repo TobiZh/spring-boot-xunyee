@@ -6,6 +6,7 @@ import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
 import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.ResNavigation;
 import com.vlinkage.xunyee.entity.response.ResPic;
+import com.vlinkage.xunyee.entity.response.ResSearchHot;
 import com.vlinkage.xunyee.jwt.PassToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -38,5 +39,13 @@ public class XunyeeController {
     public R<List<ResNavigation>> getNavigation(){
 
         return xunyeeService.getNavigation();
+    }
+
+    @ApiOperation("热门搜索")
+    @PassToken
+    @GetMapping("search/hot")
+    public R<List<ResSearchHot>> getSearchHot(){
+
+        return xunyeeService.getSearchHot();
     }
 }
