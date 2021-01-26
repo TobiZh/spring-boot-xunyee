@@ -16,13 +16,6 @@ import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 public class GeneratorXunyee {
 
     /**
-     * xunyee_pic 表 is_enabled_5，is_enabled_6
-     * @TableField("is_enabled_5")
-     * 这个字段需要单独加注释
-     */
-
-
-    /**
      * <p>
      * MySQL 生成演示
      * </p>

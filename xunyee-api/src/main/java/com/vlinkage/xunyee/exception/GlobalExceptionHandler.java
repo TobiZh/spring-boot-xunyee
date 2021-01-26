@@ -29,7 +29,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Throwable.class)
     public R handleThrowable(Throwable e, HttpServletRequest request) {
-        //TODO 运行时异常，可以在这里记录，用于发异常邮件通知
         log.error("URL:{} ,系统异常: ",request.getRequestURI(), e);
         return R.ERROR(e.getMessage());
     }
