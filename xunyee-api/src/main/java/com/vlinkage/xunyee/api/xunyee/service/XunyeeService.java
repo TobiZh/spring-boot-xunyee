@@ -68,7 +68,7 @@ public class XunyeeService {
         return R.ERROR();
     }
 
-    public R<IPage> systemNotification(int userId, ReqMyPage myPage) {
+    public R<IPage<ResSystemNotification>> systemNotification(int userId, ReqMyPage myPage) {
 
         QueryWrapper qw=new QueryWrapper();
         qw.eq("receive_vcuser_id",userId);
@@ -78,5 +78,21 @@ public class XunyeeService {
         iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(), ResSystemNotification.class));
 
         return R.OK(iPage);
+    }
+
+    public R systemNotificationRead(int id) {
+        XunyeeSystemNotification notification=new XunyeeSystemNotification().selectById(id);
+        if (notification!=null){
+            if (notification.getIs_read()){
+                return R.ERROR("已标记过");
+            }
+            notification.setIs_read(true);
+            notification.setRead_time(new Date());
+            if (notification.updateById()){
+                return R.OK();
+            }
+            return R.ERROR();
+        }
+        return R.ERROR("该通知不存在");
     }
 }

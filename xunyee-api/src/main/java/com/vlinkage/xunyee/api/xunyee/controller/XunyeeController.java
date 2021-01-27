@@ -11,6 +11,7 @@ import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.ResNavigation;
 import com.vlinkage.xunyee.entity.response.ResPic;
 import com.vlinkage.xunyee.entity.response.ResSearchHot;
+import com.vlinkage.xunyee.entity.response.ResSystemNotification;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
@@ -64,8 +65,15 @@ public class XunyeeController {
 
     @ApiOperation("寻艺通知")
     @GetMapping("system/notification")
-    public R<IPage> systemNotification(HttpServletRequest request, ReqMyPage myPage){
+    public R<IPage<ResSystemNotification>> systemNotification(HttpServletRequest request, ReqMyPage myPage){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.systemNotification(userId,myPage);
+    }
+
+    @ApiOperation("寻艺通知 标记已读")
+    @GetMapping("system/notification/read")
+    public R systemNotificationRead(int id){
+
+        return xunyeeService.systemNotificationRead(id);
     }
 }
