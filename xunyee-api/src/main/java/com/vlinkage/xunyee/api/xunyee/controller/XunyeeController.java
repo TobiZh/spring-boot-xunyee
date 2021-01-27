@@ -1,9 +1,11 @@
 package com.vlinkage.xunyee.api.xunyee.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.vlinkage.ant.xunyee.entity.XunyeeFeedback;
 import com.vlinkage.ant.xunyee.entity.XunyeeNavigation;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
+import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqFeedback;
 import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.ResNavigation;
@@ -58,5 +60,12 @@ public class XunyeeController {
     public R feedback(HttpServletRequest request, ReqFeedback req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.feedback(userId,req);
+    }
+
+    @ApiOperation("寻艺通知")
+    @GetMapping("system/notification")
+    public R<IPage> systemNotification(HttpServletRequest request, ReqMyPage myPage){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.systemNotification(userId,myPage);
     }
 }

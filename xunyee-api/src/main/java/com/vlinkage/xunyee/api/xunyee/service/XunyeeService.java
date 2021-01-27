@@ -2,16 +2,17 @@ package com.vlinkage.xunyee.api.xunyee.service;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.vlinkage.ant.xunyee.entity.XunyeeFeedback;
-import com.vlinkage.ant.xunyee.entity.XunyeeNavigation;
-import com.vlinkage.ant.xunyee.entity.XunyeePic;
-import com.vlinkage.ant.xunyee.entity.XunyeeSearchHot;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqFeedback;
 import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.ResNavigation;
 import com.vlinkage.xunyee.entity.response.ResPic;
 import com.vlinkage.xunyee.entity.response.ResSearchHot;
+import com.vlinkage.xunyee.entity.response.ResSystemNotification;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.stereotype.Service;
@@ -65,5 +66,17 @@ public class XunyeeService {
             return R.OK();
         }
         return R.ERROR();
+    }
+
+    public R<IPage> systemNotification(int userId, ReqMyPage myPage) {
+
+        QueryWrapper qw=new QueryWrapper();
+        qw.eq("receive_vcuser_id",userId);
+        qw.eq("receive_vcuser_id",0);//所有人都能收到的
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage<ResSystemNotification> iPage=new XunyeeSystemNotification().selectPage(page,qw);
+        iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(), ResSystemNotification.class));
+
+        return R.OK(iPage);
     }
 }
