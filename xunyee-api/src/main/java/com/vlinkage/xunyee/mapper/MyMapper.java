@@ -2,9 +2,10 @@ package com.vlinkage.xunyee.mapper;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.vlinkage.ant.xunyee.entity.XunyeeFollow;
+import com.vlinkage.xunyee.entity.request.ReqRecommendPage;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
 import com.vlinkage.xunyee.entity.response.ResFollowPage;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Component;
 
@@ -19,21 +20,43 @@ public interface MyMapper {
      * @param page
      * @return
      */
-    @Select("select b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
-            "(select CASE status WHEN 1 THEN true ELSE false END from xunyee_blog_star where type=1 and blog_id=b.id) is_star " +
-            "from xunyee_blog b left join xunyee_vcuser u on b.vcuser_id=u.id where (b.vcuser_id=${userId}) order by b.star_count desc")
+    @Select("SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${userId})) is_star " +
+            "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
+            "ON b.vcuser_id=u.id WHERE (b.vcuser_id=${userId}) order by b.star_count desc")
     IPage<ResBlogPage> selectUserBlogPage(Page page, int userId);
-
+    
+    
     /**
-     * 获取动态 根据发布类型
+     * 获取动态 无需登录
+     * 动态类型 1 截屏 2 我在现场 3 品牌代言
      * @param page
+     * @param type
      * @return
      */
-    @Select("select b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar, " +
-            "(select CASE status WHEN 1 THEN true ELSE false END from xunyee_blog_star where type=1 and blog_id=b.id) is_star " +
-            "from xunyee_blog b left join xunyee_vcuser u on b.vcuser_id=u.id where (b.type=${type}) order by b.star_count desc")
-    IPage<ResBlogPage> selectCategoryBlogPage(Page page, Integer type);
+    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar, " +
+            "<when test='vcuser_id!=null'>",
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star ",
+            "</when>",
+            "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
+            "ON b.vcuser_id=u.id WHERE (b.type=${type}) " +
+            "ORDER BY b.star_count DESC</script>"})
+    IPage<ResBlogPage> selectBlogCategoryPage(Page page, Integer type);
 
+    /**
+     * 获取动态 需要登录
+     * 关注
+     * @param page
+     * @param vcuser_id
+     * @return
+     */
+    @Select("SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar, " +
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star " +
+            "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
+            "ON b.vcuser_id=u.id WHERE (b.type=${type}) " +
+            "ORDER BY b.star_count DESC")
+    IPage<ResBlogPage> selectBlogFollowPage(Page page, int vcuser_id);
+    
 
     /**
      * 获取我的关注 我的粉丝
@@ -42,13 +65,28 @@ public interface MyMapper {
      * @param vcuser_id
      * @return
      */
-    @Select({"<secript>SELECT f.id,f.type,u.id vcuser_id,u.avatar,u.nickname FROM xunyee_follow f left join xunyee_vcuser u " +
+    @Select({"<script>SELECT f.id,f.type,u.id vcuser_id,u.avatar,u.nickname FROM xunyee_follow f LEFT JOIN xunyee_vcuser u " +
             "<when test='type==1' >" ,
             " on f.vcuser_id=u.id",
             "</when>",
             "<when test='type==2' >" ,
             " on f.followed_vcuser_id=u.id",
             "</when>",
-            "</secript>"})
+            "</script>"})
     IPage<ResFollowPage> selectFollowPage(Page page, Integer type, Integer vcuser_id);
+
+    /**
+     * 获取作分页
+     * @param page
+     * @return
+     */
+    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar" +
+            "<when test='vcuser_id!=null'>",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star " +
+            "</when>",
+            "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
+            "ON b.vcuser_id=u.id WHERE (b.type=${req.type}) AND (b.person_id=${req.person_id}) AND (b.id!=${req.blog_id}) " +
+            "ORDER BY b.star_count DESC</script>"})
+    IPage<ResBlogPage> selectRecommendBlogPage(Page page,Integer vcuser_id,@Param("req") ReqRecommendPage req);
+    
 }

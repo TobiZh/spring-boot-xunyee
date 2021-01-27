@@ -7,6 +7,7 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqBlog;
 import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageBlogUser;
+import com.vlinkage.xunyee.entity.request.ReqRecommendPage;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
 import com.vlinkage.xunyee.jwt.PassToken;
@@ -34,17 +35,15 @@ public class BlogController {
     @ApiOperation("发布动态")
     @PostMapping("edit")
     public R blog(HttpServletRequest request, ReqBlog req){
-        int userId= UserUtil.getUserId(request);
+        Integer userId= UserUtil.getUserId(request);
         return blogService.blog(userId,req);
     }
 
-    @ApiOperation("获取TA的动态")
-    @GetMapping("user")
-    public R<IPage<ResBlogPage>> getBlogByUserId(HttpServletRequest request,ReqPageBlogUser req){
-        if (req.getVcuser_id()==null){
-            req.setVcuser_id(UserUtil.getUserId(request));
-        }
-        return blogService.getBlogByUserId(req);
+    @ApiOperation("首页动态 关注")
+    @GetMapping("follow")
+    public R<IPage<ResBlogPage>> blogFollow(HttpServletRequest request,ReqMyPage myPage){
+        int userId=UserUtil.getUserId(request);
+        return blogService.blogFollow(myPage,userId);
     }
 
     @ApiOperation("首页动态 剧作截图/现场热拍/品牌代言")
@@ -62,6 +61,15 @@ public class BlogController {
     public R<ResBlogInfo> blogInfo(HttpServletRequest request,int blogId){
         Integer userId=UserUtil.getUserId(request);
         return blogService.blogInfo(userId,blogId);
+    }
+
+    @ApiOperation("推荐动态")
+    @PassToken
+    @GetMapping("recommend")
+    public R<IPage<ResBlogPage>> recommend(HttpServletRequest request,ReqMyPage myPage,ReqRecommendPage req){
+        Integer userId=UserUtil.getUserId(request);
+
+        return blogService.recommend(myPage,req,userId);
     }
 
 
@@ -88,4 +96,12 @@ public class BlogController {
         return blogService.blogReport(req);
     }
 
+    @ApiOperation("获取TA的动态")
+    @GetMapping("vcuser")
+    public R<IPage<ResBlogPage>> getBlogByUserId(HttpServletRequest request,ReqPageBlogUser req){
+        if (req.getVcuser_id()==null){
+            req.setVcuser_id(UserUtil.getUserId(request));
+        }
+        return blogService.getBlogByUserId(req);
+    }
 }

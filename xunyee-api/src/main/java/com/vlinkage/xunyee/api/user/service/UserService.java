@@ -4,9 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.vlinkage.ant.xunyee.entity.XunyeeBlogReport;
 import com.vlinkage.ant.xunyee.entity.XunyeeFollow;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
+import com.vlinkage.ant.xunyee.entity.XunyeeVcuserReport;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageFollow;
 import com.vlinkage.xunyee.entity.request.ReqUserInfo;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
@@ -81,5 +84,13 @@ public class UserService {
         Page page=new Page(req.getCurrent(),req.getSize());
         IPage<ResFollowPage> iPage=myMapper.selectFollowPage(page,req.getType(),vcuser_id);
         return R.OK(iPage);
+    }
+
+    public R report(ReqBlogReport req) {
+        XunyeeVcuserReport report=BeanUtil.copyProperties(req, XunyeeVcuserReport.class);
+        if (report.insert()){
+            return R.OK();
+        }
+        return R.ERROR("举报失败");
     }
 }

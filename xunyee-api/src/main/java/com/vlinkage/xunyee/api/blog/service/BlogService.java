@@ -13,6 +13,7 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqBlog;
 import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageBlogUser;
+import com.vlinkage.xunyee.entity.request.ReqRecommendPage;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
 import com.vlinkage.xunyee.entity.response.ResPerson;
@@ -50,7 +51,13 @@ public class BlogService {
 
     public R<IPage<ResBlogPage>> blogCategory(ReqMyPage myPage,Integer type) {
         Page page=new Page(myPage.getCurrent(),myPage.getSize());
-        IPage<ResBlogPage> iPage=myMapper.selectCategoryBlogPage(page,type);
+        IPage<ResBlogPage> iPage=myMapper.selectBlogCategoryPage(page,type);
+        return R.OK(iPage);
+    }
+
+    public R<IPage<ResBlogPage>> blogFollow(ReqMyPage myPage, int userId) {
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage<ResBlogPage> iPage=myMapper.selectBlogFollowPage(page,userId);
         return R.OK(iPage);
     }
 
@@ -120,6 +127,12 @@ public class BlogService {
         info.setIs_favorite(isFavorite);
         info.setFollow_type(follow_type);
         return R.OK(info);
+    }
+
+    public R<IPage<ResBlogPage>> recommend(ReqMyPage myPage,ReqRecommendPage req,Integer vcuser_id) {
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage iPage=myMapper.selectRecommendBlogPage(page,vcuser_id,req);
+        return R.OK(iPage);
     }
 
     @Transactional
@@ -209,4 +222,5 @@ public class BlogService {
         }
         return R.ERROR("举报失败");
     }
+
 }
