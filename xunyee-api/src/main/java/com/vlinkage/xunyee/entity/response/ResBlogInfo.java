@@ -20,7 +20,7 @@ public class ResBlogInfo {
     @ApiModelProperty("发布时间")
     private Date created;
 
-    @ApiModelProperty("关注 回关 互相关注 取关")
+    @ApiModelProperty("0 关注 1 已关注 2 回关 3 互相关注")
     private int follow_type;
 
     @ApiModelProperty("动态id")

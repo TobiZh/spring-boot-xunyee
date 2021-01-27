@@ -77,15 +77,17 @@ public class BlogService {
         info.setVcuser_id(vcuser.getId());
         info.setNickname(vcuser.getNickname());
         info.setAvatar(vcuser.getAvatar());
+
         // 相关艺人
         ResPerson resPerson=metaService.getPersonById(blog.getPerson_id());
         info.setPerson_name(resPerson.getZh_name());
         info.setPerson_avatar_customer(resPerson.getAvatar_custom());
 
-        // 是否 点赞 点踩 收藏
+        // 是否 点赞 点踩 收藏 关注状态
         boolean isStar=false;
         boolean isUnStar=false;
         boolean isFavorite=false;
+        int follow_type=0;
         if (userId!=null){
             QueryWrapper sqw=new QueryWrapper();
             sqw.eq("vcuser_id",userId);
@@ -95,17 +97,28 @@ public class BlogService {
             sqw.eq("type",0);
             isUnStar=new XunyeeBlogStar().selectCount(sqw)>0;
 
-            //收藏 关注
-            QueryWrapper fqw=new QueryWrapper();
-            fqw.eq("vcuser_id",userId);
-            fqw.eq("blog_id",blogId);
-            fqw.eq("status",1);
-            isFavorite=new XunyeeBlogFavorite().selectCount(fqw)>0;
+            // 收藏
+            QueryWrapper faqw=new QueryWrapper();
+            faqw.eq("vcuser_id",userId);
+            faqw.eq("blog_id",blogId);
+            faqw.eq("status",1);
+            isFavorite=new XunyeeBlogFavorite().selectCount(faqw)>0;
+
+            // 关注状态
+            QueryWrapper foqw=new QueryWrapper();
+            foqw.eq("vcuser_id",blog.getVcuser_id());
+            foqw.eq("followed_vcuser_id",userId);
+            foqw.eq("status",1);
+            XunyeeFollow follow=new XunyeeFollow().selectOne(foqw);
+            if (follow!=null){
+                follow_type=follow.getType();
+            }
+
         }
         info.setIs_star(isStar);
         info.setIs_unstar(isUnStar);
         info.setIs_favorite(isFavorite);
-
+        info.setFollow_type(follow_type);
         return R.OK(info);
     }
 

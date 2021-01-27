@@ -1,10 +1,13 @@
 package com.vlinkage.xunyee.api.xunyee.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.vlinkage.ant.xunyee.entity.XunyeeFeedback;
 import com.vlinkage.ant.xunyee.entity.XunyeeNavigation;
 import com.vlinkage.ant.xunyee.entity.XunyeePic;
 import com.vlinkage.ant.xunyee.entity.XunyeeSearchHot;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.request.ReqFeedback;
 import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.ResNavigation;
 import com.vlinkage.xunyee.entity.response.ResPic;
@@ -53,5 +56,14 @@ public class XunyeeService {
         List<XunyeeSearchHot> searchHot=new XunyeeSearchHot().selectList(qw);
         List<ResSearchHot> resSearchHots=CopyListUtil.copyListProperties(searchHot,ResSearchHot.class);
         return R.OK(resSearchHots);
+    }
+
+    public R feedback(int userId, ReqFeedback req) {
+        XunyeeFeedback feedback= BeanUtil.copyProperties(req,XunyeeFeedback.class);
+        feedback.setVcuser_id(userId);
+        if (feedback.insert()){
+            return R.OK();
+        }
+        return R.ERROR();
     }
 }
