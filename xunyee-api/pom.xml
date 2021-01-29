@@ -151,6 +151,8 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- 不执行测试用例，也不编译测试用例类，不但跳过单元测试的运行，也跳过测试代码的编译 -->
+                    <skip>true</skip>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

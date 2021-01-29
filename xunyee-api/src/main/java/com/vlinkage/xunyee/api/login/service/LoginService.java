@@ -33,7 +33,7 @@ public class LoginService {
     private WxMpService wxMpService;
 
     @Transactional
-    public R wxOpenLogin(String appId,String code) {
+    public R wxOpenLogin(String appId,String code,int site) {
         if (!this.wxMpService.switchover(appId)) {
             throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appId));
         }
@@ -72,7 +72,7 @@ public class LoginService {
                 }
                 // 新增第三方账号
                 XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
-                userThird.setSite(5);
+                userThird.setSite(site);
                 userThird.setOpenid(openid);
                 if (StringUtils.isNotEmpty(unionid)) {
                     userThird.setUnionid(unionid);
@@ -99,7 +99,7 @@ public class LoginService {
         }
     }
 
-    public R wxLoginMini(String appId, String code) {
+    public R wxLoginMini(String appId, String code,int site) {
         final WxMaService wxService = WxMaConfiguration.getMaService(appId);
         // 用户信息校验
         try {
@@ -122,7 +122,7 @@ public class LoginService {
                 }
                 // 新增第三方账号
                 XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
-                userThird.setSite(5);
+                userThird.setSite(site);
                 userThird.setOpenid(openid);
                 if (StringUtils.isNotEmpty(unionid)) {
                     userThird.setUnionid(unionid);

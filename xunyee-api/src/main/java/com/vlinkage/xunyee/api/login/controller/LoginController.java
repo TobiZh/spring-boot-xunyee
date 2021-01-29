@@ -27,7 +27,7 @@ public class LoginController {
     @PostMapping("login/wx/app")
     public R appWxLogin(@NotNull(message = "code不能为空")String code) {
         String appId=wxMpProperties.getConfigs().get(0).getAppid();
-        return loginService.wxOpenLogin(appId,code);
+        return loginService.wxOpenLogin(appId,code,6);
     }
 
     @ApiOperation(value="微信登录 小程序")
@@ -36,6 +36,6 @@ public class LoginController {
     public R miniWxLogin(String code) {
         String appId=wxMaProperties.getConfigs().get(0).getAppid();
 
-        return loginService.wxLoginMini(appId,code);
+        return loginService.wxLoginMini(appId,code,5);
     }
 }

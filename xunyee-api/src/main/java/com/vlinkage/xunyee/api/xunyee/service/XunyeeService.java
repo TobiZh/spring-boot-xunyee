@@ -9,10 +9,7 @@ import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqFeedback;
 import com.vlinkage.xunyee.entity.request.ReqPic;
-import com.vlinkage.xunyee.entity.response.ResNavigation;
-import com.vlinkage.xunyee.entity.response.ResPic;
-import com.vlinkage.xunyee.entity.response.ResSearchHot;
-import com.vlinkage.xunyee.entity.response.ResSystemNotification;
+import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.stereotype.Service;
@@ -95,4 +92,5 @@ public class XunyeeService {
         }
         return R.ERROR("该通知不存在");
     }
+
 }

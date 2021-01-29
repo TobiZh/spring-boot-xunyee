@@ -4,14 +4,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.vlinkage.ant.xunyee.entity.XunyeeFeedback;
 import com.vlinkage.ant.xunyee.entity.XunyeeNavigation;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqFeedback;
 import com.vlinkage.xunyee.entity.request.ReqPic;
-import com.vlinkage.xunyee.entity.response.ResNavigation;
-import com.vlinkage.xunyee.entity.response.ResPic;
-import com.vlinkage.xunyee.entity.response.ResSearchHot;
-import com.vlinkage.xunyee.entity.response.ResSystemNotification;
+import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
@@ -30,7 +28,8 @@ public class XunyeeController {
 
     @Autowired
     private XunyeeService xunyeeService;
-
+    @Autowired
+    private MetaService metaService;
 
     @ApiOperation("获取 封面、轮播图、广告")
     @PassToken
@@ -75,5 +74,13 @@ public class XunyeeController {
     public R systemNotificationRead(int id){
 
         return xunyeeService.systemNotificationRead(id);
+    }
+
+    @ApiOperation("搜索艺人")
+    @PassToken
+    @GetMapping("person/search")
+    public R<IPage<ResPerson>> personSearch(ReqMyPage myPage,String name){
+        IPage<ResPerson> iPage=metaService.getPersonPage(myPage,name);
+        return R.OK(iPage);
     }
 }

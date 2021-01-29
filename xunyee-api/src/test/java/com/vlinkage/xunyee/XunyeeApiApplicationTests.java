@@ -15,10 +15,7 @@ class XunyeeApiApplicationTests {
 
     @Test
     void contextLoads() {
-        QueryWrapper qw=new QueryWrapper();
-        qw.last("limit 50");
-        List<XunyeeVcuser> ad=new XunyeeVcuser().selectList(qw);
-        System.out.println(JSONArray.toJSON(ad));
+
     }
 
 }

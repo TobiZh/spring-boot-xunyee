@@ -4,20 +4,43 @@ package com.vlinkage.xunyee.api.meta.service;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.vlinkage.ant.meta.entity.Brand;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
+import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.response.ResPerson;
+import com.vlinkage.xunyee.utils.CopyListUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MetaService {
 
+
+
+    @DS("meta")
+    public IPage<ResPerson> getPersonPage(ReqMyPage myPage,String name){
+
+        QueryWrapper qw=new QueryWrapper();
+        if (StringUtils.isNotEmpty(name)){
+            qw.like("zh_name",name);
+        }
+        qw.select("id","zh_name","avatar_custom");
+
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage<ResPerson> iPage=new Person().selectPage(page,qw);
+        iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(),ResPerson.class));
+        return iPage;
+    }
+
     @DS("meta")
     public ResPerson getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
-        qw.select("zh_name","avatar_custom");
+        qw.select("id","zh_name","avatar_custom");
         Person person=new Person().selectById(person_id);
         ResPerson resPerson=BeanUtil.copyProperties(person,ResPerson.class);
         return resPerson;
     }
+
+
 }
