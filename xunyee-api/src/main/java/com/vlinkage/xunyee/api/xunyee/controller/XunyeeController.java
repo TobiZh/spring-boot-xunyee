@@ -83,4 +83,19 @@ public class XunyeeController {
         IPage<ResPerson> iPage=metaService.getPersonPage(myPage,name);
         return R.OK(iPage);
     }
+
+    @ApiOperation("艺人相关的品牌")
+    @PassToken
+    @GetMapping("brand/person")
+    public R<IPage<ResBrandPerson>> brandPerson(ReqMyPage myPage,int person_id){
+        IPage<ResBrandPerson> iPage=metaService.getBrandPerson(myPage,person_id);
+        return R.OK(iPage);
+    }
+
+    @ApiOperation("用户权益")
+    @GetMapping("vcuser_benefit/current")
+    public R vcuserBenefit(HttpServletRequest request){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.vcuserBenefit(userId);
+    }
 }

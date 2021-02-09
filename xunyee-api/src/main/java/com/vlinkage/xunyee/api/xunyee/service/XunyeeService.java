@@ -93,4 +93,12 @@ public class XunyeeService {
         return R.ERROR("该通知不存在");
     }
 
+    public R vcuserBenefit(int userId) {
+        QueryWrapper qw=new QueryWrapper();
+        qw.select("start_time","finish_time");
+        qw.eq("vcuser_id",userId);
+        XunyeeVcuserBenefit benefit=new XunyeeVcuserBenefit().selectOne(qw);
+        ResBenefit resBenefit=BeanUtil.copyProperties(benefit,ResBenefit.class);
+        return R.OK(resBenefit);
+    }
 }

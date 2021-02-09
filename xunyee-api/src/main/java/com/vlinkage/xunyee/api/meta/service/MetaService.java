@@ -8,14 +8,20 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.xunyee.entity.ReqMyPage;
+import com.vlinkage.xunyee.entity.response.ResBrandPerson;
 import com.vlinkage.xunyee.entity.response.ResPerson;
+import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MetaService {
 
+
+    @Autowired
+    private MyMapper myMapper;
 
 
     @DS("meta")
@@ -42,5 +48,11 @@ public class MetaService {
         return resPerson;
     }
 
-
+    @DS("meta")
+    public IPage<ResBrandPerson> getBrandPerson(ReqMyPage myPage, int person_id) {
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage<ResBrandPerson> iPage=myMapper.selectBrandPersonPage(page,person_id);
+        iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(),ResBrandPerson.class));
+        return iPage;
+    }
 }

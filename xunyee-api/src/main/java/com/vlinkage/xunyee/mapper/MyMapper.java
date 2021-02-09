@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.xunyee.entity.request.ReqRecommendPage;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
+import com.vlinkage.xunyee.entity.response.ResBrandPerson;
 import com.vlinkage.xunyee.entity.response.ResFollowPage;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -88,5 +89,10 @@ public interface MyMapper {
             "ON b.vcuser_id=u.id WHERE (b.type=${req.type}) AND (b.person_id=${req.person_id}) AND (b.id!=${req.blog_id}) " +
             "ORDER BY b.star_count DESC</script>"})
     IPage<ResBlogPage> selectRecommendBlogPage(Page page,Integer vcuser_id,@Param("req") ReqRecommendPage req);
-    
+
+
+
+    @Select("SELECT b.id,b.name,b.logo FROM brand b LEFT JOIN meta_brand_person bp ON b.id=bp.brand_id " +
+            "WHERE (bp.person_id=${person_id}) ORDER BY b.created DESC")
+    IPage<ResBrandPerson> selectBrandPersonPage(Page page, int person_id);
 }
