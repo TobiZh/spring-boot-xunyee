@@ -98,4 +98,12 @@ public class XunyeeController {
         int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserBenefit(userId);
     }
+
+    @ApiOperation("签到榜")
+    @GetMapping("person_check_count/rank")
+    public R vcuserBenefit(HttpServletRequest request,int is_follow,int period,String person__zh_name__icontains){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.vcuserBenefit(userId);
+    }
+
 }
