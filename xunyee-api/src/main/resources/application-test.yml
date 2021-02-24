@@ -1,6 +1,7 @@
 
 spring:
   # 数据源配置
+
   datasource:
     dynamic:
       primary: xunyee # 设置xunyee为默认数据源
@@ -23,4 +24,10 @@ spring:
     password: vlinkage80E2
   data:
     mongodb:
-      uri: mongodb://115.29.163.237/xunyee
+      database: xunyee
+      username: vlkdj
+      password: weiling@qinghai118
+      host: 115.29.163.237
+      port: 27017
+
+

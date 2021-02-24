@@ -16,6 +16,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @Api(tags = "寻艺基础接口")
+@RequestMapping("xunyee")
 @RestController
 public class XunyeeController {
 
@@ -99,11 +101,12 @@ public class XunyeeController {
         return xunyeeService.vcuserBenefit(userId);
     }
 
+    @PassToken
     @ApiOperation("签到榜")
     @GetMapping("person_check_count/rank")
-    public R vcuserBenefit(HttpServletRequest request,int is_follow,int period,String person__zh_name__icontains){
-        int userId= UserUtil.getUserId(request);
-        return xunyeeService.vcuserBenefit(userId);
+    public R vcuserBenefit(Integer person){
+
+        return xunyeeService.personCheckCount(person);
     }
 
 }

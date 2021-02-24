@@ -8,7 +8,7 @@ public class R<T> {
 
     private int code;
     private String msg;
-    private T data;
+    private T results;
 
 
 
@@ -22,7 +22,7 @@ public class R<T> {
         R result = new R();
         result.setCode(ResultCode.SUCCESS.getCode());
         result.setMsg(ResultCode.SUCCESS.getMsg());
-        result.setData(object);
+        result.setResults(object);
         return result;
     }
 
@@ -44,7 +44,7 @@ public class R<T> {
         R result = new R();
         result.setCode(code);
         result.setMsg(msg);
-        result.setData(object);
+        result.setResults(object);
         return result;
     }
 

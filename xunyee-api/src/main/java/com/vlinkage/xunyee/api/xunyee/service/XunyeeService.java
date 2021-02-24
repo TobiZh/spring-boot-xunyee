@@ -12,22 +12,36 @@ import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class XunyeeService {
 
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
     public R<List<ResPic>> getPic(ReqPic req) {
         LocalDateTime nowDate=LocalDateTime.now();
 
         QueryWrapper qw=new QueryWrapper();
-        qw.eq("type_id",req.getType_id());
-        qw.eq("is_enabled_5",req.getIs_enabled_mini());
-        qw.eq("is_enabled_6",req.getIs_enabled_app());
+        qw.eq("type_id",req.getType());
+        if (req.getIs_enabled_app()!=null){
+            qw.eq("is_enabled_5",req.getIs_enabled_mini()==0?false:true);
+        }
+        if (req.getIs_enabled_app()!=null){
+            qw.eq("is_enabled_6",req.getIs_enabled_app()==0?false:true);
+        }
+
         qw.orderByAsc("sequence");
         qw.le("start_time",nowDate);// >=
         qw.ge("finish_time",nowDate);// <=
@@ -100,5 +114,16 @@ public class XunyeeService {
         XunyeeVcuserBenefit benefit=new XunyeeVcuserBenefit().selectOne(qw);
         ResBenefit resBenefit=BeanUtil.copyProperties(benefit,ResBenefit.class);
         return R.OK(resBenefit);
+    }
+
+    public R personCheckCount(Integer person) {
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime dateTime=LocalDateTime.parse("2019-11-01 00:00:00",df);
+        Criteria criteria = Criteria.where("data_time").gte(dateTime).lt(dateTime.plusDays(1));
+        Query query = Query.query(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, "check"));
+        List<ResMonPersonCheckCount> list=mongoTemplate.find(query,ResMonPersonCheckCount.class,"person__check__count");
+
+        return R.OK(list);
     }
 }
