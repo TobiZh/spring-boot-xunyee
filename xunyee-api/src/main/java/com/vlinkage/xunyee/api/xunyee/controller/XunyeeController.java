@@ -8,6 +8,7 @@ import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqFeedback;
+import com.vlinkage.xunyee.entity.request.ReqPersonCheckCount;
 import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.jwt.PassToken;
@@ -104,9 +105,9 @@ public class XunyeeController {
     @PassToken
     @ApiOperation("签到榜")
     @GetMapping("person_check_count/rank")
-    public R vcuserBenefit(Integer person){
+    public R vcuserBenefit(ReqPersonCheckCount req){
 
-        return xunyeeService.personCheckCount(person);
+        return xunyeeService.personCheckCount(req);
     }
 
 }
