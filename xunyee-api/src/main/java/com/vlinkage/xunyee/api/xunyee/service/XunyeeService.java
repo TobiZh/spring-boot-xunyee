@@ -4,15 +4,16 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqFeedback;
 import com.vlinkage.xunyee.entity.request.ReqPersonCheckCount;
 import com.vlinkage.xunyee.entity.request.ReqPic;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.utils.CopyListUtil;
-import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -33,6 +35,9 @@ public class XunyeeService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+    @Autowired
+    private MetaService metaService;
+
 
     public R<List<ResPic>> getPic(ReqPic req) {
         LocalDateTime nowDate=LocalDateTime.now();
@@ -122,12 +127,14 @@ public class XunyeeService {
 
     public R personCheckCount(ReqPersonCheckCount req) {
 
+        Integer userId=23;//用户id
+
         int period=req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
-
+        int rankStart=(current-1)*size+1; // 分页rank起始值
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate nowDate=LocalDate.parse("2019-11-23",df);
+        LocalDate nowDate=LocalDate.parse("2019-12-17",df);
 
 //        LocalDate nowDate=LocalDate.now();//当前时间
         LocalDate gteDate; // >=
@@ -140,44 +147,82 @@ public class XunyeeService {
             gteDate=nowDate.minusDays(period);// 减去 7||30
         }
 
-
+        // 查询条件
         Criteria criteria = Criteria.where("data_time").gte(gteDate).lt(ltDate);
         Query query = Query.query(criteria);
-        query.fields().exclude("id");
-        query.fields().exclude("data_time");
-        // 设置起始数
-        query.skip((current - 1) * size)
-                // 设置查询条数
-                .limit(size);
-
         // 查询记录总数
         int totalCount = (int) mongoTemplate.count(query, ResMonPersonCheckCount.class);
         // 数据总页数
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
 
-        // 按签到数排序
-        query.with(Sort.by(Sort.Direction.DESC, "check"));
-
         // 根据person分组 check 求和
-        Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(criteria),
-                Aggregation.group("person").first("person").as("person").sum("check").as("check"),
-                Aggregation.sort(Sort.by(Sort.Direction.DESC, "check")));
-
-
-        AggregationResults<ResMonPersonCheckCount> outputTypeCount = mongoTemplate.aggregate(aggregation, "person__check_count",
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(criteria),
+                Aggregation.group("person").sum("check").as("check"),
+                Aggregation.sort(Sort.by(Sort.Direction.DESC, "check")),
+                Aggregation.skip((current - 1) * size),
+                Aggregation.limit(size)
+        );
+        AggregationResults<ResMonPersonCheckCount> outputTypeCount = mongoTemplate.aggregate(aggregation, "person__check__count",
                 ResMonPersonCheckCount.class);
-        List<ResMonPersonCheckCount> list = outputTypeCount.getMappedResults();
+        List<ResMonPersonCheckCount> resMonPersonCheckCounts = outputTypeCount.getMappedResults();
 
 
-//        List<ResMonPersonCheckCount> list=mongoTemplate.find(query,ResMonPersonCheckCount.class);
+        // 查询当前用户关注的艺人和当天签到数
+        List<ResMonUserPersonCheck> checks=null;
+        if(period<=1&&userId!=null){
+            checks=mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)),
+                    ResMonUserPersonCheck.class);
 
+        }
+
+        // 数据库中查询开启签到的艺人
+        List<Person> personList=metaService.getPersonCheck();
+
+        // 组装数据
+        List<ResPersonCheckCount> resPersonCheckCounts=new ArrayList<>();
+        for (int i = 0; i < resMonPersonCheckCounts.size(); i++) {
+            ResMonPersonCheckCount mon=resMonPersonCheckCounts.get(i);
+            Integer personId=Integer.valueOf(mon.getId());
+
+            ResPersonCheckCount resPersonCheckCount=new ResPersonCheckCount();
+            resPersonCheckCount.setCheck(mon.getCheck());
+            resPersonCheckCount.setRank(rankStart+i);
+            resPersonCheckCount.setPerson(personId);
+            resPersonCheckCount.setId(personId);
+
+            //-------------------- 当前用户>>艺人签到数 --------------------
+            if (period<=1){
+                for (int j = 0; j < checks.size(); j++) {
+                    int tmpPerson=checks.get(j).getPerson();
+                    if (personId==tmpPerson){
+                        resPersonCheckCount.setCheck_my(checks.get(j).getCheck());
+                    }
+                }
+            }else{
+                resPersonCheckCount.setCheck_my(0);
+            }
+            //-------------------- 当前用户>>艺人签到数 --------------------
+
+            //-------------------- 当前艺人头像昵称 --------------------
+            for (Person p:personList){
+                int tmpPerson=p.getId();
+                if (personId==tmpPerson){
+                    resPersonCheckCount.setAvatar_custom(p.getAvatar_custom());
+                    resPersonCheckCount.setZh_name(p.getZh_name());
+                }
+            }
+            //-------------------- 当前艺人头像昵称 --------------------
+
+            resPersonCheckCounts.add(resPersonCheckCount);
+        }
 
         IPage iPage=new Page();
         iPage.setCurrent(current);
         iPage.setTotal(totalCount);
         iPage.setPages(totalPage);
         iPage.setSize(size);
-        iPage.setRecords(list);
+        iPage.setRecords(resPersonCheckCounts);
 
         return R.OK(iPage);
     }

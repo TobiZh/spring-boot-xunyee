@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class MetaService {
 
@@ -42,8 +44,9 @@ public class MetaService {
     @DS("meta")
     public ResPerson getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
+        qw.eq("id",person_id);
         qw.select("id","zh_name","avatar_custom");
-        Person person=new Person().selectById(person_id);
+        Person person=new Person().selectOne(qw);
         ResPerson resPerson=BeanUtil.copyProperties(person,ResPerson.class);
         return resPerson;
     }
@@ -54,5 +57,17 @@ public class MetaService {
         IPage<ResBrandPerson> iPage=myMapper.selectBrandPersonPage(page,person_id);
         iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(),ResBrandPerson.class));
         return iPage;
+    }
+
+    @DS("meta")
+    public List<Person> getPersonCheck(Integer... ids){
+        QueryWrapper qw=new QueryWrapper();
+        qw.select("id","zh_name","avatar_custom");
+        qw.eq("is_xunyee_check",true);
+        if (ids.length>0){
+            qw.in("id",ids);
+        }
+        List<Person> personList=new Person().selectList(qw);
+        return personList;
     }
 }
