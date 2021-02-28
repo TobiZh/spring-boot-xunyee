@@ -26,9 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class XunyeeService {
@@ -217,13 +215,19 @@ public class XunyeeService {
             resPersonCheckCounts.add(resPersonCheckCount);
         }
 
-        IPage iPage=new Page();
-        iPage.setCurrent(current);
-        iPage.setTotal(totalCount);
-        iPage.setPages(totalPage);
-        iPage.setSize(size);
-        iPage.setRecords(resPersonCheckCounts);
-
-        return R.OK(iPage);
+//        IPage iPage=new Page();
+//        iPage.setCurrent(current);
+//        iPage.setTotal(totalCount);
+//        iPage.setPages(totalPage);
+//        iPage.setSize(size);
+//        iPage.setRecords(resPersonCheckCounts);
+        Map map=new HashMap();
+        map.put("results",resPersonCheckCounts);
+        map.put("count",totalCount);
+        map.put("data_time__gte",gteDate);
+        map.put("data_time__lte",ltDate);
+        map.put("systime",LocalDateTime.now());
+        map.put("today_reamin_second","");
+        return R.OK(map);
     }
 }
