@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
+import com.vlinkage.ant.meta.entity.Teleplay;
+import com.vlinkage.ant.meta.entity.Zy;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.response.ResBrandPerson;
 import com.vlinkage.xunyee.entity.response.ResPerson;
@@ -69,5 +71,38 @@ public class MetaService {
         }
         List<Person> personList=new Person().selectList(qw);
         return personList;
+    }
+
+
+    /**
+     * 获取电视剧
+     * @param ids
+     * @return
+     */
+    @DS("meta")
+    public List<Teleplay> getTeleplays(Integer... ids){
+        QueryWrapper qw=new QueryWrapper();
+        qw.select("id","title");
+        if (ids.length>0){
+            qw.in("id",ids);
+        }
+        List<Teleplay> teleplays=new Teleplay().selectList(qw);
+        return teleplays;
+    }
+
+    /**
+     * 获取综艺
+     * @param ids
+     * @return
+     */
+    @DS("meta")
+    public List<Zy> getZys(Integer... ids){
+        QueryWrapper qw=new QueryWrapper();
+        qw.select("id","title");
+        if (ids.length>0){
+            qw.in("id",ids);
+        }
+        List<Zy> zies=new Zy().selectList(qw);
+        return zies;
     }
 }

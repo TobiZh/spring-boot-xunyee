@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
@@ -12,8 +13,10 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqFeedback;
 import com.vlinkage.xunyee.entity.request.ReqPersonCheckCount;
 import com.vlinkage.xunyee.entity.request.ReqPic;
+import com.vlinkage.xunyee.entity.request.ReqUserPersonCheck;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.utils.CopyListUtil;
+import com.vlinkage.xunyee.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -21,11 +24,14 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -227,7 +233,31 @@ public class XunyeeService {
         map.put("data_time__gte",gteDate);
         map.put("data_time__lte",ltDate);
         map.put("systime",LocalDateTime.now());
-        map.put("today_reamin_second","");
+        map.put("today_reamin_second", DateUtil.getDayRemainingTime(new Date()));
         return R.OK(map);
+    }
+
+
+
+    public R vcuserPerson(int userId, ReqUserPersonCheck req) {
+        Query query=Query.query(Criteria.where("vcuser").is(userId).and("person").is(req.getPerson()));
+        Update update=Update.update("is_enabled",req.getIs_enabled()==0?false:true).set("updated",LocalDateTime.now());
+        UpdateResult result=mongoTemplate.updateFirst(query,update,"vc_user__person");
+        if (result.getModifiedCount()>0){
+            return R.OK();
+        }
+       return R.ERROR();
+    }
+
+    public R<ResXunyeeBenefitPrice> benefitPrice() {
+        LocalDateTime nowDate=LocalDateTime.now();
+        QueryWrapper qw=new QueryWrapper();
+        qw.eq("is_enabled",true);
+        qw.le("start_time",nowDate);// >=
+        qw.ge("finish_time",nowDate);// <=
+        qw.orderByAsc("quantity");
+        List<XunyeeBenefitPrice> benefitPrices=new XunyeeBenefitPrice().selectList(qw);
+        List<ResXunyeeBenefitPrice> resXunyeeBenefitPrices=CopyListUtil.copyListProperties(benefitPrices,ResXunyeeBenefitPrice.class);
+        return R.OK(resXunyeeBenefitPrices);
     }
 }

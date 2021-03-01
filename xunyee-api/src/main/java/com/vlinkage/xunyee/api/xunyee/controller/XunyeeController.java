@@ -1,8 +1,6 @@
 package com.vlinkage.xunyee.api.xunyee.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.vlinkage.ant.xunyee.entity.XunyeeFeedback;
-import com.vlinkage.ant.xunyee.entity.XunyeeNavigation;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
@@ -10,6 +8,7 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqFeedback;
 import com.vlinkage.xunyee.entity.request.ReqPersonCheckCount;
 import com.vlinkage.xunyee.entity.request.ReqPic;
+import com.vlinkage.xunyee.entity.request.ReqUserPersonCheck;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
@@ -105,9 +104,25 @@ public class XunyeeController {
     @PassToken
     @ApiOperation("签到榜")
     @GetMapping("person_check_count/rank")
-    public R vcuserBenefit(ReqPersonCheckCount req){
+    public R personCheckCountRank(ReqPersonCheckCount req){
 
         return xunyeeService.personCheckCount(req);
     }
+
+    @ApiOperation("取消关注某个艺人")
+    @GetMapping("vcuser_person")
+    public R vcuserPerson(HttpServletRequest request, ReqUserPersonCheck req){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.vcuserPerson(userId,req);
+    }
+
+    @PassToken
+    @ApiOperation("权益价格")
+    @GetMapping("benefit_price/current")
+    public R<ResXunyeeBenefitPrice> benefitPrice(){
+
+        return xunyeeService.benefitPrice();
+    }
+
 
 }

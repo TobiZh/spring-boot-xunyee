@@ -3,6 +3,8 @@ package com.vlinkage.xunyee.entity.response;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Date;
+
 
 @Data
 public class ResPic {
@@ -19,5 +21,7 @@ public class ResPic {
     private String url;
     @ApiModelProperty("type_id")
     private Integer type_id;
+    @ApiModelProperty("结束时间")
+    private Date finish_time;
 
 }
