@@ -68,7 +68,7 @@ public class VdataService {
         // 提取person id去数据库查询艺人信息
         Integer[] personIds = resMonReportPersonRptTrends.stream().map(e -> e.getPerson()).collect(Collectors.toList())
                 .toArray(new Integer[resMonReportPersonRptTrends.size()]);
-        List<Person> persons=personIds.length>0?metaService.getPersonCheck(personIds):new ArrayList<>();
+        List<Person> persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
 
 
         // 组装数据
@@ -280,7 +280,7 @@ public class VdataService {
         // 提取person id去数据库查询艺人信息
         Integer[] personIds = resMongos.stream().map(e -> e.getPerson()).collect(Collectors.toList())
                 .toArray(new Integer[resMongos.size()]);
-        List<Person> persons=personIds.length>0?metaService.getPersonCheck(personIds):new ArrayList<>();
+        List<Person> persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
 
 
         // 组装数据

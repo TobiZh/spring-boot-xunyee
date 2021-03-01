@@ -14,9 +14,9 @@ public class ReqPic {
     private Integer type;
 
     @ApiModelProperty("是否在小程序中启用")
-    private Integer is_enabled_mini;
+    private Integer is_enabled_5;
 
     @ApiModelProperty("是否在app中启用")
-    private Integer is_enabled_app;
+    private Integer is_enabled_6;
 
 }

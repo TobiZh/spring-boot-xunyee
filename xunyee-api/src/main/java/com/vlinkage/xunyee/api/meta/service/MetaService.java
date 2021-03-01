@@ -62,17 +62,25 @@ public class MetaService {
     }
 
     @DS("meta")
-    public List<Person> getPersonCheck(Integer... ids){
+    public List<Person> getPersonByXunyeeCheck(){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","zh_name","avatar_custom");
         qw.eq("is_xunyee_check",true);
+        List<Person> personList=new Person().selectList(qw);
+        return personList;
+    }
+
+
+    @DS("meta")
+    public List<Person> getPerson(Integer... ids){
+        QueryWrapper qw=new QueryWrapper();
+        qw.select("id","zh_name","avatar_custom");
         if (ids.length>0){
             qw.in("id",ids);
         }
         List<Person> personList=new Person().selectList(qw);
         return personList;
     }
-
 
     /**
      * 获取电视剧

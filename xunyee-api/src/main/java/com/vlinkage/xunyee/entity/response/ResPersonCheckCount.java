@@ -11,15 +11,15 @@ import java.util.Date;
 public class ResPersonCheckCount {
 
     @ApiModelProperty("id 等于 personId")
-    private Integer id;
+    private int id;
     @ApiModelProperty("签到数量")
-    private Integer check;
+    private int check;
     @ApiModelProperty("排名")
-    private Integer rank;
+    private int rank;
     @ApiModelProperty("当天我为该艺人签到的次数")
-    private Integer check_my;
+    private int check_my;
     @ApiModelProperty("艺人id")
-    private Integer person;
+    private int person;
     @ApiModelProperty("艺人名称")
     private String zh_name;
     @ApiModelProperty("艺人头像")

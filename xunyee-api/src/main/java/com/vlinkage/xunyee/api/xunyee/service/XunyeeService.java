@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.ant.meta.entity.Person;
+import com.vlinkage.ant.meta.entity.Zy;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
@@ -33,6 +34,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class XunyeeService {
@@ -43,24 +45,27 @@ public class XunyeeService {
     private MetaService metaService;
 
 
-    public R<List<ResPic>> getPic(ReqPic req) {
+    public R<Map> getPic(ReqPic req) {
         LocalDateTime nowDate=LocalDateTime.now();
 
         QueryWrapper qw=new QueryWrapper();
         qw.eq("type_id",req.getType());
-        if (req.getIs_enabled_app()!=null){
-            qw.eq("is_enabled_5",req.getIs_enabled_mini()==0?false:true);
+        if (req.getIs_enabled_5()!=null){
+            qw.eq("is_enabled_5",req.getIs_enabled_5()==0?false:true);
         }
-        if (req.getIs_enabled_app()!=null){
-            qw.eq("is_enabled_6",req.getIs_enabled_app()==0?false:true);
+        if (req.getIs_enabled_6()!=null){
+            qw.eq("is_enabled_6",req.getIs_enabled_6()==0?false:true);
         }
-
-        qw.orderByAsc("sequence");
         qw.le("start_time",nowDate);// >=
         qw.ge("finish_time",nowDate);// <=
+        qw.orderByAsc("sequence");
         List<XunyeePic> xunyeePics=new XunyeePic().selectList(qw);
         List<ResPic> resPics=CopyListUtil.copyListProperties(xunyeePics, ResPic.class);
-        return R.OK(resPics);
+
+        Map map=new HashMap();
+        map.put("count",resPics.size());
+        map.put("results",resPics);
+        return R.OK(map);
     }
 
     public R<List<ResNavigation>> getNavigation() {
@@ -153,83 +158,66 @@ public class XunyeeService {
 
         // 查询条件
         Criteria criteria = Criteria.where("data_time").gte(gteDate).lt(ltDate);
-        Query query = Query.query(criteria);
-        // 查询记录总数
-        int totalCount = (int) mongoTemplate.count(query, ResMonPersonCheckCount.class);
-        // 数据总页数
-        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
-
         // 根据person分组 check 求和
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(criteria),
-                Aggregation.group("person").sum("check").as("check"),
-                Aggregation.sort(Sort.by(Sort.Direction.DESC, "check")),
-                Aggregation.skip((current - 1) * size),
-                Aggregation.limit(size)
+                Aggregation.group("person").sum("check").as("check")
         );
         AggregationResults<ResMonPersonCheckCount> outputTypeCount = mongoTemplate.aggregate(aggregation, "person__check__count",
                 ResMonPersonCheckCount.class);
-        List<ResMonPersonCheckCount> resMonPersonCheckCounts = outputTypeCount.getMappedResults();
 
-
+        // 查询mongo中有签到数据的艺人
+        List<ResMonPersonCheckCount> resMgs = outputTypeCount.getMappedResults();
+        // 查询所有的可签到艺人 大概500个
+        List<Person> persons=metaService.getPersonByXunyeeCheck();
         // 查询当前用户关注的艺人和当天签到数
-        List<ResMonUserPersonCheck> checks=null;
-        if(period<=1&&userId!=null){
-            checks=mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)),
-                    ResMonUserPersonCheck.class);
-
-        }
-
-        // 数据库中查询开启签到的艺人
-        List<Person> personList=metaService.getPersonCheck();
+        List<ResMonUserPersonCheck> userPersonChecks=period<=1&&userId!=null?mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)),
+                ResMonUserPersonCheck.class):new ArrayList<>();
 
         // 组装数据
-        List<ResPersonCheckCount> resPersonCheckCounts=new ArrayList<>();
-        for (int i = 0; i < resMonPersonCheckCounts.size(); i++) {
-            ResMonPersonCheckCount mon=resMonPersonCheckCounts.get(i);
-            Integer personId=Integer.valueOf(mon.getId());
-
+        List<ResPersonCheckCount> resCheckCounts=new ArrayList<>();
+        for (Person p:persons){
+            int tmpPerson=p.getId();
             ResPersonCheckCount resPersonCheckCount=new ResPersonCheckCount();
-            resPersonCheckCount.setCheck(mon.getCheck());
-            resPersonCheckCount.setRank(rankStart+i);
-            resPersonCheckCount.setPerson(personId);
-            resPersonCheckCount.setId(personId);
+            for (int i = 0; i < resMgs.size(); i++) {
+                ResMonPersonCheckCount mon=resMgs.get(i);
+                Integer personId=mon.getId();
 
-            //-------------------- 当前用户>>艺人签到数 --------------------
-            if (period<=1){
-                for (int j = 0; j < checks.size(); j++) {
-                    int tmpPerson=checks.get(j).getPerson();
-                    if (personId==tmpPerson){
-                        resPersonCheckCount.setCheck_my(checks.get(j).getCheck());
-                    }
-                }
-            }else{
-                resPersonCheckCount.setCheck_my(0);
-            }
-            //-------------------- 当前用户>>艺人签到数 --------------------
-
-            //-------------------- 当前艺人头像昵称 --------------------
-            for (Person p:personList){
-                int tmpPerson=p.getId();
+                //-------------------- 当前艺人头像昵称 --------------------
                 if (personId==tmpPerson){
+                    resPersonCheckCount.setCheck(mon.getCheck());
+                    resPersonCheckCount.setRank(rankStart+i);
+                    resPersonCheckCount.setPerson(personId);
+                    resPersonCheckCount.setId(personId);
+                    resPersonCheckCount.setVcuser_person("");
                     resPersonCheckCount.setAvatar_custom(p.getAvatar_custom());
                     resPersonCheckCount.setZh_name(p.getZh_name());
                 }
-            }
-            //-------------------- 当前艺人头像昵称 --------------------
+                //-------------------- 当前艺人头像昵称 --------------------
 
-            resPersonCheckCounts.add(resPersonCheckCount);
+                //-------------------- 当前用户>>艺人签到数 --------------------
+                if (period<=1){
+                    for (int j = 0; j < userPersonChecks.size(); j++) {
+                        if (personId==userPersonChecks.get(j).getPerson()){
+                            resPersonCheckCount.setCheck_my(userPersonChecks.get(j).getCheck());
+                        }
+                    }
+                }else{
+                    resPersonCheckCount.setCheck_my(0);
+                }
+                //-------------------- 当前用户>>艺人签到数 --------------------
+            }
+            resCheckCounts.add(resPersonCheckCount);
         }
 
-//        IPage iPage=new Page();
-//        iPage.setCurrent(current);
-//        iPage.setTotal(totalCount);
-//        iPage.setPages(totalPage);
-//        iPage.setSize(size);
-//        iPage.setRecords(resPersonCheckCounts);
+
+        // 查询记录总数 数据总页数
+        int totalCount=persons.size();
+        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
         Map map=new HashMap();
-        map.put("results",resPersonCheckCounts);
+        map.put("results",resCheckCounts);
         map.put("count",totalCount);
+        map.put("pages",totalPage);
         map.put("data_time__gte",gteDate);
         map.put("data_time__lte",ltDate);
         map.put("systime",LocalDateTime.now());

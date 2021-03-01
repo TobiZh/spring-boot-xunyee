@@ -1,5 +1,6 @@
 package com.vlinkage.xunyee.utils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -18,5 +19,17 @@ public class DateUtil {
                 ZoneId.systemDefault());
         long seconds = ChronoUnit.SECONDS.between(currentDateTime, midnight);
         return (int) seconds;
+    }
+
+    /**
+     * date转LocalDateTime
+     * @param d
+     * @return
+     */
+    public static LocalDateTime date2LocalDateTime(Date d){
+        ZoneId zoneId = ZoneId.systemDefault();
+        Instant instant = d.toInstant();
+        LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
+        return localDateTime;
     }
 }

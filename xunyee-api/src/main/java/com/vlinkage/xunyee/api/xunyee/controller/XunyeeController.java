@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @Api(tags = "寻艺基础接口")
 @RequestMapping("xunyee")
@@ -36,7 +37,7 @@ public class XunyeeController {
     @ApiOperation("获取 封面、轮播图、广告")
     @PassToken
     @GetMapping("pic/current")
-    public R<List<ResPic>> getPic(@Valid ReqPic req){
+    public R<Map> getPic(@Valid ReqPic req){
 
         return xunyeeService.getPic(req);
     }
