@@ -4,11 +4,15 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 @Data
 public class ReqReportPersonRptTrend extends ReqMyPage {
 
     @ApiModelProperty("搜索关键字")
     private String person__zh_name__icontains;
+
+    @NotNull
     @ApiModelProperty("数据周期：1为日榜，7为周榜，30为月榜")
-    private int period;
+    private Integer period;
 }

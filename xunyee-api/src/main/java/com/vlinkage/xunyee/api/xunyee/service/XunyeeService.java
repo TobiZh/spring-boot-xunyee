@@ -17,6 +17,7 @@ import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.MongodbUtils;
 import com.vlinkage.xunyee.utils.PageUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
@@ -117,10 +118,10 @@ public class XunyeeService {
     public R systemNotificationRead(int id) {
         XunyeeSystemNotification notification=new XunyeeSystemNotification().selectById(id);
         if (notification!=null){
-            if (notification.getIs_read()){
+            if (notification.getIs_read()==1){
                 return R.ERROR("已标记过");
             }
-            notification.setIs_read(true);
+            notification.setIs_read(1);
             notification.setRead_time(new Date());
             if (notification.updateById()){
                 return R.OK();
@@ -145,8 +146,10 @@ public class XunyeeService {
         int current = req.getCurrent();
         int size = req.getSize();
         int rankStart=(current-1)*size+1; // 分页rank起始值
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate nowDate = LocalDate.parse("2019-11-17", fmt);
 
-        LocalDate nowDate=LocalDate.now();//今天
+//        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
         if(period<=1){//获取今天签到榜
@@ -216,15 +219,26 @@ public class XunyeeService {
             }
             resCheckCounts.add(resPersonCheckCount);
         }
-        Collections.sort(resCheckCounts, Comparator.comparing(ResPersonCheckCount::getCheck).reversed());
-        for (int i = 0; i < resCheckCounts.size(); i++) {
-            resCheckCounts.get(i).setRank(rankStart+i);
+
+        // 排序
+        List<ResPersonCheckCount>  resSortCheckCounts=resCheckCounts.stream()
+                .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
+                .collect(Collectors.toList());
+        // rank
+        for (int i = 0; i < resSortCheckCounts.size(); i++) {
+            resSortCheckCounts.get(i).setRank(rankStart+i);
         }
-        if(totalCount>=current*size){
-            resCheckCounts=PageUtil.startPage(resCheckCounts,current,size);
+        if (StringUtils.isNotEmpty(req.getPerson__zh_name__icontains())){
+            resSortCheckCounts=resCheckCounts.stream()
+                    .filter(checkCount ->checkCount.getZh_name().contains(req.getPerson__zh_name__icontains()))
+                    .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
+                    .collect(Collectors.toList());
         }else{
-            resCheckCounts=new ArrayList<>();
+
         }
+
+        // 分页
+        List<ResPersonCheckCount> pageList = resSortCheckCounts.stream().skip((current-1)*size).limit(size).collect(Collectors.toList());
 
 
         ResRank resRank=new ResRank();
@@ -232,10 +246,10 @@ public class XunyeeService {
         resRank.setPages(totalPage);
         resRank.setCurrent(current);
         resRank.setData_time__gte(gteDate);
-        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setData_time__lte(period>1?nowDate.minusDays(1):nowDate);
         resRank.setSystime(LocalDateTime.now());
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
-        resRank.setResults(resCheckCounts);
+        resRank.setResults(pageList);
         return R.OK(resRank);
     }
 

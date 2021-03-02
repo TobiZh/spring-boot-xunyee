@@ -31,6 +31,13 @@ public class VdataController {
         return vdataService.reportPersonRptTrend(req);
     }
 
+    @ApiOperation("综艺嘉宾指数")
+    @PassToken
+    @GetMapping("report_person/rpt_trend_zy")
+    public R reportPersonRptTrendZy(ReqReportPersonRptTrend req){
+
+        return vdataService.reportPersonRptTrendZy(req);
+    }
 
     @ApiOperation("电视剧")
     @PassToken
@@ -46,14 +53,6 @@ public class VdataController {
     public R reportTeleplayRptTrendNet(ReqReportTeleplayRptTrend req){
 
         return vdataService.reportTeleplayRptTrendNet(req);
-    }
-
-    @ApiOperation("综艺嘉宾指数")
-    @PassToken
-    @GetMapping("report_person/rpt_trend_zy")
-    public R reportPersonRptTrendZy(ReqReportPersonRptTrend req){
-
-        return vdataService.reportPersonRptTrendZy(req);
     }
 
     @ApiOperation("综艺")

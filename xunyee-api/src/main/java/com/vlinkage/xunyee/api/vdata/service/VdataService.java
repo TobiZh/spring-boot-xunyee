@@ -42,18 +42,6 @@ public class VdataService {
         int current = req.getCurrent();
         int size = req.getSize();
 
-
-        LocalDate nowDate=LocalDate.now();//今天
-        LocalDate gteDate; // >=
-        LocalDate ltDate; // <
-        if(period<=1){//获取今天签到榜
-            gteDate=nowDate;
-            ltDate=gteDate.plusDays(1); // <
-        }else{
-            gteDate=nowDate.minusDays(period);// 减去 7||30
-            ltDate=nowDate;
-        }
-
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
         Query query = Query.query(criteria);
@@ -62,9 +50,7 @@ public class VdataService {
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
 
         // 设置起始数
-        query.skip((current - 1) * size)
-                // 设置查询条数
-                .limit(size);
+        query.skip((current - 1) * size).limit(size);
         query.with(Sort.by(Sort.Direction.ASC, "report_1912_teleplay_rank"));
         List<ResMonReportPersonRptTrend> resMonReportPersonRptTrends=mongoTemplate.find(query,ResMonReportPersonRptTrend.class);
         // 提取person id去数据库查询艺人信息
@@ -96,34 +82,62 @@ public class VdataService {
             resTrends.add(resReportPersonRptTrend);
         }
 
-        ResRank resRank=new ResRank();
-        resRank.setCount(totalCount);
-        resRank.setPages(totalPage);
-        resRank.setCurrent(current);
-        resRank.setData_time__gte(gteDate);
-        resRank.setData_time__lte(nowDate.minusDays(1));
-        resRank.setSystime(LocalDateTime.now());
-        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
-        resRank.setResults(resTrends);
-        return R.OK(resRank);
+        return rank(totalCount,totalPage,current,period,resTrends);
 
+    }
+
+    public R reportPersonRptTrendZy(ReqReportPersonRptTrend req) {
+        int period = req.getPeriod();
+        int current = req.getCurrent();
+        int size = req.getSize();
+
+        // 查询条件
+        Criteria criteria = Criteria.where("period").is(period);
+        Query query = Query.query(criteria);
+        // 查询记录总数 数据总页数 放在分页条件之前
+        int totalCount = (int) mongoTemplate.count(query, ResMonReportPersonZyRptTrend.class);
+        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
+
+        // 设置起始数
+        query.skip((current - 1) * size).limit(size);
+        query.with(Sort.by(Sort.Direction.ASC, "report_1912_zy_rank"));
+        List<ResMonReportPersonZyRptTrend> resMongos=mongoTemplate.find(query,ResMonReportPersonZyRptTrend.class);
+        // 提取person id去数据库查询艺人信息
+        Integer[] personIds = resMongos.stream().map(e -> e.getPerson()).collect(Collectors.toList())
+                .toArray(new Integer[resMongos.size()]);
+        List<Person> persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
+
+
+        // 组装数据
+        List<ResReportPersonZyRptTrend> resTrends = new ArrayList<>();
+        for (int i = 0; i < resMongos.size(); i++) {
+            ResMonReportPersonZyRptTrend mon = resMongos.get(i);
+            Integer personId = mon.getPerson();
+            ResReportPersonZyRptTrend resTrend = BeanUtil.copyProperties(mon,ResReportPersonZyRptTrend.class);
+
+            //-------------------- 当前艺人头像昵称 --------------------
+            ResReportPersonZyRptTrend.PersonFK personFK=new ResReportPersonZyRptTrend.PersonFK();
+            for (Person p : persons) {
+                int tmpPerson = p.getId();
+                if (personId == tmpPerson) {
+                    personFK.setId(personId);
+                    personFK.setAvatar_custom(imagePath+p.getAvatar_custom());
+                    personFK.setZh_name(p.getZh_name());
+                }
+            }
+            //-------------------- 当前艺人头像昵称 --------------------
+            resTrend.setPerson_fk(personFK);
+
+            resTrends.add(resTrend);
+        }
+
+        return rank(totalCount,totalPage,current,period,resTrends);
     }
 
     public R reportTeleplayRptTrend(ReqReportTeleplayRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
-
-        LocalDate nowDate=LocalDate.now();//今天
-        LocalDate gteDate; // >=
-        LocalDate ltDate; // <
-        if(period<=1){//获取今天签到榜
-            gteDate=nowDate;
-            ltDate=gteDate.plusDays(1); // <
-        }else{
-            gteDate=nowDate.minusDays(period);// 减去 7||30
-            ltDate=nowDate;
-        }
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
@@ -136,9 +150,7 @@ public class VdataService {
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
 
         // 设置起始数
-        query.skip((current - 1) * size)
-                // 设置查询条数
-                .limit(size);
+        query.skip((current - 1) * size).limit(size);
         query.with(Sort.by(Sort.Direction.ASC, "report_1905_rank"));
         List<ResMonReportTeleplayRptTrend> resMonReportPersonRptTrends=mongoTemplate.find(query, ResMonReportTeleplayRptTrend.class);
         // 提取teleplay id去数据库查询电视剧信息
@@ -168,34 +180,13 @@ public class VdataService {
             resTrends.add(resReportTeleplayRptTrend);
         }
 
-        ResRank resRank=new ResRank();
-        resRank.setCount(totalCount);
-        resRank.setPages(totalPage);
-        resRank.setCurrent(current);
-        resRank.setData_time__gte(gteDate);
-        resRank.setData_time__lte(nowDate.minusDays(1));
-        resRank.setSystime(LocalDateTime.now());
-        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
-        resRank.setResults(resTrends);
-        return R.OK(resRank);
-
+        return rank(totalCount,totalPage,current,period,resTrends);
     }
 
     public R reportTeleplayRptTrendNet(ReqReportTeleplayRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
-
-        LocalDate nowDate=LocalDate.now();//今天
-        LocalDate gteDate; // >=
-        LocalDate ltDate; // <
-        if(period<=1){//获取今天签到榜
-            gteDate=nowDate;
-            ltDate=gteDate.plusDays(1); // <
-        }else{
-            gteDate=nowDate.minusDays(period);// 减去 7||30
-            ltDate=nowDate;
-        }
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
@@ -237,104 +228,14 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        ResRank resRank=new ResRank();
-        resRank.setCount(totalCount);
-        resRank.setPages(totalPage);
-        resRank.setCurrent(current);
-        resRank.setData_time__gte(gteDate);
-        resRank.setData_time__lte(nowDate.minusDays(1));
-        resRank.setSystime(LocalDateTime.now());
-        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
-        resRank.setResults(resTrends);
-        return R.OK(resRank);
+        return rank(totalCount,totalPage,current,period,resTrends);
     }
 
-    public R reportPersonRptTrendZy(ReqReportPersonRptTrend req) {
-        int period = req.getPeriod();
-        int current = req.getCurrent();
-        int size = req.getSize();
-
-
-        LocalDate nowDate=LocalDate.now();//今天
-        LocalDate gteDate; // >=
-        LocalDate ltDate; // <
-        if(period<=1){//获取今天签到榜
-            gteDate=nowDate;
-            ltDate=gteDate.plusDays(1); // <
-        }else{
-            gteDate=nowDate.minusDays(period);// 减去 7||30
-            ltDate=nowDate;
-        }
-
-        // 查询条件
-        Criteria criteria = Criteria.where("period").is(period);
-        Query query = Query.query(criteria);
-        // 查询记录总数 数据总页数 放在分页条件之前
-        int totalCount = (int) mongoTemplate.count(query, ResMonReportPersonZyRptTrend.class);
-        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
-
-        // 设置起始数
-        query.skip((current - 1) * size)
-                // 设置查询条数
-                .limit(size);
-        query.with(Sort.by(Sort.Direction.ASC, "report_1912_zy_rank"));
-        List<ResMonReportPersonZyRptTrend> resMongos=mongoTemplate.find(query,ResMonReportPersonZyRptTrend.class);
-        // 提取person id去数据库查询艺人信息
-        Integer[] personIds = resMongos.stream().map(e -> e.getPerson()).collect(Collectors.toList())
-                .toArray(new Integer[resMongos.size()]);
-        List<Person> persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
-
-
-        // 组装数据
-        List<ResReportPersonZyRptTrend> resTrends = new ArrayList<>();
-        for (int i = 0; i < resMongos.size(); i++) {
-            ResMonReportPersonZyRptTrend mon = resMongos.get(i);
-            Integer personId = mon.getPerson();
-            ResReportPersonZyRptTrend resTrend = BeanUtil.copyProperties(mon,ResReportPersonZyRptTrend.class);
-
-            //-------------------- 当前艺人头像昵称 --------------------
-            ResReportPersonZyRptTrend.PersonFK personFK=new ResReportPersonZyRptTrend.PersonFK();
-            for (Person p : persons) {
-                int tmpPerson = p.getId();
-                if (personId == tmpPerson) {
-                    personFK.setId(personId);
-                    personFK.setAvatar_custom(imagePath+p.getAvatar_custom());
-                    personFK.setZh_name(p.getZh_name());
-                }
-            }
-            //-------------------- 当前艺人头像昵称 --------------------
-            resTrend.setPerson_fk(personFK);
-
-            resTrends.add(resTrend);
-        }
-
-        ResRank resRank=new ResRank();
-        resRank.setCount(totalCount);
-        resRank.setPages(totalPage);
-        resRank.setCurrent(current);
-        resRank.setData_time__gte(gteDate);
-        resRank.setData_time__lte(nowDate.minusDays(1));
-        resRank.setSystime(LocalDateTime.now());
-        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
-        resRank.setResults(resTrends);
-        return R.OK(resRank);
-    }
 
     public R reportZyRptTrend(ReqReportZyRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
-
-        LocalDate nowDate=LocalDate.now();//今天
-        LocalDate gteDate; // >=
-        LocalDate ltDate; // <
-        if(period<=1){//获取今天签到榜
-            gteDate=nowDate;
-            ltDate=gteDate.plusDays(1); // <
-        }else{
-            gteDate=nowDate.minusDays(period);// 减去 7||30
-            ltDate=nowDate;
-        }
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
@@ -344,9 +245,7 @@ public class VdataService {
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
 
         // 设置起始数
-        query.skip((current - 1) * size)
-                // 设置查询条数
-                .limit(size);
+        query.skip((current - 1) * size).limit(size);
         query.with(Sort.by(Sort.Direction.ASC, "report_1905_rank"));
         List<ResMonReportZyRptTrend> resMGs=mongoTemplate.find(query, ResMonReportZyRptTrend.class);
         // 提取teleplay id去数据库查询电视剧信息
@@ -376,16 +275,7 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        ResRank resRank=new ResRank();
-        resRank.setCount(totalCount);
-        resRank.setPages(totalPage);
-        resRank.setCurrent(current);
-        resRank.setData_time__gte(gteDate);
-        resRank.setData_time__lte(nowDate.minusDays(1));
-        resRank.setSystime(LocalDateTime.now());
-        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
-        resRank.setResults(resTrends);
-        return R.OK(resRank);
+        return rank(totalCount,totalPage,current,period,resTrends);
     }
 
     public R reportZyNetRptTrend(ReqReportZyRptTrend req) {
@@ -393,17 +283,6 @@ public class VdataService {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
-
-        LocalDate nowDate=LocalDate.now();//今天
-        LocalDate gteDate; // >=
-        LocalDate ltDate; // <
-        if(period<=1){//获取今天签到榜
-            gteDate=nowDate;
-            ltDate=gteDate.plusDays(1); // <
-        }else{
-            gteDate=nowDate.minusDays(period);// 减去 7||30
-            ltDate=nowDate;
-        }
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
@@ -413,9 +292,7 @@ public class VdataService {
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
 
         // 设置起始数
-        query.skip((current - 1) * size)
-                // 设置查询条数
-                .limit(size);
+        query.skip((current - 1) * size).limit(size);
         query.with(Sort.by(Sort.Direction.ASC, "report_1905_rank"));
         List<ResMonReportZyNetRptTrend> resMGs=mongoTemplate.find(query, ResMonReportZyNetRptTrend.class);
         // 提取teleplay id去数据库查询电视剧信息
@@ -445,15 +322,31 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
+        return rank(totalCount,totalPage,current,period,resTrends);
+    }
+
+
+
+    private R rank(int totalCount,int totalPage,int current,int period,Object results){
+        LocalDate nowDate=LocalDate.now();//今天
+        LocalDate gteDate; // >=
+        LocalDate ltDate; // <
+        if(period<=1){//获取今天签到榜
+            gteDate=nowDate;
+            ltDate=gteDate.plusDays(1); // <
+        }else{
+            gteDate=nowDate.minusDays(period);// 减去 7||30
+            ltDate=nowDate;
+        }
         ResRank resRank=new ResRank();
         resRank.setCount(totalCount);
         resRank.setPages(totalPage);
         resRank.setCurrent(current);
         resRank.setData_time__gte(gteDate);
-        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setData_time__lte(ltDate);
         resRank.setSystime(LocalDateTime.now());
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
-        resRank.setResults(resTrends);
+        resRank.setResults(results);
         return R.OK(resRank);
     }
 }
