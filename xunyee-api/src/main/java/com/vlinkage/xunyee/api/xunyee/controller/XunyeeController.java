@@ -5,10 +5,7 @@ import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
-import com.vlinkage.xunyee.entity.request.ReqFeedback;
-import com.vlinkage.xunyee.entity.request.ReqPersonCheckCount;
-import com.vlinkage.xunyee.entity.request.ReqPic;
-import com.vlinkage.xunyee.entity.request.ReqUserPersonCheck;
+import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
@@ -105,10 +102,18 @@ public class XunyeeController {
     @PassToken
     @ApiOperation("签到榜")
     @GetMapping("person_check_count/rank")
-    public R personCheckCountRank(ReqPersonCheckCount req){
-
-        return xunyeeService.personCheckCount(req);
+    public R personCheckCountRank(HttpServletRequest request, ReqPersonCheckCount req){
+        Integer userId= UserUtil.getUserId(request);
+        return xunyeeService.personCheckCount(userId,req);
     }
+
+    @ApiOperation("签到--我的爱豆")
+    @GetMapping("person_check_count/idol")
+    public R personCheckCountIdol(HttpServletRequest request,ReqMyPage myPage){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.personCheckCountIdol(userId,myPage);
+    }
+
 
     @ApiOperation("取消关注某个艺人")
     @GetMapping("vcuser_person")
@@ -125,5 +130,14 @@ public class XunyeeController {
         return xunyeeService.benefitPrice();
     }
 
+
+    @PassToken
+    @ApiOperation("签到接口")
+    @GetMapping("vcuser_person_check")
+    public R vcuserPersonCHeck(HttpServletRequest request, ReqPersonCheck req){
+//        int userId= UserUtil.getUserId(request);
+        int userId= 23;
+        return xunyeeService.vcuserPersonCHeck(userId,req);
+    }
 
 }

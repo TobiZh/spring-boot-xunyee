@@ -7,12 +7,12 @@ spring:
       datasource:
         xunyee:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://115.29.163.237:5432/vlkdj?currentSchema=xunyee&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+          url: jdbc:postgresql://116.62.236.230:5432/vlkdj?currentSchema=xunyee&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
           username: vlkdj
           password: weiling@qinghai118
         meta:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://115.29.163.237:5432/vlkdj?currentSchema=meta&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+          url: jdbc:postgresql://116.62.236.230:5432/vlkdj?currentSchema=meta&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
           username: vlkdj
           password: weiling@qinghai118
   #redis

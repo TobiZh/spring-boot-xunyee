@@ -46,3 +46,8 @@ wx:
     # 微信支付普通商户号 app支付 appId: wxf71bf12e04438f45
     mchId: 1562213661
     mchKey: Vlinkage20191108vvkk321Qinghailu
+
+# 系统参数
+sys-config:
+  # 图片地址
+  image-path: https://img.xunyee.cn/

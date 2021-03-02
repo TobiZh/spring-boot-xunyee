@@ -14,6 +14,7 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.utils.DateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -28,7 +29,8 @@ import java.util.stream.Collectors;
 @Service
 public class VdataService {
 
-
+    @Value("${sys-config.image-path}")
+    private String imagePath;
     @Autowired
     private MongoTemplate mongoTemplate;
     @Autowired
@@ -84,7 +86,7 @@ public class VdataService {
                 int tmpPerson = p.getId();
                 if (personId == tmpPerson) {
                     personFK.setId(personId);
-                    personFK.setAvatar_custom(p.getAvatar_custom());
+                    personFK.setAvatar_custom(imagePath+p.getAvatar_custom());
                     personFK.setZh_name(p.getZh_name());
                 }
             }
@@ -100,6 +102,7 @@ public class VdataService {
         resRank.setCurrent(current);
         resRank.setData_time__gte(gteDate);
         resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setSystime(LocalDateTime.now());
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
         resRank.setResults(resTrends);
         return R.OK(resRank);
@@ -171,6 +174,7 @@ public class VdataService {
         resRank.setCurrent(current);
         resRank.setData_time__gte(gteDate);
         resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setSystime(LocalDateTime.now());
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
         resRank.setResults(resTrends);
         return R.OK(resRank);
@@ -239,6 +243,7 @@ public class VdataService {
         resRank.setCurrent(current);
         resRank.setData_time__gte(gteDate);
         resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setSystime(LocalDateTime.now());
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
         resRank.setResults(resTrends);
         return R.OK(resRank);
@@ -272,7 +277,7 @@ public class VdataService {
         query.skip((current - 1) * size)
                 // 设置查询条数
                 .limit(size);
-        query.with(Sort.by(Sort.Direction.ASC, "report_1912_teleplay_rank"));
+        query.with(Sort.by(Sort.Direction.ASC, "report_1912_zy_rank"));
         List<ResMonReportPersonZyRptTrend> resMongos=mongoTemplate.find(query,ResMonReportPersonZyRptTrend.class);
         // 提取person id去数据库查询艺人信息
         Integer[] personIds = resMongos.stream().map(e -> e.getPerson()).collect(Collectors.toList())
@@ -293,7 +298,7 @@ public class VdataService {
                 int tmpPerson = p.getId();
                 if (personId == tmpPerson) {
                     personFK.setId(personId);
-                    personFK.setAvatar_custom(p.getAvatar_custom());
+                    personFK.setAvatar_custom(imagePath+p.getAvatar_custom());
                     personFK.setZh_name(p.getZh_name());
                 }
             }
@@ -309,6 +314,7 @@ public class VdataService {
         resRank.setCurrent(current);
         resRank.setData_time__gte(gteDate);
         resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setSystime(LocalDateTime.now());
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
         resRank.setResults(resTrends);
         return R.OK(resRank);
@@ -376,6 +382,7 @@ public class VdataService {
         resRank.setCurrent(current);
         resRank.setData_time__gte(gteDate);
         resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setSystime(LocalDateTime.now());
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
         resRank.setResults(resTrends);
         return R.OK(resRank);
@@ -444,6 +451,7 @@ public class VdataService {
         resRank.setCurrent(current);
         resRank.setData_time__gte(gteDate);
         resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setSystime(LocalDateTime.now());
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
         resRank.setResults(resTrends);
         return R.OK(resRank);

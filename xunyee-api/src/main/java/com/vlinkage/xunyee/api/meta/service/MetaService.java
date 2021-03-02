@@ -44,13 +44,12 @@ public class MetaService {
     }
 
     @DS("meta")
-    public ResPerson getPersonById(int person_id){
+    public Person getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
         qw.eq("id",person_id);
-        qw.select("id","zh_name","avatar_custom");
+        qw.select("id","zh_name","avatar_custom","is_xunyee_check");
         Person person=new Person().selectOne(qw);
-        ResPerson resPerson=BeanUtil.copyProperties(person,ResPerson.class);
-        return resPerson;
+        return person;
     }
 
     @DS("meta")

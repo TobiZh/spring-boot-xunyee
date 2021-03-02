@@ -86,9 +86,9 @@ public class BlogService {
         info.setAvatar(vcuser.getAvatar());
 
         // 相关艺人
-        ResPerson resPerson=metaService.getPersonById(blog.getPerson_id());
-        info.setPerson_name(resPerson.getZh_name());
-        info.setPerson_avatar_customer(resPerson.getAvatar_custom());
+        Person person=metaService.getPersonById(blog.getPerson_id());
+        info.setPerson_name(person.getZh_name());
+        info.setPerson_avatar_customer(person.getAvatar_custom());
 
         // 是否 点赞 点踩 收藏 关注状态
         boolean isStar=false;

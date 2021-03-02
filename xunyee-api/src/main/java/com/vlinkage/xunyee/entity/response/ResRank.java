@@ -1,5 +1,6 @@
 package com.vlinkage.xunyee.entity.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -15,8 +16,10 @@ public class ResRank {
     @ApiModelProperty("当前第几页")
     private int current;
     @ApiModelProperty("榜单开始时间")
+    @JsonFormat(pattern = "yyyy.MM.dd",timezone="GMT+8")
     private LocalDate data_time__gte;
     @ApiModelProperty("榜单结束时间")
+    @JsonFormat(pattern = "yyyy.MM.dd",timezone="GMT+8")
     private LocalDate data_time__lte;
     @ApiModelProperty("系统时间")
     private LocalDateTime systime;
