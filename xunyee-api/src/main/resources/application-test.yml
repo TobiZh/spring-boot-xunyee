@@ -1,7 +1,6 @@
 
 spring:
   # 数据源配置
-
   datasource:
     dynamic:
       primary: xunyee # 设置xunyee为默认数据源

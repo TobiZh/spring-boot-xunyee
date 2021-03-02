@@ -41,15 +41,15 @@ public class VdataService {
         int size = req.getSize();
 
 
-        LocalDate nowDate=LocalDate.now();//当前时间
+        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
-        if (period <= 1) {//获取今天签到榜
-            gteDate = nowDate;
-            ltDate = nowDate.plusDays(1);
-        } else {
-            ltDate = nowDate.plusDays(1);
-            gteDate = nowDate.minusDays(period);// 减去 7||30
+        if(period<=1){//获取今天签到榜
+            gteDate=nowDate;
+            ltDate=gteDate.plusDays(1); // <
+        }else{
+            gteDate=nowDate.minusDays(period);// 减去 7||30
+            ltDate=nowDate;
         }
 
         // 查询条件
@@ -94,16 +94,15 @@ public class VdataService {
             resTrends.add(resReportPersonRptTrend);
         }
 
-        Map map = new HashMap();
-        map.put("results", resTrends);
-        map.put("count", totalCount);
-        map.put("pages", totalPage);
-        map.put("current", current);
-        map.put("data_time__gte", gteDate);
-        map.put("data_time__lte", ltDate);
-        map.put("systime", LocalDateTime.now());
-        map.put("today_reamin_second", DateUtil.getDayRemainingTime(new Date()));
-        return R.OK(map);
+        ResRank resRank=new ResRank();
+        resRank.setCount(totalCount);
+        resRank.setPages(totalPage);
+        resRank.setCurrent(current);
+        resRank.setData_time__gte(gteDate);
+        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
+        resRank.setResults(resTrends);
+        return R.OK(resRank);
 
     }
 
@@ -112,15 +111,15 @@ public class VdataService {
         int current = req.getCurrent();
         int size = req.getSize();
 
-        LocalDate nowDate=LocalDate.now();//当前时间
+        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
-        if (period <= 1) {//获取今天签到榜
-            gteDate = nowDate;
-            ltDate = nowDate.plusDays(1);
-        } else {
-            ltDate = nowDate.plusDays(1);
-            gteDate = nowDate.minusDays(period);// 减去 7||30
+        if(period<=1){//获取今天签到榜
+            gteDate=nowDate;
+            ltDate=gteDate.plusDays(1); // <
+        }else{
+            gteDate=nowDate.minusDays(period);// 减去 7||30
+            ltDate=nowDate;
         }
 
         // 查询条件
@@ -166,16 +165,15 @@ public class VdataService {
             resTrends.add(resReportTeleplayRptTrend);
         }
 
-        Map map = new HashMap();
-        map.put("results", resTrends);
-        map.put("count", totalCount);
-        map.put("pages", totalPage);
-        map.put("current", current);
-        map.put("data_time__gte", gteDate);
-        map.put("data_time__lte", ltDate);
-        map.put("systime", LocalDateTime.now());
-        map.put("today_reamin_second", DateUtil.getDayRemainingTime(new Date()));
-        return R.OK(map);
+        ResRank resRank=new ResRank();
+        resRank.setCount(totalCount);
+        resRank.setPages(totalPage);
+        resRank.setCurrent(current);
+        resRank.setData_time__gte(gteDate);
+        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
+        resRank.setResults(resTrends);
+        return R.OK(resRank);
 
     }
 
@@ -184,15 +182,15 @@ public class VdataService {
         int current = req.getCurrent();
         int size = req.getSize();
 
-        LocalDate nowDate=LocalDate.now();//当前时间
+        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
-        if (period <= 1) {//获取今天签到榜
-            gteDate = nowDate;
-            ltDate = nowDate.plusDays(1);
-        } else {
-            ltDate = nowDate.plusDays(1);
-            gteDate = nowDate.minusDays(period);// 减去 7||30
+        if(period<=1){//获取今天签到榜
+            gteDate=nowDate;
+            ltDate=gteDate.plusDays(1); // <
+        }else{
+            gteDate=nowDate.minusDays(period);// 减去 7||30
+            ltDate=nowDate;
         }
 
         // 查询条件
@@ -214,11 +212,11 @@ public class VdataService {
         List<Teleplay> teleplays=teleplayIds.length>0?metaService.getTeleplays(teleplayIds):new ArrayList<>();
 
         // 组装数据
-        List<ResReportTeleplayNetRptTrend> resReportTeleplayRptTrends = new ArrayList<>();
+        List<ResReportTeleplayNetRptTrend> resTrends = new ArrayList<>();
         for (int i = 0; i < resMonReportTeleplayNetRptTrends.size(); i++) {
             ResMonReportTeleplayNetRptTrend mon = resMonReportTeleplayNetRptTrends.get(i);
             Integer teleplayId = Integer.valueOf(mon.getTeleplay());
-            ResReportTeleplayNetRptTrend resReportTeleplayNetRptTrend = BeanUtil.copyProperties(mon,ResReportTeleplayNetRptTrend.class);
+            ResReportTeleplayNetRptTrend resTrend = BeanUtil.copyProperties(mon,ResReportTeleplayNetRptTrend.class);
 
             //-------------------- 当前电视剧标题 --------------------
             ResReportTeleplayNetRptTrend.TeleplayFK teleplayFK=new ResReportTeleplayNetRptTrend.TeleplayFK();
@@ -230,21 +228,20 @@ public class VdataService {
                 }
             }
             //-------------------- 当前电视剧标题 --------------------
-            resReportTeleplayNetRptTrend.setTeleplay_fk(teleplayFK);
+            resTrend.setTeleplay_fk(teleplayFK);
 
-            resReportTeleplayRptTrends.add(resReportTeleplayNetRptTrend);
+            resTrends.add(resTrend);
         }
 
-        Map map = new HashMap();
-        map.put("results", resReportTeleplayRptTrends);
-        map.put("count", totalCount);
-        map.put("pages", totalPage);
-        map.put("current", current);
-        map.put("data_time__gte", gteDate);
-        map.put("data_time__lte", ltDate);
-        map.put("systime", LocalDateTime.now());
-        map.put("today_reamin_second", DateUtil.getDayRemainingTime(new Date()));
-        return R.OK(map);
+        ResRank resRank=new ResRank();
+        resRank.setCount(totalCount);
+        resRank.setPages(totalPage);
+        resRank.setCurrent(current);
+        resRank.setData_time__gte(gteDate);
+        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
+        resRank.setResults(resTrends);
+        return R.OK(resRank);
     }
 
     public R reportPersonRptTrendZy(ReqReportPersonRptTrend req) {
@@ -253,15 +250,15 @@ public class VdataService {
         int size = req.getSize();
 
 
-        LocalDate nowDate=LocalDate.now();//当前时间
+        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
-        if (period <= 1) {//获取今天签到榜
-            gteDate = nowDate;
-            ltDate = nowDate.plusDays(1);
-        } else {
-            ltDate = nowDate.plusDays(1);
-            gteDate = nowDate.minusDays(period);// 减去 7||30
+        if(period<=1){//获取今天签到榜
+            gteDate=nowDate;
+            ltDate=gteDate.plusDays(1); // <
+        }else{
+            gteDate=nowDate.minusDays(period);// 减去 7||30
+            ltDate=nowDate;
         }
 
         // 查询条件
@@ -306,16 +303,15 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        Map map = new HashMap();
-        map.put("results", resTrends);
-        map.put("count", totalCount);
-        map.put("pages", totalPage);
-        map.put("current", current);
-        map.put("data_time__gte", gteDate);
-        map.put("data_time__lte", ltDate);
-        map.put("systime", LocalDateTime.now());
-        map.put("today_reamin_second", DateUtil.getDayRemainingTime(new Date()));
-        return R.OK(map);
+        ResRank resRank=new ResRank();
+        resRank.setCount(totalCount);
+        resRank.setPages(totalPage);
+        resRank.setCurrent(current);
+        resRank.setData_time__gte(gteDate);
+        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
+        resRank.setResults(resTrends);
+        return R.OK(resRank);
     }
 
     public R reportZyRptTrend(ReqReportZyRptTrend req) {
@@ -323,15 +319,15 @@ public class VdataService {
         int current = req.getCurrent();
         int size = req.getSize();
 
-        LocalDate nowDate=LocalDate.now();//当前时间
+        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
-        if (period <= 1) {//获取今天签到榜
-            gteDate = nowDate;
-            ltDate = nowDate.plusDays(1);
-        } else {
-            ltDate = nowDate.plusDays(1);
-            gteDate = nowDate.minusDays(period);// 减去 7||30
+        if(period<=1){//获取今天签到榜
+            gteDate=nowDate;
+            ltDate=gteDate.plusDays(1); // <
+        }else{
+            gteDate=nowDate.minusDays(period);// 减去 7||30
+            ltDate=nowDate;
         }
 
         // 查询条件
@@ -374,16 +370,15 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        Map map = new HashMap();
-        map.put("results", resTrends);
-        map.put("count", totalCount);
-        map.put("pages", totalPage);
-        map.put("current", current);
-        map.put("data_time__gte", gteDate);
-        map.put("data_time__lte", ltDate);
-        map.put("systime", LocalDateTime.now());
-        map.put("today_reamin_second", DateUtil.getDayRemainingTime(new Date()));
-        return R.OK(map);
+        ResRank resRank=new ResRank();
+        resRank.setCount(totalCount);
+        resRank.setPages(totalPage);
+        resRank.setCurrent(current);
+        resRank.setData_time__gte(gteDate);
+        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
+        resRank.setResults(resTrends);
+        return R.OK(resRank);
     }
 
     public R reportZyNetRptTrend(ReqReportZyRptTrend req) {
@@ -392,15 +387,15 @@ public class VdataService {
         int current = req.getCurrent();
         int size = req.getSize();
 
-        LocalDate nowDate=LocalDate.now();//当前时间
+        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
-        if (period <= 1) {//获取今天签到榜
-            gteDate = nowDate;
-            ltDate = nowDate.plusDays(1);
-        } else {
-            ltDate = nowDate.plusDays(1);
-            gteDate = nowDate.minusDays(period);// 减去 7||30
+        if(period<=1){//获取今天签到榜
+            gteDate=nowDate;
+            ltDate=gteDate.plusDays(1); // <
+        }else{
+            gteDate=nowDate.minusDays(period);// 减去 7||30
+            ltDate=nowDate;
         }
 
         // 查询条件
@@ -443,15 +438,14 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        Map map = new HashMap();
-        map.put("results", resTrends);
-        map.put("count", totalCount);
-        map.put("pages", totalPage);
-        map.put("current", current);
-        map.put("data_time__gte", gteDate);
-        map.put("data_time__lte", ltDate);
-        map.put("systime", LocalDateTime.now());
-        map.put("today_reamin_second", DateUtil.getDayRemainingTime(new Date()));
-        return R.OK(map);
+        ResRank resRank=new ResRank();
+        resRank.setCount(totalCount);
+        resRank.setPages(totalPage);
+        resRank.setCurrent(current);
+        resRank.setData_time__gte(gteDate);
+        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
+        resRank.setResults(resTrends);
+        return R.OK(resRank);
     }
 }

@@ -18,6 +18,7 @@ import com.vlinkage.xunyee.entity.request.ReqUserPersonCheck;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
+import com.vlinkage.xunyee.utils.PageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -142,18 +143,16 @@ public class XunyeeService {
         int current = req.getCurrent();
         int size = req.getSize();
         int rankStart=(current-1)*size+1; // 分页rank起始值
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate nowDate=LocalDate.parse("2019-12-17",df);
 
-//        LocalDate nowDate=LocalDate.now();//当前时间
+        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
         if(period<=1){//获取今天签到榜
             gteDate=nowDate;
-            ltDate=nowDate.plusDays(1);
+            ltDate=gteDate.plusDays(1); // <
         }else{
-            ltDate=nowDate.plusDays(1);
             gteDate=nowDate.minusDays(period);// 减去 7||30
+            ltDate=nowDate;
         }
 
         // 查询条件
@@ -161,13 +160,18 @@ public class XunyeeService {
         // 根据person分组 check 求和
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(criteria),
-                Aggregation.group("person").sum("check").as("check")
+                Aggregation.group("person").sum("check").as("check"),
+                Aggregation.sort(Sort.by(Sort.Direction.DESC,"check"))
         );
         AggregationResults<ResMonPersonCheckCount> outputTypeCount = mongoTemplate.aggregate(aggregation, "person__check__count",
                 ResMonPersonCheckCount.class);
-
         // 查询mongo中有签到数据的艺人
         List<ResMonPersonCheckCount> resMgs = outputTypeCount.getMappedResults();
+        if (resMgs.size()<=0){
+            //todo 这里做一个读取缓存
+        }
+
+
         // 查询所有的可签到艺人 大概500个
         List<Person> persons=metaService.getPersonByXunyeeCheck();
         // 查询当前用户关注的艺人和当天签到数
@@ -177,52 +181,56 @@ public class XunyeeService {
         // 组装数据
         List<ResPersonCheckCount> resCheckCounts=new ArrayList<>();
         for (Person p:persons){
-            int tmpPerson=p.getId();
+            int personId=p.getId();
             ResPersonCheckCount resPersonCheckCount=new ResPersonCheckCount();
+            resPersonCheckCount.setPerson(personId);
+            resPersonCheckCount.setId(personId);
+            resPersonCheckCount.setVcuser_person("");
+            resPersonCheckCount.setAvatar_custom(p.getAvatar_custom());
+            resPersonCheckCount.setZh_name(p.getZh_name());
             for (int i = 0; i < resMgs.size(); i++) {
                 ResMonPersonCheckCount mon=resMgs.get(i);
-                Integer personId=mon.getId();
-
-                //-------------------- 当前艺人头像昵称 --------------------
-                if (personId==tmpPerson){
-                    resPersonCheckCount.setCheck(mon.getCheck());
-                    resPersonCheckCount.setRank(rankStart+i);
-                    resPersonCheckCount.setPerson(personId);
-                    resPersonCheckCount.setId(personId);
-                    resPersonCheckCount.setVcuser_person("");
-                    resPersonCheckCount.setAvatar_custom(p.getAvatar_custom());
-                    resPersonCheckCount.setZh_name(p.getZh_name());
-                }
-                //-------------------- 当前艺人头像昵称 --------------------
-
+                Integer tmpPerson=mon.getId();
                 //-------------------- 当前用户>>艺人签到数 --------------------
                 if (period<=1){
                     for (int j = 0; j < userPersonChecks.size(); j++) {
                         if (personId==userPersonChecks.get(j).getPerson()){
                             resPersonCheckCount.setCheck_my(userPersonChecks.get(j).getCheck());
+                            break;
                         }
                     }
                 }else{
                     resPersonCheckCount.setCheck_my(0);
                 }
                 //-------------------- 当前用户>>艺人签到数 --------------------
+
+                //-------------------- 当前艺人头像昵称 --------------------
+                if (personId==tmpPerson){
+                    resPersonCheckCount.setCheck(mon.getCheck());
+                    break;
+                }
+                //-------------------- 当前艺人头像昵称 --------------------
             }
             resCheckCounts.add(resPersonCheckCount);
         }
 
-
+        Collections.sort(resCheckCounts, Comparator.comparing(ResPersonCheckCount::getCheck).reversed());
+        for (int i = 0; i < resCheckCounts.size(); i++) {
+            resCheckCounts.get(i).setRank(rankStart+i);
+        }
+        resCheckCounts=PageUtil.startPage(resCheckCounts,current,size);
         // 查询记录总数 数据总页数
         int totalCount=persons.size();
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
-        Map map=new HashMap();
-        map.put("results",resCheckCounts);
-        map.put("count",totalCount);
-        map.put("pages",totalPage);
-        map.put("data_time__gte",gteDate);
-        map.put("data_time__lte",ltDate);
-        map.put("systime",LocalDateTime.now());
-        map.put("today_reamin_second", DateUtil.getDayRemainingTime(new Date()));
-        return R.OK(map);
+
+        ResRank resRank=new ResRank();
+        resRank.setCount(totalCount);
+        resRank.setPages(totalPage);
+        resRank.setData_time__gte(gteDate);
+        resRank.setData_time__lte(nowDate.minusDays(1));
+        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
+        resRank.setResults(resCheckCounts);
+        return R.OK(resRank);
     }
 
 
