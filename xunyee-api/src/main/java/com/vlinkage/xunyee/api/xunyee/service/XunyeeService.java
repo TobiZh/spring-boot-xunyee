@@ -234,7 +234,9 @@ public class XunyeeService {
                     .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
                     .collect(Collectors.toList());
         }else{
-
+            resSortCheckCounts=resCheckCounts.stream()
+                    .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
+                    .collect(Collectors.toList());
         }
 
         // 分页
@@ -350,7 +352,7 @@ public class XunyeeService {
      * @param req
      * @return
      */
-    public R vcuserPersonCHeck(int userId, ReqPersonCheck req) {
+    public R vcuserPersonCheck(int userId, ReqPersonCheck req) {
         int personId=req.getPerson();
         Person person=metaService.getPersonById(personId);
         if (!person.getIs_xunyee_check()){
@@ -369,23 +371,77 @@ public class XunyeeService {
                 .is(userId).and("updated")
                 .gte(gteDate).lt(ltDate)),
                 ResMonUserPersonCheck.class);
-        int checkCount = resPersonChecks.stream().collect(Collectors.summingInt(ResMonUserPersonCheck::getCheck));
-        if (checkCount>=3){
+        int checkCounted = resPersonChecks.stream().collect(Collectors.summingInt(ResMonUserPersonCheck::getCheck));
+        if (checkCounted>=3){
             return R.ERROR("每天对所有艺人的签到数不能超过3。");
         }
         boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson().equals(personId));
         if (b){
             return R.ERROR("今天已经签到过了，明天再来吧");
         }
+
+        int checkCount=vcuserBenefit==null?1:(3-checkCounted);
         ReqMonUserPersonCheck reqCheck=new ReqMonUserPersonCheck();
         reqCheck.setVcuser(userId);
         reqCheck.setPerson(personId);
         reqCheck.setUpdated(LocalDateTime.now());
-        reqCheck.setCheck(vcuserBenefit==null?1:3);
+        reqCheck.setCheck(checkCount);
         ReqMonUserPersonCheck check=mongoTemplate.insert(reqCheck);
         if (check==null){
             return R.ERROR("签到失败，请稍后再试");
         }
-        return R.OK();
+        return R.OK(checkCount);
+    }
+
+    public R vcuserPersonCheckCalendar(int userId, ReqPersonCheckCalendar req) {
+
+
+        int count=0;//当前签到天数
+        int checkMonth=0;//当前月签到次数
+        int checkYear=0;//今年签到次数
+
+
+        LocalDate ltDate=LocalDate.now(); // <; // <
+        LocalDate gteDate=ltDate.minusDays(120); // >=
+        if (StringUtils.isNotEmpty(req.getData_date())){
+            String[] dataDate=req.getData_date().split("-");
+            int year= Integer.parseInt(dataDate[0]);
+            int month= Integer.parseInt(dataDate[1]);
+            ltDate=DateUtil.getLastDayOfMonth(year,month);
+            gteDate=ltDate.minusMonths(1);
+        }
+
+        Criteria criteria=Criteria.where("vcuser").is(userId)
+                .and("person").is(req.getPerson())
+                .and("updated").gte(gteDate).lt(ltDate);
+        Query query=new Query(criteria);
+        query.with(Sort.by(Sort.Direction.DESC,"updated"));
+        // 查询当前用户关给某个艺人和签到数
+        List<ResMonUserPersonCheckCalendar> resMonUserPersonChecks=mongoTemplate.find(query, ResMonUserPersonCheckCalendar.class);
+
+        // 签到日历数据
+        List<ResUserPersonCheckCalendar.Result> results=new ArrayList<>();
+        for (ResMonUserPersonCheckCalendar c:resMonUserPersonChecks){
+            ResUserPersonCheckCalendar.Result checkCalendar=new ResUserPersonCheckCalendar.Result();
+            checkCalendar.setCheck(c.getCheck());
+            checkCalendar.setDate(c.getUpdated());
+            results.add(checkCalendar);
+        }
+
+        // 签到统计数据
+        ResUserPersonCheckCalendar.CheckCount checkCount=new ResUserPersonCheckCalendar.CheckCount();
+        checkCount.setMonth(checkMonth);
+        checkCount.setYear(checkYear);
+        // 日期数据
+        ResUserPersonCheckCalendar.DateData dateData=new ResUserPersonCheckCalendar.DateData();
+        dateData.setDate__gte(gteDate);
+        dateData.setDate__lte(ltDate);
+
+        ResUserPersonCheckCalendar checkCalendar=new ResUserPersonCheckCalendar();
+        checkCalendar.setCount(count);
+        checkCalendar.setResults(results);
+        checkCalendar.setDate_data(dateData);
+        checkCalendar.setCheck_count(checkCount);
+        return R.OK(checkCalendar);
     }
 }

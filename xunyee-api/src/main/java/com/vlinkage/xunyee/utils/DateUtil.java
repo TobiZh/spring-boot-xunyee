@@ -1,9 +1,12 @@
 package com.vlinkage.xunyee.utils;
 
+import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtil {
@@ -31,5 +34,40 @@ public class DateUtil {
         Instant instant = d.toInstant();
         LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
         return localDateTime;
+    }
+
+    /**
+     * 获取指定年月的最后一天
+     * @param year
+     * @param month
+     * @return
+     */
+    public static LocalDate getLastDayOfMonth(int year, int month) {
+        Calendar cal = Calendar.getInstance();
+        //设置年份
+        cal.set(Calendar.YEAR, year);
+        //设置月份
+        cal.set(Calendar.MONTH, month-1);
+        //获取某月最大天数
+        int lastDay = cal.getActualMaximum(Calendar.DATE);
+        //设置日历中月份的最大天数
+        cal.set(Calendar.DAY_OF_MONTH, lastDay);
+        //格式化日期
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        ZoneId zoneId = ZoneId.systemDefault();
+        Instant instant = cal.getTime().toInstant();
+        LocalDate localDate = instant.atZone(zoneId).toLocalDate();
+
+        return localDate;
+    }
+
+
+    public static void main(String[] args) {
+        String datestr="2021-09";
+        int year= Integer.parseInt(datestr.split("-")[0]);
+        int month= Integer.parseInt(datestr.split("-")[1]);
+
+        System.out.println(getLastDayOfMonth(year,month));
     }
 }

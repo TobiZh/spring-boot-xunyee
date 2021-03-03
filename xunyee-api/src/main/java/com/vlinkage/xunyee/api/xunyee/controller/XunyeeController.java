@@ -12,9 +12,7 @@ import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -116,7 +114,7 @@ public class XunyeeController {
 
 
     @ApiOperation("取消关注某个艺人")
-    @GetMapping("vcuser_person")
+    @PutMapping("vcuser_person")
     public R vcuserPerson(HttpServletRequest request, ReqUserPersonCheck req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserPerson(userId,req);
@@ -131,13 +129,21 @@ public class XunyeeController {
     }
 
 
-    @PassToken
     @ApiOperation("签到接口")
-    @GetMapping("vcuser_person_check")
-    public R vcuserPersonCHeck(HttpServletRequest request, ReqPersonCheck req){
+    @PostMapping("vcuser_person_check")
+    public R vcuserPersonCheck(HttpServletRequest request, ReqPersonCheck req){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.vcuserPersonCheck(userId,req);
+    }
+
+
+    @PassToken
+    @ApiOperation("签到日历")
+    @GetMapping("vcuser_person_check/calendar")
+    public R vcuserPersonCheckCalendar(HttpServletRequest request, ReqPersonCheckCalendar req){
 //        int userId= UserUtil.getUserId(request);
         int userId= 23;
-        return xunyeeService.vcuserPersonCHeck(userId,req);
+        return xunyeeService.vcuserPersonCheckCalendar(userId,req);
     }
 
 }
