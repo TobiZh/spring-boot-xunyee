@@ -47,7 +47,7 @@ public class MetaService {
     public Person getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
         qw.eq("id",person_id);
-        qw.select("id","zh_name","avatar_custom","is_xunyee_check");
+        qw.select("id","zh_name","avatar_custom","is_xunyee_check","sex");
         Person person=new Person().selectOne(qw);
         return person;
     }

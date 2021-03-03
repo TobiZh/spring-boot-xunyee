@@ -18,6 +18,7 @@ public class ResUserPersonCheckCalendar {
     private int count;
     private CheckCount check_count;
     private DateData date_data;
+    private LocalDate closing_date;
     private List<Result> results;
     public static class Result{
         private Integer check;

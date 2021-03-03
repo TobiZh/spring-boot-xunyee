@@ -100,14 +100,14 @@ public class XunyeeController {
     @PassToken
     @ApiOperation("签到榜")
     @GetMapping("person_check_count/rank")
-    public R personCheckCountRank(HttpServletRequest request, ReqPersonCheckCount req){
+    public R<ResRank> personCheckCountRank(HttpServletRequest request, ReqPersonCheckCount req){
         Integer userId= UserUtil.getUserId(request);
         return xunyeeService.personCheckCount(userId,req);
     }
 
     @ApiOperation("签到--我的爱豆")
     @GetMapping("person_check_count/idol")
-    public R personCheckCountIdol(HttpServletRequest request,ReqMyPage myPage){
+    public R<ResRank> personCheckCountIdol(HttpServletRequest request,ReqMyPage myPage){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.personCheckCountIdol(userId,myPage);
     }
@@ -140,10 +140,28 @@ public class XunyeeController {
     @PassToken
     @ApiOperation("签到日历")
     @GetMapping("vcuser_person_check/calendar")
-    public R vcuserPersonCheckCalendar(HttpServletRequest request, ReqPersonCheckCalendar req){
+    public R<ResUserPersonCheckCalendar> vcuserPersonCheckCalendar(HttpServletRequest request, ReqPersonCheckCalendar req){
 //        int userId= UserUtil.getUserId(request);
         int userId= 23;
         return xunyeeService.vcuserPersonCheckCalendar(userId,req);
     }
 
+
+
+    @PassToken
+    @ApiOperation("明星详情页")
+    @GetMapping("vcuser_person/person_info/")
+    public R<ResPersonInfo> vcuserPersonPersonInfo(HttpServletRequest request,int person){
+//        Integer userId= UserUtil.getUserId(request);
+        int userId= 23;
+        return xunyeeService.vcuserPersonPersonInfo(userId,person);
+    }
+
+
+    @PassToken
+    @ApiOperation("明星曲线")
+    @GetMapping("report_person/rpt_trend_all")
+    public R reportPersonRptTrendAll(int person){
+        return xunyeeService.reportPersonRptTrendAll(person);
+    }
 }

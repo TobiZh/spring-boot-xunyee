@@ -140,7 +140,7 @@ public class XunyeeService {
         return R.OK(resBenefit);
     }
 
-    public R personCheckCount(Integer userId,ReqPersonCheckCount req) {
+    public R<ResRank> personCheckCount(Integer userId,ReqPersonCheckCount req) {
 
         int period=req.getPeriod();
         int current = req.getCurrent();
@@ -255,7 +255,7 @@ public class XunyeeService {
         return R.OK(resRank);
     }
 
-    public R personCheckCountIdol(Integer userId,ReqMyPage req) {
+    public R<ResRank> personCheckCountIdol(Integer userId,ReqMyPage req) {
 
         int current = req.getCurrent();
         int size = req.getSize();
@@ -358,8 +358,10 @@ public class XunyeeService {
         if (!person.getIs_xunyee_check()){
             return R.ERROR("该艺人已关闭签到");
         }
+
         LocalDate gteDate=LocalDate.now(); // >=
         LocalDate ltDate=gteDate.plusDays(1); // <; // <
+
         QueryWrapper qw=new QueryWrapper();
         qw.eq("vcuser_id",userId);
         qw.ge("start_time",gteDate);//<=
@@ -371,15 +373,18 @@ public class XunyeeService {
                 .is(userId).and("updated")
                 .gte(gteDate).lt(ltDate)),
                 ResMonUserPersonCheck.class);
+        // 今日已使用次数
         int checkCounted = resPersonChecks.stream().collect(Collectors.summingInt(ResMonUserPersonCheck::getCheck));
         if (checkCounted>=3){
             return R.ERROR("每天对所有艺人的签到数不能超过3。");
         }
+        // 是否已为该艺人签到过
         boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson().equals(personId));
         if (b){
             return R.ERROR("今天已经签到过了，明天再来吧");
         }
 
+        // 本次签到次数
         int checkCount=vcuserBenefit==null?1:(3-checkCounted);
         ReqMonUserPersonCheck reqCheck=new ReqMonUserPersonCheck();
         reqCheck.setVcuser(userId);
@@ -393,7 +398,7 @@ public class XunyeeService {
         return R.OK(checkCount);
     }
 
-    public R vcuserPersonCheckCalendar(int userId, ReqPersonCheckCalendar req) {
+    public R<ResUserPersonCheckCalendar> vcuserPersonCheckCalendar(int userId, ReqPersonCheckCalendar req) {
 
 
         int count=0;//当前签到天数
@@ -442,6 +447,57 @@ public class XunyeeService {
         checkCalendar.setResults(results);
         checkCalendar.setDate_data(dateData);
         checkCalendar.setCheck_count(checkCount);
+
+        checkCalendar.setClosing_date(LocalDate.now());
+
         return R.OK(checkCalendar);
+    }
+
+    public R<ResPersonInfo> vcuserPersonPersonInfo(Integer userId, int person) {
+        Person resPerson=metaService.getPersonById(person);
+        if (resPerson==null){
+            return R.ERROR("艺人id错误");
+        }
+        LocalDate gteDate=LocalDate.now(); // >=
+        LocalDate ltDate=gteDate.plusDays(1); // <; // <
+
+        // 当前艺人指数
+        ResMonReportPersonRptTrend resMongo = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person)),ResMonReportPersonRptTrend.class);
+
+        ResPersonInfo info=new ResPersonInfo();
+        info.setPerson(resPerson.getId());
+        info.setAvatar_custom(imagePath+resPerson.getAvatar_custom());
+        info.setSex(resPerson.getSex()==1?"男":"女");
+        info.setReport_1912_teleplay(resMongo.getReport_1912_teleplay());
+        info.setReport_1912_teleplay_rank(resMongo.getReport_1912_teleplay_rank());
+        info.setReport_1912_teleplay_rank_incr(resMongo.getReport_1912_teleplay_rank_incr());
+
+        // 当前艺人今日签到数
+        ResMonPersonCheckCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person).and("data_time").gte(gteDate).lt(ltDate)),ResMonPersonCheckCount.class);
+        if (personCheckCount!=null){
+            info.setCkeck(person);
+        }
+        // 查询当前用户关注的艺人和当天签到数
+        if (userId!=null){
+            ResMonUserPersonCheck userPersonCheck=mongoTemplate.findOne(Query.query(Criteria.where("vcuser").is(userId)
+                            .and("person").is(person)
+                            .and("updated").gte(gteDate).lt(ltDate)),
+                    ResMonUserPersonCheck.class);
+            if (userPersonCheck!=null){
+                info.setCheck_my(userPersonCheck.getCheck());
+            }
+        }
+
+        return R.OK(info);
+    }
+
+    public R reportPersonRptTrendAll(int person) {
+        // 当前艺人指数
+        LocalDate gteDate=LocalDate.now().minusDays(10); // >=
+        LocalDate ltDate=LocalDate.now(); // <; // <
+        ResMonReportPersonRptTrend resMongo = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person).gte(gteDate).lt(ltDate)),
+                ResMonReportPersonRptTrend.class);
+
+        return R.OK();
     }
 }
