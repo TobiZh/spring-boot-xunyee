@@ -164,4 +164,12 @@ public class XunyeeController {
     public R reportPersonRptTrendAll(int person){
         return xunyeeService.reportPersonRptTrendAll(person);
     }
+
+
+    @PassToken
+    @ApiOperation("明星相册")
+    @GetMapping("vcuser_person/person_album")
+    public R reportPersonAlbum(int person,ReqMyPage myPage){
+        return xunyeeService.reportPersonAlbum(person,myPage);
+    }
 }

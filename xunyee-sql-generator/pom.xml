@@ -46,6 +46,13 @@
             <artifactId>springfox-swagger2</artifactId>
         </dependency>
 
+        <!-- mysql -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <!-- mysql -->
+
     </dependencies>
 
 </project>

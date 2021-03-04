@@ -63,6 +63,13 @@
         </dependency>
         <!-- pgsql -->
 
+        <!-- mysql -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <!-- mysql -->
+
         <!-- validation 参数校验 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
