@@ -408,7 +408,14 @@ public class XunyeeService {
 
         int count = 0;//当前签到天数
         int checkMonth = 0;//当前月签到次数
-        int checkYear = 0;//今年签到次数
+
+        // 今年签到次数
+//        int checkYear = (int) mongoTemplate.count(Query.query(Criteria.where("vcuser").is(userId)
+//                        .and("person").is(req.getPerson())
+//                        .and("updated").gte(gteDate).lt(ltDate)),
+//                ResMonUserPersonCheckCalendar.class);
+
+        int checkYear=0;
 
 
         LocalDate ltDate = LocalDate.now(); // <; // <
@@ -419,8 +426,21 @@ public class XunyeeService {
             int month = Integer.parseInt(dataDate[1]);
             ltDate = DateUtil.getLastDayOfMonth(year, month);
             gteDate = ltDate.minusMonths(1);
-        }
 
+
+            checkMonth = (int) mongoTemplate.count(Query.query(Criteria.where("vcuser").is(userId)
+                            .and("person").is(req.getPerson())
+                            .and("updated").gte(gteDate).lt(ltDate)),
+                    ResMonUserPersonCheckCalendar.class);
+        }else{
+            LocalDate mltDate = DateUtil.getLastDayOfMonth(LocalDate.now().getYear(), LocalDate.now().getMonthValue());
+            LocalDate mgteDate = ltDate.minusMonths(1);
+
+            checkMonth = (int) mongoTemplate.count(Query.query(Criteria.where("vcuser").is(userId)
+                            .and("person").is(req.getPerson())
+                            .and("updated").gte(mgteDate).lt(mltDate)),
+                    ResMonUserPersonCheckCalendar.class);
+        }
         Criteria criteria = Criteria.where("vcuser").is(userId)
                 .and("person").is(req.getPerson())
                 .and("updated").gte(gteDate).lt(ltDate);
@@ -452,7 +472,6 @@ public class XunyeeService {
         checkCalendar.setResults(results);
         checkCalendar.setDate_data(dateData);
         checkCalendar.setCheck_count(checkCount);
-
         checkCalendar.setClosing_date(LocalDate.now());
 
         return R.OK(checkCalendar);
