@@ -52,15 +52,45 @@ public class DateUtil {
         int lastDay = cal.getActualMaximum(Calendar.DATE);
         //设置日历中月份的最大天数
         cal.set(Calendar.DAY_OF_MONTH, lastDay);
-        //格式化日期
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
         ZoneId zoneId = ZoneId.systemDefault();
         Instant instant = cal.getTime().toInstant();
         LocalDate localDate = instant.atZone(zoneId).toLocalDate();
 
         return localDate;
     }
+
+
+    /**
+     * 获取某年第一天日期
+     * @param year 年份
+     * @return Date
+     */
+    public static LocalDate getCurrYearFirst(int year){
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(Calendar.YEAR, year);
+        Date currYearFirst = calendar.getTime();
+        ZoneId zoneId = ZoneId.systemDefault();
+        Instant instant = calendar.getTime().toInstant();
+        LocalDate localDate = instant.atZone(zoneId).toLocalDate();
+        return localDate;
+    }
+
+    /**
+     * 获取某年最后一天日期
+     * @param year 年份
+     * @return Date
+     */
+    public static Date getCurrYearLast(int year){
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(Calendar.YEAR, year);
+        calendar.roll(Calendar.DAY_OF_YEAR, -1);
+        Date currYearLast = calendar.getTime();
+
+        return currYearLast;
+    }
+
 
 
     public static void main(String[] args) {

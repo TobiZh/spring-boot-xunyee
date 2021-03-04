@@ -81,6 +81,16 @@ public class MetaService {
         return personList;
     }
 
+    @DS("meta")
+    public List<Person> getPersonByName(String name){
+        QueryWrapper qw=new QueryWrapper();
+        qw.select("id","zh_name","avatar_custom");
+        qw.like("zh_name",name);
+        List<Person> personList=new Person().selectList(qw);
+        return personList;
+    }
+
+
     /**
      * 获取电视剧
      * @param ids

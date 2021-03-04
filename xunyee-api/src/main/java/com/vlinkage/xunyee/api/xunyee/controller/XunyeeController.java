@@ -152,8 +152,7 @@ public class XunyeeController {
     @ApiOperation("明星详情页")
     @GetMapping("vcuser_person/person_info/")
     public R<ResPersonInfo> vcuserPersonPersonInfo(HttpServletRequest request,int person){
-//        Integer userId= UserUtil.getUserId(request);
-        int userId= 23;
+        Integer userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserPersonPersonInfo(userId,person);
     }
 

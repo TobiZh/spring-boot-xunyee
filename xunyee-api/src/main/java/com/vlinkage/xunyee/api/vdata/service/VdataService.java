@@ -44,20 +44,38 @@ public class VdataService {
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
-        Query query = Query.query(criteria);
+        Query query = new Query();
         // 查询记录总数 数据总页数 放在分页条件之前
-        int totalCount = (int) mongoTemplate.count(query, ResMonPersonCheckCount.class);
+        int totalCount = 0;
+        List<Person> persons;
+        List<ResMonReportPersonRptTrend> resMonReportPersonRptTrends;
+
+        if (StringUtils.isNotEmpty(req.getPerson__zh_name__icontains())){ // 根据艺人名字搜索
+            persons=metaService.getPersonByName(req.getPerson__zh_name__icontains());
+            Integer[] person = persons.stream().map(e -> e.getId()).collect(Collectors.toList())
+                    .toArray(new Integer[persons.size()]);
+            criteria.and("person").in(person);
+            query.addCriteria(criteria);
+            totalCount=(int) mongoTemplate.count(query, ResMonReportPersonRptTrend.class);
+
+            query.skip((current - 1) * size).limit(size);
+            query.with(Sort.by(Sort.Direction.ASC, "report_1912_teleplay_rank"));
+            resMonReportPersonRptTrends=mongoTemplate.find(query,ResMonReportPersonRptTrend.class);
+
+        }else{
+            query.addCriteria(criteria);
+            totalCount=(int) mongoTemplate.count(query, ResMonReportPersonRptTrend.class);
+
+            query.skip((current - 1) * size).limit(size);
+            query.with(Sort.by(Sort.Direction.ASC, "report_1912_teleplay_rank"));
+            resMonReportPersonRptTrends=mongoTemplate.find(query,ResMonReportPersonRptTrend.class);
+            // 提取person id去数据库查询艺人信息
+            Integer[] personIds = resMonReportPersonRptTrends.stream().map(e -> e.getPerson()).collect(Collectors.toList())
+                    .toArray(new Integer[resMonReportPersonRptTrends.size()]);
+            persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
+        }
+
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
-
-        // 设置起始数
-        query.skip((current - 1) * size).limit(size);
-        query.with(Sort.by(Sort.Direction.ASC, "report_1912_teleplay_rank"));
-        List<ResMonReportPersonRptTrend> resMonReportPersonRptTrends=mongoTemplate.find(query,ResMonReportPersonRptTrend.class);
-        // 提取person id去数据库查询艺人信息
-        Integer[] personIds = resMonReportPersonRptTrends.stream().map(e -> e.getPerson()).collect(Collectors.toList())
-                .toArray(new Integer[resMonReportPersonRptTrends.size()]);
-        List<Person> persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
-
 
         // 组装数据
         List<ResReportPersonRptTrend> resTrends = new ArrayList<>();
@@ -91,21 +109,42 @@ public class VdataService {
         int current = req.getCurrent();
         int size = req.getSize();
 
+
+
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
-        Query query = Query.query(criteria);
+        Query query = new Query();
         // 查询记录总数 数据总页数 放在分页条件之前
-        int totalCount = (int) mongoTemplate.count(query, ResMonReportPersonZyRptTrend.class);
-        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
+        int totalCount = 0;
+        List<Person> persons;
+        List<ResMonReportPersonZyRptTrend> resMongos;
 
-        // 设置起始数
-        query.skip((current - 1) * size).limit(size);
-        query.with(Sort.by(Sort.Direction.ASC, "report_1912_zy_rank"));
-        List<ResMonReportPersonZyRptTrend> resMongos=mongoTemplate.find(query,ResMonReportPersonZyRptTrend.class);
-        // 提取person id去数据库查询艺人信息
-        Integer[] personIds = resMongos.stream().map(e -> e.getPerson()).collect(Collectors.toList())
-                .toArray(new Integer[resMongos.size()]);
-        List<Person> persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
+        if (StringUtils.isNotEmpty(req.getPerson__zh_name__icontains())){ // 根据艺人名字搜索
+            persons=metaService.getPersonByName(req.getPerson__zh_name__icontains());
+            Integer[] person = persons.stream().map(e -> e.getId()).collect(Collectors.toList())
+                    .toArray(new Integer[persons.size()]);
+            criteria.and("person").in(person);
+            query.addCriteria(criteria);
+            totalCount=(int) mongoTemplate.count(query, ResMonReportPersonZyRptTrend.class);
+
+            query.skip((current - 1) * size).limit(size);
+            query.with(Sort.by(Sort.Direction.ASC, "report_1912_zy_rank"));
+            resMongos=mongoTemplate.find(query,ResMonReportPersonZyRptTrend.class);
+
+        }else{
+            query.addCriteria(criteria);
+            totalCount=(int) mongoTemplate.count(query, ResMonReportPersonZyRptTrend.class);
+
+            query.skip((current - 1) * size).limit(size);
+            query.with(Sort.by(Sort.Direction.ASC, "report_1912_zy_rank"));
+            resMongos=mongoTemplate.find(query,ResMonReportPersonZyRptTrend.class);
+            // 提取person id去数据库查询艺人信息
+            Integer[] personIds = resMongos.stream().map(e -> e.getPerson()).collect(Collectors.toList())
+                    .toArray(new Integer[resMongos.size()]);
+            persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
+        }
+
+        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
 
 
         // 组装数据
