@@ -69,7 +69,6 @@ public class DateUtil {
         Calendar calendar = Calendar.getInstance();
         calendar.clear();
         calendar.set(Calendar.YEAR, year);
-        Date currYearFirst = calendar.getTime();
         ZoneId zoneId = ZoneId.systemDefault();
         Instant instant = calendar.getTime().toInstant();
         LocalDate localDate = instant.atZone(zoneId).toLocalDate();
@@ -81,14 +80,15 @@ public class DateUtil {
      * @param year 年份
      * @return Date
      */
-    public static Date getCurrYearLast(int year){
+    public static LocalDate getCurrYearLast(int year){
         Calendar calendar = Calendar.getInstance();
         calendar.clear();
         calendar.set(Calendar.YEAR, year);
         calendar.roll(Calendar.DAY_OF_YEAR, -1);
-        Date currYearLast = calendar.getTime();
-
-        return currYearLast;
+        ZoneId zoneId = ZoneId.systemDefault();
+        Instant instant = calendar.getTime().toInstant();
+        LocalDate localDate = instant.atZone(zoneId).toLocalDate();
+        return localDate;
     }
 
 
@@ -99,5 +99,7 @@ public class DateUtil {
         int month= Integer.parseInt(datestr.split("-")[1]);
 
         System.out.println(getLastDayOfMonth(year,month));
+        System.out.println(getCurrYearFirst(year));
+        System.out.println(getCurrYearLast(year).plusDays(1));
     }
 }

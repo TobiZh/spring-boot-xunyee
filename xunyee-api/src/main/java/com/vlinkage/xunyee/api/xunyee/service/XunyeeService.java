@@ -406,16 +406,20 @@ public class XunyeeService {
     public R<ResUserPersonCheckCalendar> vcuserPersonCheckCalendar(int userId, ReqPersonCheckCalendar req) {
 
 
-        int count = 0;//当前签到天数
-        int checkMonth = 0;//当前月签到次数
-
+        List<ResMonUserPersonCheckCalendar> countCalendars = mongoTemplate.find(Query.query(Criteria.where("vcuser").is(userId)
+                        .and("person").is(req.getPerson())),
+                ResMonUserPersonCheckCalendar.class);
+        List<ResMonUserPersonCheckCalendar> yearCalenders = mongoTemplate.find(Query.query(Criteria.where("vcuser").is(userId)
+                        .and("person").is(req.getPerson())
+                        .and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))
+                        .lt(DateUtil.getCurrYearLast(LocalDate.now().getYear()))),
+                ResMonUserPersonCheckCalendar.class);
+        //当前签到天数
+        int count = countCalendars.size();
         // 今年签到次数
-//        int checkYear = (int) mongoTemplate.count(Query.query(Criteria.where("vcuser").is(userId)
-//                        .and("person").is(req.getPerson())
-//                        .and("updated").gte(gteDate).lt(ltDate)),
-//                ResMonUserPersonCheckCalendar.class);
-
-        int checkYear=0;
+        int checkYear =yearCalenders.stream().mapToInt(ResMonUserPersonCheckCalendar::getCheck).sum();
+        //当前月签到次数
+        int checkMonth = 0;
 
 
         LocalDate ltDate = LocalDate.now(); // <; // <
