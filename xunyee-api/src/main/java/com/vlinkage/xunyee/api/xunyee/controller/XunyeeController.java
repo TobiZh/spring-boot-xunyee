@@ -29,7 +29,7 @@ public class XunyeeController {
     @Autowired
     private MetaService metaService;
 
-    @ApiOperation("获取 封面、轮播图、广告")
+    @ApiOperation("封面与轮播")
     @PassToken
     @GetMapping("pic/current")
     public R<Map> getPic(@Valid ReqPic req){
@@ -137,15 +137,12 @@ public class XunyeeController {
     }
 
 
-    @PassToken
     @ApiOperation("签到日历")
     @GetMapping("vcuser_person_check/calendar")
     public R<ResUserPersonCheckCalendar> vcuserPersonCheckCalendar(HttpServletRequest request, ReqPersonCheckCalendar req){
-//        int userId= UserUtil.getUserId(request);
-        int userId= 23;
+        int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserPersonCheckCalendar(userId,req);
     }
-
 
 
     @PassToken

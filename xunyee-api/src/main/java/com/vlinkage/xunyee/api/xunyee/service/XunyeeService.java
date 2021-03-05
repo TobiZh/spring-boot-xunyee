@@ -150,10 +150,8 @@ public class XunyeeService {
         int current = req.getCurrent();
         int size = req.getSize();
         int rankStart = (current - 1) * size + 1; // 分页rank起始值
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate nowDate = LocalDate.parse("2019-11-17", fmt);
 
-//        LocalDate nowDate=LocalDate.now();//今天
+        LocalDate nowDate=LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
         if (period <= 1) {//获取今天签到榜
@@ -409,10 +407,12 @@ public class XunyeeService {
         List<ResMonUserPersonCheckCalendar> countCalendars = mongoTemplate.find(Query.query(Criteria.where("vcuser").is(userId)
                         .and("person").is(req.getPerson())),
                 ResMonUserPersonCheckCalendar.class);
-        List<ResMonUserPersonCheckCalendar> yearCalenders = mongoTemplate.find(Query.query(Criteria.where("vcuser").is(userId)
+        List<ResMonUserPersonCheckCalendar> yearCalenders = mongoTemplate.find(Query.query(
+                Criteria.where("vcuser").is(userId)
                         .and("person").is(req.getPerson())
-                        .and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))
-                        .lt(DateUtil.getCurrYearLast(LocalDate.now().getYear()))),
+                        .andOperator(Criteria.where("updated")
+                                .gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))
+                                .lt(DateUtil.getCurrYearLast(LocalDate.now().getYear())))),
                 ResMonUserPersonCheckCalendar.class);
         //当前签到天数
         int count = countCalendars.size();
@@ -434,7 +434,7 @@ public class XunyeeService {
 
             checkMonth = (int) mongoTemplate.count(Query.query(Criteria.where("vcuser").is(userId)
                             .and("person").is(req.getPerson())
-                            .and("updated").gte(gteDate).lt(ltDate)),
+                            .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
                     ResMonUserPersonCheckCalendar.class);
         }else{
             LocalDate mltDate = DateUtil.getLastDayOfMonth(LocalDate.now().getYear(), LocalDate.now().getMonthValue());
@@ -447,7 +447,7 @@ public class XunyeeService {
         }
         Criteria criteria = Criteria.where("vcuser").is(userId)
                 .and("person").is(req.getPerson())
-                .and("updated").gte(gteDate).lt(ltDate);
+                .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate));
         Query query = new Query(criteria);
         query.with(Sort.by(Sort.Direction.DESC, "updated"));
         // 查询当前用户关给某个艺人和签到数
@@ -501,7 +501,7 @@ public class XunyeeService {
         info.setReport_1912_teleplay_rank_incr(resMongo.getReport_1912_teleplay_rank_incr());
 
         // 当前艺人今日签到数
-        ResMonPersonCheckCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person).and("data_time").gte(gteDate).lt(ltDate)), ResMonPersonCheckCount.class);
+        ResMonPersonCheckCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person).andOperator(Criteria.where("data_time").gte(gteDate).lt(ltDate))), ResMonPersonCheckCount.class);
         if (personCheckCount != null) {
             info.setCkeck(person);
         }
@@ -509,7 +509,7 @@ public class XunyeeService {
         if (userId != null) {
             ResMonUserPersonCheck userPersonCheck = mongoTemplate.findOne(Query.query(Criteria.where("vcuser").is(userId)
                             .and("person").is(person)
-                            .and("updated").gte(gteDate).lt(ltDate)),
+                            .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
                     ResMonUserPersonCheck.class);
             if (userPersonCheck != null) {
                 info.setCheck_my(userPersonCheck.getCheck());

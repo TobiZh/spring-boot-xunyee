@@ -41,22 +41,28 @@ public class VdataService {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
+        LocalDate gteDate=getGteDate(period);
+        LocalDate lteDate=getYesterdayLtDate();
+
+
+        // count的查询条件
+        Criteria criteriaCount = Criteria.where("period").is(period);
+        Query queryCount = new Query();
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
         Query query = new Query();
-        // 查询记录总数 数据总页数 放在分页条件之前
-        int totalCount = 0;
         List<Person> persons;
         List<ResMonReportPersonRptTrend> resMonReportPersonRptTrends;
-
         if (StringUtils.isNotEmpty(req.getPerson__zh_name__icontains())){ // 根据艺人名字搜索
             persons=metaService.getPersonByName(req.getPerson__zh_name__icontains());
             Integer[] person = persons.stream().map(e -> e.getId()).collect(Collectors.toList())
                     .toArray(new Integer[persons.size()]);
             criteria.and("person").in(person);
             query.addCriteria(criteria);
-            totalCount=(int) mongoTemplate.count(query, ResMonReportPersonRptTrend.class);
+
+            criteriaCount.and("person").in(person);
+
 
             query.skip((current - 1) * size).limit(size);
             query.with(Sort.by(Sort.Direction.ASC, "report_1912_teleplay_rank"));
@@ -64,8 +70,6 @@ public class VdataService {
 
         }else{
             query.addCriteria(criteria);
-            totalCount=(int) mongoTemplate.count(query, ResMonReportPersonRptTrend.class);
-
             query.skip((current - 1) * size).limit(size);
             query.with(Sort.by(Sort.Direction.ASC, "report_1912_teleplay_rank"));
             resMonReportPersonRptTrends=mongoTemplate.find(query,ResMonReportPersonRptTrend.class);
@@ -75,6 +79,10 @@ public class VdataService {
             persons=personIds.length>0?metaService.getPerson(personIds):new ArrayList<>();
         }
 
+        // 查询记录总数 数据总页数 放在分页条件之前
+
+        queryCount.addCriteria(criteriaCount);
+        int totalCount =(int) mongoTemplate.count(queryCount, ResMonReportPersonRptTrend.class);
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
 
         // 组装数据
@@ -100,7 +108,7 @@ public class VdataService {
             resTrends.add(resReportPersonRptTrend);
         }
 
-        return rank(totalCount,totalPage,current,period,resTrends);
+        return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
 
     }
 
@@ -108,7 +116,8 @@ public class VdataService {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
-
+        LocalDate gteDate=getGteDate(period);
+        LocalDate lteDate=getYesterdayLtDate();
 
 
         // 查询条件
@@ -170,19 +179,18 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        return rank(totalCount,totalPage,current,period,resTrends);
+        return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
     }
 
     public R reportTeleplayRptTrend(ReqReportTeleplayRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
+        LocalDate gteDate=getGteDate(period);
+        LocalDate lteDate=getYesterdayLtDate();
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
-        if (StringUtils.isNotEmpty(req.getTeleplay__title__icontains())){
-            criteria.regex(".*?\\" +req.getTeleplay__title__icontains()+ ".*");
-        }
         Query query = Query.query(criteria);
         // 查询记录总数 数据总页数 放在分页条件之前
         int totalCount = (int) mongoTemplate.count(query, ResMonReportTeleplayRptTrend.class);
@@ -219,13 +227,15 @@ public class VdataService {
             resTrends.add(resReportTeleplayRptTrend);
         }
 
-        return rank(totalCount,totalPage,current,period,resTrends);
+        return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
     }
 
     public R reportTeleplayRptTrendNet(ReqReportTeleplayRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
+        LocalDate gteDate=getGteDate(period);
+        LocalDate lteDate=getYesterdayLtDate();
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
@@ -267,7 +277,7 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        return rank(totalCount,totalPage,current,period,resTrends);
+        return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
     }
 
 
@@ -275,6 +285,8 @@ public class VdataService {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
+        LocalDate gteDate=getGteDate(period);
+        LocalDate lteDate=getYesterdayLtDate();
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
@@ -314,7 +326,7 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        return rank(totalCount,totalPage,current,period,resTrends);
+        return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
     }
 
     public R reportZyNetRptTrend(ReqReportZyRptTrend req) {
@@ -322,6 +334,8 @@ public class VdataService {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
+        LocalDate gteDate=getGteDate(period);
+        LocalDate lteDate=getYesterdayLtDate();
 
         // 查询条件
         Criteria criteria = Criteria.where("period").is(period);
@@ -361,22 +375,12 @@ public class VdataService {
             resTrends.add(resTrend);
         }
 
-        return rank(totalCount,totalPage,current,period,resTrends);
+        return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
     }
 
 
 
-    private R rank(int totalCount,int totalPage,int current,int period,Object results){
-        LocalDate nowDate=LocalDate.now();//今天
-        LocalDate gteDate; // >=
-        LocalDate ltDate; // <
-        if(period<=1){//获取今天签到榜
-            gteDate=nowDate;
-            ltDate=gteDate.plusDays(1); // <
-        }else{
-            gteDate=nowDate.minusDays(period);// 减去 7||30
-            ltDate=nowDate;
-        }
+    private R rank(int totalCount,int totalPage,int current,LocalDate gteDate,LocalDate ltDate,Object results){
         ResRank resRank=new ResRank();
         resRank.setCount(totalCount);
         resRank.setPages(totalPage);
@@ -387,5 +391,16 @@ public class VdataService {
         resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
         resRank.setResults(results);
         return R.OK(resRank);
+    }
+
+    private LocalDate getGteDate(int period){
+        LocalDate ltDate=getYesterdayLtDate();//获取lt日期
+        LocalDate gteDate=period<=1?ltDate:ltDate.minusDays(period-1); // >=
+        return gteDate;
+    }
+
+    private LocalDate getYesterdayLtDate(){
+        LocalDate ltDate=LocalDate.now().minusDays(1); // <
+        return ltDate;
     }
 }
