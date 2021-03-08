@@ -9,6 +9,7 @@ import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.meta.entity.Zy;
 import com.vlinkage.ant.star.entity.PersonGallery;
 import com.vlinkage.ant.xunyee.entity.*;
+import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.api.star.service.StarService;
@@ -31,7 +32,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -52,6 +56,8 @@ public class XunyeeService {
     private MetaService metaService;
     @Autowired
     private StarService starService;
+    @Resource
+    private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
 
     public R<Map> getPic(ReqPic req) {
         LocalDateTime nowDate = LocalDateTime.now();
@@ -474,8 +480,8 @@ public class XunyeeService {
         ResUserPersonCheckCalendar checkCalendar = new ResUserPersonCheckCalendar();
         checkCalendar.setCount(count);
         checkCalendar.setResults(results);
-        checkCalendar.setDate_data(dateData);
-        checkCalendar.setCheck_count(checkCount);
+        checkCalendar.setDate(dateData);
+        checkCalendar.setCheck__count(checkCount);
         checkCalendar.setClosing_date(LocalDate.now());
 
         return R.OK(checkCalendar);
@@ -529,7 +535,7 @@ public class XunyeeService {
         return R.OK();
     }
 
-    public R reportPersonAlbum(int person, ReqMyPage myPage) {
+    public R reportPersonAlbum(ReqMyPage myPage,int person) {
         IPage iPage = starService.getPersonGalleryByPersonId(person, myPage);
         List<PersonGallery> resBlogPages = iPage.getRecords();
         List<String> list = resBlogPages.stream().map(c -> imagePath + c.getOriginal()).collect(Collectors.toList());
@@ -538,5 +544,70 @@ public class XunyeeService {
         map.put("count",iPage.getTotal());
         map.put("album_list",list);
         return R.OK(map);
+    }
+
+
+    @Transactional
+    public R vcuserBenefitVoucher(int userId,String voucher) {
+        QueryWrapper qw=new QueryWrapper();
+        qw.eq("voucher",voucher);
+        XunyeeVcuserVoucher vcuserVoucher=new XunyeeVcuserVoucher().selectOne(qw);
+        if (vcuserVoucher==null){
+            return R.ERROR("兑换码错误");
+        }
+        if (!vcuserVoucher.getIs_enabled()){
+            return R.ERROR("兑换码已使用");
+        }
+
+
+        XunyeeBenefitPrice benefitPrice=new XunyeeBenefitPrice().selectById(vcuserVoucher.getBenefit_price_id());
+        if (benefitPrice==null||!benefitPrice.getIs_enabled()){
+            return R.ERROR("兑换码对应的活动不存在");
+        }
+
+
+        LocalDate nowDate=LocalDate.now();
+        QueryWrapper bqw=new QueryWrapper();
+        bqw.eq("vcuser_id",userId);
+        bqw.ge("finish_time", nowDate);// <=
+        XunyeeVcuserBenefit temp=new XunyeeVcuserBenefit().selectOne(bqw);
+        int benefitId=benefitPrice.getBenefit_id();
+        int plusDays=benefitPrice.getQuantity();
+        Date date=new Date();
+        if (temp==null){
+            XunyeeVcuserBenefit vcuserBenefit=new XunyeeVcuserBenefit();
+            vcuserBenefit.setId(UUID.randomUUID().toString());
+            vcuserBenefit.setBenefit_id(benefitId);
+            vcuserBenefit.setVcuser_id(userId);
+            vcuserBenefit.setUpdated(date);
+            vcuserBenefit.setCreated(date);
+            vcuserBenefit.setFinish_time(nowDate);
+            vcuserBenefit.setFinish_time(nowDate.plusDays(plusDays));
+            if(!vcuserBenefit.insert()){
+                return R.ERROR();
+            }
+        }else{
+
+            // 这里使用xunyeeVcuserBenefitMapper 是因为 pgsql的主键使用的是uuid类型，不能updateById;
+            QueryWrapper  updateQw=new QueryWrapper();
+            updateQw.eq("id",UUID.fromString(temp.getId()));
+            temp.setBenefit_id(benefitId);
+            temp.setUpdated(date);
+            temp.setFinish_time(nowDate.plusDays(plusDays));
+            if(xunyeeVcuserBenefitMapper.update(temp,updateQw)<=0){
+                return R.ERROR();
+            }
+        }
+
+        vcuserVoucher.setIs_enabled(false);
+        vcuserVoucher.setVcuser_id(userId);
+        vcuserVoucher.setUpdated(date);
+        if(!vcuserVoucher.updateById()){
+            return R.ERROR();
+        }
+
+
+        return R.OK();
+
     }
 }

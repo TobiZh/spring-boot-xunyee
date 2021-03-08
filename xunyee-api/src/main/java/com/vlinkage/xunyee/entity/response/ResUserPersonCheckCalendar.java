@@ -16,8 +16,8 @@ public class ResUserPersonCheckCalendar {
 
     @ApiModelProperty("当前月签到天数")
     private int count;
-    private CheckCount check_count;
-    private DateData date_data;
+    private CheckCount check__count;
+    private DateData date;
     private LocalDate closing_date;
     private List<Result> results;
     public static class Result{

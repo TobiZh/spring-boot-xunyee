@@ -165,7 +165,15 @@ public class XunyeeController {
     @PassToken
     @ApiOperation("明星相册")
     @GetMapping("vcuser_person/person_album")
-    public R reportPersonAlbum(int person,ReqMyPage myPage){
-        return xunyeeService.reportPersonAlbum(person,myPage);
+    public R reportPersonAlbum(ReqMyPage myPage,int person){
+        return xunyeeService.reportPersonAlbum(myPage,person);
     }
+
+    @ApiOperation("兑换券")
+    @PostMapping("vcuser_benefit/voucher")
+    public R vcuserBenefitVoucher(HttpServletRequest request,@Valid ReqVoucher req){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.vcuserBenefitVoucher(userId,req.getVoucher());
+    }
+
 }
