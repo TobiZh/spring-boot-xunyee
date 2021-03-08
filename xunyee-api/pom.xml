@@ -104,6 +104,15 @@
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-spring-boot-starter</artifactId>
         </dependency>
+
+        <dependency><!-- swagger注解无默认值错误忽略 -->
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+        </dependency>
+        <dependency><!-- swagger注解无默认值错误忽略 -->
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-models</artifactId>
+        </dependency>
         <!-- api可视化 -->
 
         <!-- fastjson -->

@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 public class ResBlogPage {
 
-    @ApiModelProperty("创作id")
+    @ApiModelProperty("创作id blog_id")
     private int id;
     @ApiModelProperty("用户id")
-    private int vcuser_d;
+    private int vcuser_id;
     @ApiModelProperty("用户昵称")
     private String nickname;
     @ApiModelProperty("用户头像")

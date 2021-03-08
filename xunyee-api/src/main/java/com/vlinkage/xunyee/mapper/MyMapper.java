@@ -35,14 +35,14 @@ public interface MyMapper {
      * @param type
      * @return
      */
-    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar, " +
+    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
             "<when test='vcuser_id!=null'>",
-            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star ",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star ",
             "</when>",
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
             "ON b.vcuser_id=u.id WHERE (b.type=${type}) " +
             "ORDER BY b.star_count DESC</script>"})
-    IPage<ResBlogPage> selectBlogCategoryPage(Page page, Integer type);
+    IPage<ResBlogPage> selectBlogCategoryPage(Page page, Integer type,Integer vcuser_id);
 
     /**
      * 获取动态 需要登录

@@ -138,11 +138,20 @@ public class LoginService {
                 return R.OK(resLoginSuccess);
             }
             // 登录成功 生成token
+            XunyeeVcuser vcuser=new XunyeeVcuser().selectById(temp.getVcuser_id());
             String token = JwtUtil.getToken(String.valueOf(temp.getVcuser_id()));
             redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
             ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
             resLoginSuccess.setSession_key(sessionKey);
             resLoginSuccess.setToken(token);
+            if (StringUtils.isNotEmpty(vcuser.getNickname())){
+                resLoginSuccess.setNickname(vcuser.getNickname());
+            }
+
+            if (StringUtils.isNotEmpty(vcuser.getAvatar())){
+                resLoginSuccess.setAvatar(vcuser.getAvatar());
+            }
+
             return R.OK(resLoginSuccess);
         } catch (WxErrorException e) {
             log.error(e.getMessage(), e);

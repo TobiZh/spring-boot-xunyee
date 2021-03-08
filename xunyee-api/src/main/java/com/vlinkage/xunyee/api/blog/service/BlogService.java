@@ -49,9 +49,9 @@ public class BlogService {
         return R.OK(iPage);
     }
 
-    public R<IPage<ResBlogPage>> blogCategory(ReqMyPage myPage,Integer type) {
+    public R<IPage<ResBlogPage>> blogCategory(ReqMyPage myPage,Integer type,Integer userId) {
         Page page=new Page(myPage.getCurrent(),myPage.getSize());
-        IPage<ResBlogPage> iPage=myMapper.selectBlogCategoryPage(page,type);
+        IPage<ResBlogPage> iPage=myMapper.selectBlogCategoryPage(page,type,userId);
         return R.OK(iPage);
     }
 

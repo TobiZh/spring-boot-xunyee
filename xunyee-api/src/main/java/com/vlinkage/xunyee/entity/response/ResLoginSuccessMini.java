@@ -9,5 +9,6 @@ public class ResLoginSuccessMini extends ResLoginSuccessBase {
 
     @ApiModelProperty("sessionKey")
     private String session_key;
-
+    private String nickname;
+    private String avatar;
 }

@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @ApiOperation("举报用户")
-    @GetMapping("report")
+    @PostMapping("report")
     public R report(HttpServletRequest request, ReqBlogReport req){
         Integer userId=UserUtil.getUserId(request);
         req.setVcuser_id(userId);
