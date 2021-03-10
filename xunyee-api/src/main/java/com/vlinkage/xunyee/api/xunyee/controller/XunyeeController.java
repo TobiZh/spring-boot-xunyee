@@ -176,4 +176,13 @@ public class XunyeeController {
         return xunyeeService.vcuserBenefitVoucher(userId,req.getVoucher());
     }
 
+    @ApiOperation("微信支付统一下单")
+    @PostMapping("vcuser_benefit_payorder/submit")
+    public R vcuserBenefitPayOrderSubmit(HttpServletRequest request,ReqBenefitPayOrder req){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.vcuserBenefitPayOrderSubmit(request,userId,req);
+    }
+
+
+
 }

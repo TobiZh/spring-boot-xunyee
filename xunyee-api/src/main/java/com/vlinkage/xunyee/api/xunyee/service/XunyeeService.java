@@ -6,21 +6,19 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.ant.meta.entity.Person;
-import com.vlinkage.ant.meta.entity.Zy;
 import com.vlinkage.ant.star.entity.PersonGallery;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
+import com.vlinkage.xunyee.api.pay.service.PayService;
 import com.vlinkage.xunyee.api.star.service.StarService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
-import com.vlinkage.xunyee.utils.MongodbUtils;
-import com.vlinkage.xunyee.utils.PageUtil;
-import io.lettuce.core.output.MapOutput;
+import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,12 +33,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,8 +51,11 @@ public class XunyeeService {
     private MetaService metaService;
     @Autowired
     private StarService starService;
+    @Autowired
+    private PayService payService;
     @Resource
     private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
+
 
     public R<Map> getPic(ReqPic req) {
         LocalDateTime nowDate = LocalDateTime.now();
@@ -157,7 +155,7 @@ public class XunyeeService {
         int size = req.getSize();
         int rankStart = (current - 1) * size + 1; // 分页rank起始值
 
-        LocalDate nowDate=LocalDate.now();//今天
+        LocalDate nowDate = LocalDate.now();//今天
         LocalDate gteDate; // >=
         LocalDate ltDate; // <
         if (period <= 1) {//获取今天签到榜
@@ -423,7 +421,7 @@ public class XunyeeService {
         //当前签到天数
         int count = countCalendars.size();
         // 今年签到次数
-        int checkYear =yearCalenders.stream().mapToInt(ResMonUserPersonCheckCalendar::getCheck).sum();
+        int checkYear = yearCalenders.stream().mapToInt(ResMonUserPersonCheckCalendar::getCheck).sum();
         //当前月签到次数
         int checkMonth = 0;
 
@@ -442,7 +440,7 @@ public class XunyeeService {
                             .and("person").is(req.getPerson())
                             .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
                     ResMonUserPersonCheckCalendar.class);
-        }else{
+        } else {
             LocalDate mltDate = DateUtil.getLastDayOfMonth(LocalDate.now().getYear(), LocalDate.now().getMonthValue());
             LocalDate mgteDate = ltDate.minusMonths(1);
 
@@ -535,47 +533,47 @@ public class XunyeeService {
         return R.OK();
     }
 
-    public R reportPersonAlbum(ReqMyPage myPage,int person) {
+    public R reportPersonAlbum(ReqMyPage myPage, int person) {
         IPage iPage = starService.getPersonGalleryByPersonId(person, myPage);
         List<PersonGallery> resBlogPages = iPage.getRecords();
         List<String> list = resBlogPages.stream().map(c -> imagePath + c.getOriginal()).collect(Collectors.toList());
-        Map map=new HashMap();
-        map.put("person",person);
-        map.put("count",iPage.getTotal());
-        map.put("album_list",list);
+        Map map = new HashMap();
+        map.put("person", person);
+        map.put("count", iPage.getTotal());
+        map.put("album_list", list);
         return R.OK(map);
     }
 
 
     @Transactional
-    public R vcuserBenefitVoucher(int userId,String voucher) {
-        QueryWrapper qw=new QueryWrapper();
-        qw.eq("voucher",voucher);
-        XunyeeVcuserVoucher vcuserVoucher=new XunyeeVcuserVoucher().selectOne(qw);
-        if (vcuserVoucher==null){
+    public R vcuserBenefitVoucher(int userId, String voucher) {
+        QueryWrapper qw = new QueryWrapper();
+        qw.eq("voucher", voucher);
+        XunyeeVcuserVoucher vcuserVoucher = new XunyeeVcuserVoucher().selectOne(qw);
+        if (vcuserVoucher == null) {
             return R.ERROR("兑换码错误");
         }
-        if (!vcuserVoucher.getIs_enabled()){
+        if (!vcuserVoucher.getIs_enabled()) {
             return R.ERROR("兑换码已使用");
         }
 
 
-        XunyeeBenefitPrice benefitPrice=new XunyeeBenefitPrice().selectById(vcuserVoucher.getBenefit_price_id());
-        if (benefitPrice==null||!benefitPrice.getIs_enabled()){
+        XunyeeBenefitPrice benefitPrice = new XunyeeBenefitPrice().selectById(vcuserVoucher.getBenefit_price_id());
+        if (benefitPrice == null || !benefitPrice.getIs_enabled()) {
             return R.ERROR("兑换码对应的活动不存在");
         }
 
 
-        LocalDate nowDate=LocalDate.now();
-        QueryWrapper bqw=new QueryWrapper();
-        bqw.eq("vcuser_id",userId);
+        LocalDate nowDate = LocalDate.now();
+        QueryWrapper bqw = new QueryWrapper();
+        bqw.eq("vcuser_id", userId);
         bqw.ge("finish_time", nowDate);// <=
-        XunyeeVcuserBenefit temp=new XunyeeVcuserBenefit().selectOne(bqw);
-        int benefitId=benefitPrice.getBenefit_id();
-        int plusDays=benefitPrice.getQuantity();
-        Date date=new Date();
-        if (temp==null){
-            XunyeeVcuserBenefit vcuserBenefit=new XunyeeVcuserBenefit();
+        XunyeeVcuserBenefit temp = new XunyeeVcuserBenefit().selectOne(bqw);
+        int benefitId = benefitPrice.getBenefit_id();
+        int plusDays = benefitPrice.getQuantity();
+        Date date = new Date();
+        if (temp == null) {
+            XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit();
             vcuserBenefit.setId(UUID.randomUUID().toString());
             vcuserBenefit.setBenefit_id(benefitId);
             vcuserBenefit.setVcuser_id(userId);
@@ -583,18 +581,18 @@ public class XunyeeService {
             vcuserBenefit.setCreated(date);
             vcuserBenefit.setFinish_time(nowDate);
             vcuserBenefit.setFinish_time(nowDate.plusDays(plusDays));
-            if(!vcuserBenefit.insert()){
+            if (!vcuserBenefit.insert()) {
                 return R.ERROR();
             }
-        }else{
+        } else {
 
             // 这里使用xunyeeVcuserBenefitMapper 是因为 pgsql的主键使用的是uuid类型，不能updateById;
-            QueryWrapper  updateQw=new QueryWrapper();
-            updateQw.eq("id",UUID.fromString(temp.getId()));
+            QueryWrapper updateQw = new QueryWrapper();
+            updateQw.eq("id", UUID.fromString(temp.getId()));
             temp.setBenefit_id(benefitId);
             temp.setUpdated(date);
             temp.setFinish_time(nowDate.plusDays(plusDays));
-            if(xunyeeVcuserBenefitMapper.update(temp,updateQw)<=0){
+            if (xunyeeVcuserBenefitMapper.update(temp, updateQw) <= 0) {
                 return R.ERROR();
             }
         }
@@ -602,12 +600,39 @@ public class XunyeeService {
         vcuserVoucher.setIs_enabled(false);
         vcuserVoucher.setVcuser_id(userId);
         vcuserVoucher.setUpdated(date);
-        if(!vcuserVoucher.updateById()){
+        if (!vcuserVoucher.updateById()) {
             return R.ERROR();
         }
 
 
         return R.OK();
+
+    }
+
+    public R vcuserBenefitPayOrderSubmit(HttpServletRequest request, int userId, ReqBenefitPayOrder req) {
+        int site = req.getSite();
+
+        XunyeeBenefitPrice price = new XunyeeBenefitPrice().selectById(req.getBenefit_price());
+        if (price == null) {
+            return R.ERROR("您购买的会员服务不存在");
+        }
+
+        long orderNo = Long.parseLong(OrderCodeFactory.getSimpleOrderCode((long) userId));
+        XunyeeVcuserBenefitPayorder payorder = new XunyeeVcuserBenefitPayorder();
+        payorder.setVcuser_id(userId);
+        payorder.setBenefit_price_id(price.getId());
+        payorder.setIs_paid(false);
+        payorder.setQuantity(price.getQuantity());
+        payorder.setSite(site);
+        payorder.setPrice(price.getPrice());
+        payorder.setRel_order_id(orderNo);
+
+        Date nowDate = new Date();
+        payorder.setUpdated(nowDate);
+        payorder.setCreated(nowDate);
+        if (payorder.insert()) {
+            payService.payBenefit(request,payorder);
+        }
 
     }
 }
