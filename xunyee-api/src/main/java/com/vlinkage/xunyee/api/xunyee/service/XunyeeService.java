@@ -631,8 +631,8 @@ public class XunyeeService {
         payorder.setUpdated(nowDate);
         payorder.setCreated(nowDate);
         if (payorder.insert()) {
-            payService.payBenefit(request,payorder);
+            return R.OK(payService.payBenefit(request,payorder));
         }
-
+        return R.ERROR("下单失败");
     }
 }

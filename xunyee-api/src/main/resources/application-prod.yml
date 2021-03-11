@@ -28,3 +28,8 @@ spring:
       password: weiling@qinghai118
       host: 116.62.203.183
       port: 27017
+
+
+xunyee:
+  config:
+    host: http://wx.xunyee.cn

@@ -34,4 +34,6 @@ spring:
       host: 115.29.163.237
       port: 27017
 
-
+xunyee:
+  config:
+    host: http:/115.29.163.237:8089

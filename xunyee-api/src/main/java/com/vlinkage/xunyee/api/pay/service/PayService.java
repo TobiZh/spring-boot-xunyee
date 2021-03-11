@@ -16,25 +16,46 @@ import com.github.binarywang.wxpay.service.ProfitSharingService;
 import com.github.binarywang.wxpay.service.WxPayService;
 import com.github.binarywang.wxpay.service.impl.WxPayServiceImpl;
 import com.google.gson.Gson;
+import com.vlinkage.ant.xunyee.entity.XunyeeBenefitPrice;
+import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefit;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefitPayorder;
+import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.config.weixin.WxMpProperties;
+import com.vlinkage.xunyee.config.weixin.WxPayProperties;
 import com.vlinkage.xunyee.utils.weixin.WeiXinUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
 public class PayService {
 
-    @Value("${temple.config.host}")
+    @Value("${xunyee.config.host}")
     private String host;
+
+    @Autowired
+    private WxPayProperties wxPayProperties;
+    @Autowired
+    private WxMpProperties wxMpProperties;
+
+    @Autowired
+    private WxPayService wxService;
+
+    @Resource
+    private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
 
     // ===========================  商品支付  ===================================
     public R payBenefit(HttpServletRequest request, XunyeeVcuserBenefitPayorder order) {
@@ -43,7 +64,9 @@ public class PayService {
             return R.ERROR("该订单无需支付");
         }
         String tradeType = WxPayConstants.TradeType.APP;
-        String appId = APP_APP_ID;
+        String appId = wxMpProperties.getConfigs().get(0).getAppid();//app的appid
+        String mchId = wxPayProperties.getMchId();
+        String mchKey = wxPayProperties.getMchKey();
         try {
             WxPayUnifiedOrderRequest orderRequest = new WxPayUnifiedOrderRequest();
             orderRequest.setBody("寻艺会员");
@@ -55,119 +78,79 @@ public class PayService {
 
             // ------------------- 微信支付的参数配置 -------------------
             WxPayConfig payConfig = new WxPayConfig();
-            payConfig.setNotifyUrl(host + "/pay/notify/goods/weixin");
+            payConfig.setNotifyUrl(host + "/pay/notify/benefit/weixin");
             payConfig.setTradeType(tradeType);
             payConfig.setAppId(appId);
             payConfig.setMchId(mchId);
             payConfig.setMchKey(mchKey);
             // ------------------- 微信支付的参数配置 -------------------
-
-
-
             WxPayService wxPayService = new WxPayServiceImpl();
             wxPayService.setConfig(payConfig);
-            WxPayUnifiedOrderResult result = wxPayService.unifiedOrder(orderRequest);
-            MchPayApp mchPayApp = PayUtil.generateMchAppData(result.getPrepayId(), appId, mchId, mchKey);
-            return R.OK(mchPayApp);
+            WxPayUnifiedOrderResult result = wxPayService.createOrder(orderRequest);
+            return R.OK(result);
         } catch (Exception e) {
-            log.error("微信支付失败！订单号：{},原因:{}", order.getOrderNo(), e.getMessage());
+            log.error("微信支付失败！订单号：{},原因:{}", order.getRel_order_id(), e.getMessage());
             e.printStackTrace();
             return R.ERROR(e.getMessage());
         }
     }
 
-    public String notifyGoodsWeixin(String xmlData) throws WxPayException {
+    public String notifyBenefitWeixin(String xmlData) throws WxPayException {
         final WxPayOrderNotifyResult notifyResult = wxService.parseOrderNotifyResult(xmlData);
-        String mchId = notifyResult.getMchId();
-        String subMchId = notifyResult.getSubMchId();
-        String appid = notifyResult.getAppid();
         String transactionId = notifyResult.getTransactionId();   // 微信交易号;
         String outTradeNo = notifyResult.getOutTradeNo();  // 用户订单号;
 
         BigDecimal totalFee = BigDecimal.valueOf(notifyResult.getTotalFee()).divide(new BigDecimal(100));
 
+
         QueryWrapper qw = new QueryWrapper();
-        qw.eq("order_no", outTradeNo);
-        TmpOrder order = new TmpOrder().selectOne(qw);
+        qw.eq("rel_order_id", outTradeNo);
+        XunyeeVcuserBenefitPayorder order = new XunyeeVcuserBenefitPayorder().selectOne(qw);
         if (order != null) {
-            order.setTransactionId(transactionId);
-            order.setPaymentTime(LocalDateTime.now());
-            order.setPayPrice(totalFee);
-            order.setStatus(OrderEnum.ORDER_USER_PAID.getCode());
+            Date date = new Date();
+            order.setSite_transaction_id(transactionId);
+            order.setUpdated(date);
+            order.setIs_paid(true);
             if (order.updateById()) {
-                // 更新商品销量
-                TmpGoodsSub goodsSub = new TmpGoodsSub().selectById(order.getGoodsSubId());
-                goodsSub.setSold(goodsSub.getSold() + order.getNumber());
-                goodsSub.updateById();
-                // 更新商品销量
-                TmpGoods goods = new TmpGoods().selectById(order.getGoodsId());
-                goods.setSold(goods.getSold() + order.getNumber());
-                goods.updateById();
+                int userId=order.getVcuser_id();
+                int plusDays = order.getQuantity();
 
-                // 记录一条分账记录
-                if (order.getTempleId() > 0) {
-                    int payType = order.getPayType();
-                    TmpData tmpData = new TmpData().selectById(order.getTempleId());
-                    if ((payType == 1 && tmpData.getIsOpenShareApp() == 1) || (payType == 3 && tmpData.getIsOpenShareJsapi() == 1)) {
-                        BigDecimal amount = totalFee.multiply(tmpData.getShareScale()).setScale(2,BigDecimal.ROUND_HALF_UP);
-                        if (amount.compareTo(BigDecimal.valueOf(0.01)) == 1) { //最低分账1分钱
 
-                            ProfitSharingReceiverRequest request = new ProfitSharingReceiverRequest();
-                            request.setAppid(appid);
-                            request.setMchId(mchId);
-                            request.setSubMchId(subMchId);
-                            request.setNonceStr(WeiXinUtil.getRandomStringByLength(32));
-                            //============== Receiver ====================
-                            WxPayReceiver payReceiver = new WxPayReceiver();
-                            payReceiver.setType("MERCHANT_ID");
-                            payReceiver.setAccount(MCH_ID);
-                            payReceiver.setName("在东方文化产业发展（云南）有限公司");
-                            payReceiver.setRelation_type("SERVICE_PROVIDER");
-                            request.setReceiver(new Gson().toJson(payReceiver));
-                            //============== Receiver ====================
+                XunyeeBenefitPrice benefitPrice=new XunyeeBenefitPrice().selectById(order.getBenefit_price_id());
+                int benefitId=benefitPrice.getBenefit_id();
 
-                            //============== Sign ====================
-                            Map<String, String> wx_map = new HashMap<>();
-                            wx_map.put("mch_id", mchId);
-                            wx_map.put("sub_mch_id", subMchId);
-                            wx_map.put("appid", appid);
-                            wx_map.put("nonce_str", request.getNonceStr());
-                            wx_map.put("receiver", request.getReceiver());
-                            wx_map.put("sign_type", "HMAC-SHA256");
-                            String sign = SignatureUtil.generateSign(wx_map, MCH_KEY);
-                            //============== Sign ====================
 
-                            request.setSignType("HMAC-SHA256");
-                            request.setSign(sign);
+                LocalDate nowDate = LocalDate.now();
+                QueryWrapper bqw = new QueryWrapper();
+                bqw.eq("vcuser_id", userId);
+                bqw.ge("finish_time", nowDate);// <=
+                XunyeeVcuserBenefit temp = new XunyeeVcuserBenefit().selectOne(bqw);
 
-                            WxPayService wxPayService = new WxPayServiceImpl();
+                if (temp == null) {
+                    XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit();
+                    vcuserBenefit.setId(UUID.randomUUID().toString());
+                    vcuserBenefit.setBenefit_id(benefitId);
+                    vcuserBenefit.setVcuser_id(userId);
+                    vcuserBenefit.setUpdated(date);
+                    vcuserBenefit.setCreated(date);
+                    vcuserBenefit.setFinish_time(nowDate);
+                    vcuserBenefit.setFinish_time(nowDate.plusDays(plusDays));
+                    if (!vcuserBenefit.insert()) {
+                        return WxPayNotifyResponse.fail("支付失败");
+                    }
+                } else {
 
-                            WxPayConfig config = new WxPayConfig();
-                            config.setMchKey(MCH_KEY);
-                            config.setAppId(appid);
-                            config.setMchId(mchId);
-                            config.setSubMchId(subMchId);
-                            config.setKeyPath("classpath:/static/apiclient_cert.p12");
-                            wxPayService.setConfig(config);
-                            ProfitSharingService profitSharingService = wxPayService.getProfitSharingService();
-                            try {
-                                ProfitSharingReceiverResult result = profitSharingService.addReceiver(request);
-                                if (result.getResultCode().equals("SUCCESS")) {
-                                    //添加一条分账记录
-                                    ProfitSharingHistory sharingHistory = new ProfitSharingHistory();
-                                    sharingHistory.setMchId(result.getMchId());
-                                    sharingHistory.setSubMchId(result.getSubMchId());
-                                    sharingHistory.setAmount(amount);
-                                    sharingHistory.setTransactionId(transactionId);
-                                    sharingHistory.insert();
-                                }
-
-                            } catch (WxPayException e) {
-                                e.printStackTrace();
-                            }
-                        }
+                    // 这里使用xunyeeVcuserBenefitMapper 是因为 pgsql的主键使用的是uuid类型，不能updateById;
+                    QueryWrapper updateQw = new QueryWrapper();
+                    updateQw.eq("id", UUID.fromString(temp.getId()));
+                    temp.setBenefit_id(benefitId);
+                    temp.setUpdated(date);
+                    temp.setFinish_time(nowDate.plusDays(plusDays));
+                    if (xunyeeVcuserBenefitMapper.update(temp, updateQw) <= 0) {
+                        return WxPayNotifyResponse.fail("支付失败");
                     }
                 }
+
 
                 return WxPayNotifyResponse.success("成功");
             }
