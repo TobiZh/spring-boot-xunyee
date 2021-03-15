@@ -68,10 +68,17 @@ public class XunyeeController {
     }
 
     @ApiOperation("寻艺通知 标记已读")
-    @GetMapping("system/notification/read")
-    public R systemNotificationRead(int id){
+    @PutMapping("system/notification/read")
+    public R systemNotificationRead(HttpServletRequest request,int id){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.systemNotificationRead(userId,id);
+    }
 
-        return xunyeeService.systemNotificationRead(id);
+    @ApiOperation("寻艺通知 标记已读")
+    @PutMapping("system/notification/read_all")
+    public R systemNotificationReadAll(HttpServletRequest request){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.systemNotificationReadALl(userId);
     }
 
     @ApiOperation("搜索艺人")
@@ -105,7 +112,7 @@ public class XunyeeController {
         return xunyeeService.personCheckCount(userId,req);
     }
 
-    @ApiOperation("签到--我的爱豆")
+    @ApiOperation("我的爱豆")
     @GetMapping("person_check_count/idol")
     public R<ResRank> personCheckCountIdol(HttpServletRequest request,ReqMyPage myPage){
         int userId= UserUtil.getUserId(request);
@@ -183,6 +190,14 @@ public class XunyeeController {
         return xunyeeService.vcuserBenefitPayOrderSubmit(request,userId,req);
     }
 
+
+    @ApiOperation("搜索内容/艺人")
+    @PassToken
+    @GetMapping("global/search")
+    public R<Map<String,Object>> globalSearch(HttpServletRequest request,ReqMyPage myPage,@Valid ReqGlobalSearch reqGlobalSearch){
+        Integer userId= UserUtil.getUserId(request);
+        return xunyeeService.globalSearch(userId,myPage,reqGlobalSearch);
+    }
 
 
 }

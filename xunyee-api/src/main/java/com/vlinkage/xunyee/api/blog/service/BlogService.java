@@ -20,11 +20,18 @@ import com.vlinkage.xunyee.entity.response.ResPerson;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class BlogService {
+
+    @Value("${sys-config.image-path}")
+    private String imagePath;
 
     @Autowired
     private MyMapper myMapper;
@@ -46,18 +53,34 @@ public class BlogService {
     public R<IPage<ResBlogPage>> getBlogByUserId(ReqPageBlogUser req) {
         Page page=new Page(req.getCurrent(),req.getSize());
         IPage<ResBlogPage> iPage=myMapper.selectUserBlogPage(page,req.getVcuser_id());
+        for (ResBlogPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getCover())){
+                record.setCover(imagePath+record.getCover());
+            }
+        }
+
         return R.OK(iPage);
     }
 
     public R<IPage<ResBlogPage>> blogCategory(ReqMyPage myPage,Integer type,Integer userId) {
         Page page=new Page(myPage.getCurrent(),myPage.getSize());
         IPage<ResBlogPage> iPage=myMapper.selectBlogCategoryPage(page,type,userId);
+        for (ResBlogPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getCover())){
+                record.setCover(imagePath+record.getCover());
+            }
+        }
         return R.OK(iPage);
     }
 
     public R<IPage<ResBlogPage>> blogFollow(ReqMyPage myPage, int userId) {
         Page page=new Page(myPage.getCurrent(),myPage.getSize());
         IPage<ResBlogPage> iPage=myMapper.selectBlogFollowPage(page,userId);
+        for (ResBlogPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getCover())){
+                record.setCover(imagePath+record.getCover());
+            }
+        }
         return R.OK(iPage);
     }
 
@@ -70,6 +93,16 @@ public class BlogService {
         info.setTitle(blog.getTitle());
         info.setContent(blog.getContent());
         info.setImages(blog.getImages());
+        String[] imageArr=blog.getImages().split(",");
+        if (imageArr.length>0){
+            List<String> imageList=new ArrayList<>();
+            for (String s : imageArr) {
+                imageList.add(imagePath+s);
+            }
+            info.setImages(StringUtils.join(imageList,","));
+        }
+
+
         info.setCreated(blog.getCreated());
         info.setType(blog.getType());
         info.setType_id(blog.getType_id());
@@ -131,7 +164,12 @@ public class BlogService {
 
     public R<IPage<ResBlogPage>> recommend(ReqMyPage myPage,ReqRecommendPage req,Integer vcuser_id) {
         Page page=new Page(myPage.getCurrent(),myPage.getSize());
-        IPage iPage=myMapper.selectRecommendBlogPage(page,vcuser_id,req);
+        IPage<ResBlogPage> iPage=myMapper.selectRecommendBlogPage(page,vcuser_id,req);
+        for (ResBlogPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getCover())){
+                record.setCover(imagePath+record.getCover());
+            }
+        }
         return R.OK(iPage);
     }
 

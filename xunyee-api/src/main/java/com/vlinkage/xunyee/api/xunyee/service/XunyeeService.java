@@ -8,6 +8,7 @@ import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.star.entity.PersonGallery;
 import com.vlinkage.ant.xunyee.entity.*;
+import com.vlinkage.ant.xunyee.mapper.XunyeeSystemNotificationMapper;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
@@ -16,6 +17,7 @@ import com.vlinkage.xunyee.api.star.service.StarService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.*;
+import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.OrderCodeFactory;
@@ -29,6 +31,7 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +49,8 @@ public class XunyeeService {
     private String imagePath;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @Autowired
     private MongoTemplate mongoTemplate;
     @Autowired
     private MetaService metaService;
@@ -53,6 +58,11 @@ public class XunyeeService {
     private StarService starService;
     @Autowired
     private PayService payService;
+    @Autowired
+    private MyMapper myMapper;
+    @Resource
+    private XunyeeSystemNotificationMapper notificationMapper;
+
     @Resource
     private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
 
@@ -115,7 +125,9 @@ public class XunyeeService {
 
         QueryWrapper qw = new QueryWrapper();
         qw.eq("receive_vcuser_id", userId);
-        qw.eq("receive_vcuser_id", 0);//所有人都能收到的
+        qw.or();
+        qw.eq("receive_vcuser_id",0);
+        qw.orderByDesc("created");
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResSystemNotification> iPage = new XunyeeSystemNotification().selectPage(page, qw);
         iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(), ResSystemNotification.class));
@@ -123,7 +135,7 @@ public class XunyeeService {
         return R.OK(iPage);
     }
 
-    public R systemNotificationRead(int id) {
+    public R systemNotificationRead(int userId, int id) {
         XunyeeSystemNotification notification = new XunyeeSystemNotification().selectById(id);
         if (notification != null) {
             if (notification.getIs_read() == 1) {
@@ -137,6 +149,16 @@ public class XunyeeService {
             return R.ERROR();
         }
         return R.ERROR("该通知不存在");
+    }
+
+    public R systemNotificationReadALl(int userId) {
+        String sql="update xunyee_system_notification set is_read=1,read_time=CURRENT_TIMESTAMP " +
+                "where receive_vcuser_id="+userId+" and is_read=0";
+        int count=jdbcTemplate.update(sql);
+        if (count<0){
+            return R.ERROR();
+        }
+        return R.OK();
     }
 
     public R vcuserBenefit(int userId) {
@@ -634,5 +656,23 @@ public class XunyeeService {
             return R.OK(payService.payBenefit(request,payorder));
         }
         return R.ERROR("下单失败");
+    }
+
+    public R<Map<String,Object>> globalSearch(Integer userId,ReqMyPage myPage,ReqGlobalSearch reqGlobalSearch) {
+
+        String keyword=reqGlobalSearch.getName();
+        List<ResPerson> persons=metaService.getPersonLimit(keyword,3);
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage<ResBlogPage> iPage=myMapper.selectBlogBySearch(page,keyword,userId);
+        for (ResBlogPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getCover())){
+                record.setCover(imagePath+record.getCover());
+            }
+        }
+
+        Map<String,Object> map=new HashMap<>();
+        map.put("persons",persons);
+        map.put("blog_page",iPage);
+        return R.OK(map);
     }
 }

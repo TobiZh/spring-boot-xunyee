@@ -43,6 +43,27 @@ public class MetaService {
         return iPage;
     }
 
+    /**
+     * 模糊查询有限数量艺人
+     * @param name
+     * @param limit
+     * @return
+     */
+    @DS("meta")
+    public List<ResPerson> getPersonLimit(String name,int limit){
+
+        QueryWrapper qw=new QueryWrapper();
+        if (StringUtils.isNotEmpty(name)){
+            qw.like("zh_name",name);
+        }
+        qw.select("id","zh_name","avatar_custom");
+        qw.last("limit "+limit);
+        List<ResPerson> personList=new Person().selectList(qw);
+        List<ResPerson> resPeople=CopyListUtil.copyListProperties(personList,ResPerson.class);
+        return resPeople;
+    }
+
+
     @DS("meta")
     public Person getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
@@ -122,4 +143,5 @@ public class MetaService {
         List<Zy> zies=new Zy().selectList(qw);
         return zies;
     }
+
 }

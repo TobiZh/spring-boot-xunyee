@@ -14,7 +14,7 @@ public class JwtUtil {
     /**
      * 过期时间 天
      */
-    private static final long EXPIRE_TIME = 1 * 60 * 60 * 60 * 1000L;
+    private static final long EXPIRE_TIME = 15 * 60 * 60 * 60 * 1000L;
 
     /**
      * token私钥
@@ -88,7 +88,7 @@ public class JwtUtil {
 
     public static void main(String[] args) {
 
-        String token=getToken("1");
+        String token=getToken("19");
         System.out.println(token);
 
         System.out.println(verify(token));
