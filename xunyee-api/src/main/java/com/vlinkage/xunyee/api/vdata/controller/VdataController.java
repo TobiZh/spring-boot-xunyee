@@ -57,7 +57,7 @@ public class VdataController {
 
     @ApiOperation("综艺")
     @PassToken
-    @GetMapping(" report_zy/rpt_trend")
+    @GetMapping("report_zy/rpt_trend")
     public R reportZyRptTrend(ReqReportZyRptTrend req){
 
         return vdataService.reportZyRptTrend(req);
