@@ -2,6 +2,7 @@ package com.vlinkage.xunyee.api.vdata.service;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.meta.entity.Teleplay;
 import com.vlinkage.ant.meta.entity.Zy;
@@ -36,7 +37,7 @@ public class VdataService {
     @Autowired
     private MetaService metaService;
 
-    public R reportPersonRptTrend(ReqReportPersonRptTrend req) {
+    public R<IPage<ResRank>> reportPersonRptTrend(ReqReportPersonRptTrend req) {
 
         int period = req.getPeriod();
         int current = req.getCurrent();
@@ -112,7 +113,7 @@ public class VdataService {
 
     }
 
-    public R reportPersonRptTrendZy(ReqReportPersonRptTrend req) {
+    public R<IPage<ResRank>> reportPersonRptTrendZy(ReqReportPersonRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
@@ -182,7 +183,7 @@ public class VdataService {
         return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
     }
 
-    public R reportTeleplayRptTrend(ReqReportTeleplayRptTrend req) {
+    public R<IPage<ResRank>> reportTeleplayRptTrend(ReqReportTeleplayRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
@@ -230,7 +231,7 @@ public class VdataService {
         return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
     }
 
-    public R reportTeleplayRptTrendNet(ReqReportTeleplayRptTrend req) {
+    public R<IPage<ResRank>> reportTeleplayRptTrendNet(ReqReportTeleplayRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
@@ -281,7 +282,7 @@ public class VdataService {
     }
 
 
-    public R reportZyRptTrend(ReqReportZyRptTrend req) {
+    public R<IPage<ResRank>> reportZyRptTrend(ReqReportZyRptTrend req) {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
@@ -329,7 +330,7 @@ public class VdataService {
         return rank(totalCount,totalPage,current,gteDate,lteDate,resTrends);
     }
 
-    public R reportZyNetRptTrend(ReqReportZyRptTrend req) {
+    public R<IPage<ResRank>> reportZyNetRptTrend(ReqReportZyRptTrend req) {
 
         int period = req.getPeriod();
         int current = req.getCurrent();

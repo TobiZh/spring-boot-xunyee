@@ -1,10 +1,12 @@
 package com.vlinkage.xunyee.api.vdata.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.vdata.service.VdataService;
 import com.vlinkage.xunyee.entity.request.ReqReportPersonRptTrend;
 import com.vlinkage.xunyee.entity.request.ReqReportTeleplayRptTrend;
 import com.vlinkage.xunyee.entity.request.ReqReportZyRptTrend;
+import com.vlinkage.xunyee.entity.response.ResRank;
 import com.vlinkage.xunyee.jwt.PassToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,7 +28,7 @@ public class VdataController {
     @ApiOperation("电视剧艺人")
     @PassToken
     @GetMapping("report_person/rpt_trend")
-    public R reportPersonRptTrend(ReqReportPersonRptTrend req){
+    public R<IPage<ResRank>> reportPersonRptTrend(ReqReportPersonRptTrend req){
 
         return vdataService.reportPersonRptTrend(req);
     }
@@ -34,7 +36,7 @@ public class VdataController {
     @ApiOperation("综艺嘉宾指数")
     @PassToken
     @GetMapping("report_person/rpt_trend_zy")
-    public R reportPersonRptTrendZy(ReqReportPersonRptTrend req){
+    public R<IPage<ResRank>> reportPersonRptTrendZy(ReqReportPersonRptTrend req){
 
         return vdataService.reportPersonRptTrendZy(req);
     }
@@ -42,7 +44,7 @@ public class VdataController {
     @ApiOperation("电视剧")
     @PassToken
     @GetMapping("report_teleplay/rpt_trend")
-    public R reportTeleplayRptTrend(ReqReportTeleplayRptTrend req){
+    public R<IPage<ResRank>> reportTeleplayRptTrend(ReqReportTeleplayRptTrend req){
 
         return vdataService.reportTeleplayRptTrend(req);
     }
@@ -50,7 +52,7 @@ public class VdataController {
     @ApiOperation("网剧")
     @PassToken
     @GetMapping("report_teleplay/rpt_trend_net")
-    public R reportTeleplayRptTrendNet(ReqReportTeleplayRptTrend req){
+    public R<IPage<ResRank>> reportTeleplayRptTrendNet(ReqReportTeleplayRptTrend req){
 
         return vdataService.reportTeleplayRptTrendNet(req);
     }
@@ -58,7 +60,7 @@ public class VdataController {
     @ApiOperation("综艺")
     @PassToken
     @GetMapping("report_zy/rpt_trend")
-    public R reportZyRptTrend(ReqReportZyRptTrend req){
+    public R<IPage<ResRank>> reportZyRptTrend(ReqReportZyRptTrend req){
 
         return vdataService.reportZyRptTrend(req);
     }
@@ -66,7 +68,7 @@ public class VdataController {
     @ApiOperation("网络综艺")
     @PassToken
     @GetMapping("report_zy/rpt_trend_net")
-    public R reportZyNetRptTrend(ReqReportZyRptTrend req){
+    public R<IPage<ResRank>> reportZyNetRptTrend(ReqReportZyRptTrend req){
 
         return vdataService.reportZyNetRptTrend(req);
     }
