@@ -2,7 +2,7 @@ server:
   port: 80
 spring:
   profiles:
-    active: prod
+    active: local
   # 返回参数时间格式化
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss

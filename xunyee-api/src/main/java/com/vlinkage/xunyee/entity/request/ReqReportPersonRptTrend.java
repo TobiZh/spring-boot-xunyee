@@ -12,7 +12,7 @@ public class ReqReportPersonRptTrend extends ReqMyPage {
     @ApiModelProperty("搜索关键字")
     private String person__zh_name__icontains;
 
-    @NotNull
     @ApiModelProperty("数据周期：1为日榜，7为周榜，30为月榜")
+    @NotNull
     private Integer period;
 }

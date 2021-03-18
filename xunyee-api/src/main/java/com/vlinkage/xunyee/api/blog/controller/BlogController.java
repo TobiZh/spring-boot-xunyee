@@ -101,4 +101,12 @@ public class BlogController {
         }
         return blogService.getBlogByUserId(req);
     }
+
+
+    @ApiOperation("好友的动态")
+    @GetMapping("friend")
+    public R<IPage<ResBlogPage>> getBlogByFriend(HttpServletRequest request){
+        int userId=UserUtil.getUserId(request);
+        return blogService.getBlogByFriend(userId);
+    }
 }

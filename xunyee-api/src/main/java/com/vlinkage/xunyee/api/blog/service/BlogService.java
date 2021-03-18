@@ -261,4 +261,8 @@ public class BlogService {
         return R.ERROR("举报失败");
     }
 
+    public R<IPage<ResBlogPage>> getBlogByFriend(int userId) {
+
+        return null;
+    }
 }

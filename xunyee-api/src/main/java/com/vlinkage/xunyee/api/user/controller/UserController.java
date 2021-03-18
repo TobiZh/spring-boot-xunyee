@@ -6,7 +6,10 @@ import com.vlinkage.xunyee.api.user.service.UserService;
 import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageFollow;
 import com.vlinkage.xunyee.entity.request.ReqUserInfo;
+import com.vlinkage.xunyee.entity.request.ReqVcuserId;
 import com.vlinkage.xunyee.entity.response.ResFollowPage;
+import com.vlinkage.xunyee.entity.response.ResMine;
+import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -25,9 +28,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @ApiOperation("查看个人资料")
-    @GetMapping("info")
-    public R getUser(HttpServletRequest request){
+    @ApiOperation("我的TAB")
+    @GetMapping("mine")
+    public R<ResMine> mine(HttpServletRequest request){
         int userId= UserUtil.getUserId(request);
         return userService.getUser(userId);
     }
@@ -39,24 +42,25 @@ public class UserController {
         return userService.editUser(userId,req);
     }
 
+    @PassToken
     @ApiOperation("关注/取消关注")
     @PostMapping("follow")
-    public R follow(HttpServletRequest request,int vcuser_id){
-        Integer from_userid=UserUtil.getUserId(request);
-        return userService.follow(from_userid,vcuser_id);
+    public R follow(HttpServletRequest request,@Valid ReqVcuserId req){
+        int from_userid=UserUtil.getUserId(request);
+        return userService.follow(from_userid,req.getVcuser_id());
     }
 
     @ApiOperation("我的关注/我的粉丝")
     @ApiImplicitParam(name = "type",value = "1 我的关注 2 我的粉丝")
     @GetMapping("follow")
-    public R<IPage<ResFollowPage>> getFollows(HttpServletRequest request, ReqPageFollow req){
+    public R<IPage<ResFollowPage>> getFollows(HttpServletRequest request,@Valid ReqPageFollow req){
         Integer userId=UserUtil.getUserId(request);
         return userService.getFollows(userId,req);
     }
 
     @ApiOperation("举报用户")
     @PostMapping("report")
-    public R report(HttpServletRequest request, ReqBlogReport req){
+    public R report(HttpServletRequest request,@Valid ReqBlogReport req){
         Integer userId=UserUtil.getUserId(request);
         req.setVcuser_id(userId);
         return userService.report(req);

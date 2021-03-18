@@ -10,6 +10,8 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * 自定义sql的mapper
  */
@@ -93,13 +95,14 @@ public interface MyMapper {
      */
     @Select({"<script>SELECT f.id,f.type,u.id vcuser_id,u.avatar,u.nickname FROM xunyee_follow f LEFT JOIN xunyee_vcuser u " +
             "<when test='type==1' >",
-            " on f.vcuser_id=u.id",
+            " on f.followed_vcuser_id=u.id where (f.vcuser_id=${vcuser_id})",
             "</when>",
             "<when test='type==2' >",
-            " on f.followed_vcuser_id=u.id",
+            " on f.vcuser_id=u.id where (f.followed_vcuser_id=${vcuser_id})",
             "</when>",
-            "</script>"})
+            " order by f.updated desc</script>"})
     IPage<ResFollowPage> selectFollowPage(Page page, Integer type, Integer vcuser_id);
+
 
     /**
      * 获取作分页
