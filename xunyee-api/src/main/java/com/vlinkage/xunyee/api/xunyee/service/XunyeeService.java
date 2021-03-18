@@ -175,7 +175,7 @@ public class XunyeeService {
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
-        int rankStart = (current - 1) * size + 1; // 分页rank起始值
+        int rankStart = 1; // 分页rank起始值
 
         LocalDate nowDate = LocalDate.now();//今天
         LocalDate gteDate; // >=
