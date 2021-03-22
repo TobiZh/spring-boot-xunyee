@@ -2,10 +2,11 @@ package com.vlinkage.xunyee.entity.response;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
 import java.util.List;
 
 @Data
-public class ResMine {
+public class ResUserInfoOhter {
     @ApiModelProperty("用户id")
     private int vcuser_id;
     @ApiModelProperty("用户头像")
@@ -18,11 +19,13 @@ public class ResMine {
     private int fans_count;
     @ApiModelProperty("点赞数量")
     private int star_count;
-    @ApiModelProperty("我的爱豆数量")
-    private int idol_count;
+
     @ApiModelProperty("是不是会员")
     private Boolean is_vip;
-    @ApiModelProperty("我的爱豆头像")
-    private List<String> persons;
 
+    @ApiModelProperty("关注类型 0 未关注， 1 已关注，2 回关，3 互相关注")
+    private int follow_type;
+
+    @ApiModelProperty("共同关注")
+    private List<String> persons;
 }

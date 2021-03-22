@@ -93,20 +93,25 @@ public class BlogController {
         return blogService.blogReport(req);
     }
 
-    @ApiOperation("获取TA的动态")
+    @ApiOperation("TA的动态")
+    @PassToken
     @GetMapping("vcuser")
     public R<IPage<ResBlogPage>> getBlogByUserId(HttpServletRequest request,ReqPageBlogUser req){
-        if (req.getVcuser_id()==null){
-            req.setVcuser_id(UserUtil.getUserId(request));
-        }
-        return blogService.getBlogByUserId(req);
+        Integer userId=UserUtil.getUserId(request);
+        return blogService.getBlogByUserId(userId,req);
     }
 
+    @ApiOperation("我的发布")
+    @GetMapping("mine")
+    public R<IPage<ResBlogPage>> getMineBlog(HttpServletRequest request,ReqMyPage myPage,String name){
+        int userId=UserUtil.getUserId(request);
+        return blogService.getMineBlog(myPage,userId,name);
+    }
 
     @ApiOperation("好友的动态")
     @GetMapping("friend")
-    public R<IPage<ResBlogPage>> getBlogByFriend(HttpServletRequest request){
+    public R<IPage<ResBlogPage>> getBlogByFriend(HttpServletRequest request,ReqMyPage myPage){
         int userId=UserUtil.getUserId(request);
-        return blogService.getBlogByFriend(userId);
+        return blogService.getBlogByFriend(myPage,userId);
     }
 }

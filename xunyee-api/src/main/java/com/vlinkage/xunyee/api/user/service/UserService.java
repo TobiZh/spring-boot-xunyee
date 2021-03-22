@@ -11,10 +11,7 @@ import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageFollow;
 import com.vlinkage.xunyee.entity.request.ReqUserInfo;
-import com.vlinkage.xunyee.entity.response.ResBlogPage;
-import com.vlinkage.xunyee.entity.response.ResFollowPage;
-import com.vlinkage.xunyee.entity.response.ResMine;
-import com.vlinkage.xunyee.entity.response.ResMonUserPerson;
+import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +23,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -49,8 +47,120 @@ public class UserService {
     @Autowired
     private MetaService metaService;
 
+
+    public R<ResUserInfoOhter> other(Integer mine_vcuser_id, Integer userId) {
+
+        XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
+
+
+        int follow_type=0;
+        List<String> personList=new ArrayList<>();
+
+        if (mine_vcuser_id!=null){
+            // ===============  我是否以前关注过该用户  ====================
+            //我是否关注过对方
+            QueryWrapper fqw=new QueryWrapper();
+            fqw.eq("followed_vcuser_id",userId);
+            fqw.eq("vcuser_id",mine_vcuser_id);
+            fqw.eq("status",1);
+            XunyeeFollow xunyeeFollow=new XunyeeFollow().selectOne(fqw);
+
+            //对方是否关注了我
+            QueryWrapper tqw=new QueryWrapper();
+            tqw.eq("followed_vcuser_id",mine_vcuser_id);
+            tqw.eq("vcuser_id",userId);
+            tqw.eq("status",1);
+            XunyeeFollow tFollow=new XunyeeFollow().selectOne(tqw);
+
+            // ===============  我是否以前关注过该用户  ====================
+
+            // ===============  共同关注  ====================
+            // 查询对方关注的艺人
+            Criteria criteria = new Criteria().where("vcuser").is(userId).and("is_enabled").is(true);
+            Query query = new Query(criteria);
+            List<ResMonUserPerson> resMGs = mongoTemplate.find(query, ResMonUserPerson.class);
+
+            // 查询我关注的艺人
+            Criteria criteriaMine = new Criteria().where("vcuser").is(mine_vcuser_id).and("is_enabled").is(true);
+            Query queryMine = new Query(criteriaMine);
+            List<ResMonUserPerson> resMGsMine = mongoTemplate.find(queryMine, ResMonUserPerson.class);
+
+            // 提取person id去数据库查询电视剧信息并取出并集
+            List<Integer> personIds = resMGs.stream().map(e -> e.getPerson()).collect(Collectors.toList());
+            List<Integer> personIdsMine = resMGsMine.stream().map(e -> e.getPerson()).collect(Collectors.toList());
+            List<Integer> intersection = personIds.stream().filter(item -> personIdsMine.contains(item)).collect(Collectors.toList());
+
+            if (intersection.size()>0){
+                // 查询数据库艺人信息
+                Integer[] personIdArr=new Integer[intersection.size()];
+                List<Person> persons = metaService.getPerson(personIdArr);
+                for (Person person : persons) {
+                    personList.add(person.getZh_name());
+                }
+            }
+            // ===============  共同关注  ====================
+
+        }
+
+        // ===============  是不是会员  ====================
+        LocalDate gteDate = LocalDate.now(); // >=
+        LocalDate ltDate = gteDate.plusDays(1); // <; // <
+
+        QueryWrapper qw = new QueryWrapper();
+        qw.eq("vcuser_id", userId);
+        qw.ge("start_time", gteDate);//<=
+        qw.lt("finish_time", ltDate);// >
+        XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
+        boolean is_vip=vcuserBenefit==null;
+        // ===============  是不是会员  ====================
+
+        // ===============  我的关注  ====================
+        QueryWrapper fqw=new QueryWrapper();
+        fqw.eq("vcuser_id",userId);
+        fqw.eq("status",1);
+        int follow_count=new XunyeeFollow().selectCount(fqw);
+        // ===============  我的关注  ====================
+
+        // ===============  我的粉丝  ====================
+        QueryWrapper tqw=new QueryWrapper();
+        tqw.eq("followed_vcuser_id",userId);
+        tqw.eq("status",1);
+        int fans_count=new XunyeeFollow().selectCount(tqw);
+        // ===============  我的粉丝  ====================
+
+        // ===============  我的点赞  ====================
+        String sql="SELECT COALESCE(sum(star_count),0) star_count FROM xunyee_blog where vcuser_id="+userId;
+        int star_count=jdbcTemplate.queryForObject(sql,int.class);
+        // ===============  我的点赞  ====================
+
+
+        ResUserInfoOhter resMine=new ResUserInfoOhter();
+        resMine.setAvatar(vcuser.getAvatar());
+        resMine.setNickname(vcuser.getNickname());
+        resMine.setFans_count(fans_count);
+        resMine.setFollow_count(follow_count);
+        resMine.setFollow_type(follow_type);
+        resMine.setIs_vip(is_vip);
+        resMine.setStar_count(star_count);
+        resMine.setPersons(personList);
+        return R.OK(resMine);
+    }
+
+
     public R<ResMine> getUser(int userId) {
         XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
+
+        // ===============  是不是会员  ====================
+        LocalDate gteDate = LocalDate.now(); // >=
+        LocalDate ltDate = gteDate.plusDays(1); // <; // <
+
+        QueryWrapper qw = new QueryWrapper();
+        qw.eq("vcuser_id", userId);
+        qw.ge("start_time", gteDate);//<=
+        qw.lt("finish_time", ltDate);// >
+        XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
+        boolean is_vip=vcuserBenefit==null;
+        // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================
         QueryWrapper fqw=new QueryWrapper();
@@ -99,6 +209,7 @@ public class UserService {
         resMine.setFollow_count(follow_count);
         resMine.setIdol_count(idol_count);
         resMine.setPersons(avatarList);
+        resMine.setIs_vip(is_vip);
         resMine.setStar_count(star_count);
         return R.OK(resMine);
     }
@@ -194,4 +305,5 @@ public class UserService {
         }
         return R.ERROR("举报失败");
     }
+
 }

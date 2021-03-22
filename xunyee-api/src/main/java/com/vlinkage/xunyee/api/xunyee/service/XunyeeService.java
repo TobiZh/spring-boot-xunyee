@@ -170,7 +170,7 @@ public class XunyeeService {
         return R.OK(resBenefit);
     }
 
-    public R<ResRank> personCheckCount(Integer userId, ReqPersonCheckCount req) {
+    public R<ResRank<ResPersonCheckCount>> personCheckCount(Integer userId, ReqPersonCheckCount req) {
 
         int period = req.getPeriod();
         int current = req.getCurrent();
@@ -283,7 +283,7 @@ public class XunyeeService {
         return R.OK(resRank);
     }
 
-    public R<ResRank> personCheckCountIdol(Integer userId, ReqMyPage req) {
+    public R<ResRank<ResPersonCheckCountIdol>> personCheckCountIdol(Integer userId, ReqMyPage req) {
 
         int current = req.getCurrent();
         int size = req.getSize();
@@ -311,11 +311,16 @@ public class XunyeeService {
         // 查询当前用户关注的艺人和当天签到数
         List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)), ResMonUserPersonCheck.class);
 
+
+//        // 查询当前用户关注的艺人和今年签到的天数
+//        List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)), ResMonUserPersonCheck.class);
+
+
         // 组装数据
-        List<ResPersonCheckCount> resCheckCounts = new ArrayList<>();
+        List<ResPersonCheckCountIdol> resCheckCounts = new ArrayList<>();
         for (ResMonUserPerson pc : resMGs) {
             int personId = pc.getPerson();
-            ResPersonCheckCount resPersonCheckCount = new ResPersonCheckCount();
+            ResPersonCheckCountIdol resPersonCheckCount = new ResPersonCheckCountIdol();
             for (Person p : persons) {
                 int tmpPerson = p.getId();
                 if (personId == tmpPerson) {
@@ -519,12 +524,17 @@ public class XunyeeService {
         ResMonReportPersonRptTrend resMongo = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person)), ResMonReportPersonRptTrend.class);
 
         ResPersonInfo info = new ResPersonInfo();
+        info.setZh_name(resPerson.getZh_name());
         info.setPerson(resPerson.getId());
         info.setAvatar_custom(imagePath + resPerson.getAvatar_custom());
         info.setSex(resPerson.getSex() == 1 ? "男" : "女");
-        info.setReport_1912_teleplay(resMongo.getReport_1912_teleplay());
-        info.setReport_1912_teleplay_rank(resMongo.getReport_1912_teleplay_rank());
-        info.setReport_1912_teleplay_rank_incr(resMongo.getReport_1912_teleplay_rank_incr());
+        if (resMongo!=null){
+            info.setReport_1912_teleplay(resMongo.getReport_1912_teleplay());
+            info.setReport_1912_teleplay_rank(resMongo.getReport_1912_teleplay_rank());
+            info.setReport_1912_teleplay_rank_incr(resMongo.getReport_1912_teleplay_rank_incr());
+        }else{
+            info.setReport_1912_teleplay(5);
+        }
 
         // 当前艺人今日签到数
         ResMonPersonCheckCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person).andOperator(Criteria.where("data_time").gte(gteDate).lt(ltDate))), ResMonPersonCheckCount.class);

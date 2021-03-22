@@ -19,16 +19,16 @@ import java.util.Map;
 public interface MyMapper {
 
     /**
-     * 获取某个用户的创作分页
+     * 获取某个用户的动态
      *
      * @param page
      * @return
      */
     @Select("SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
-            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${userId})) is_star " +
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${from_user_id})) is_star " +
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
-            "ON b.vcuser_id=u.id WHERE (b.vcuser_id=${userId}) order by b.star_count desc")
-    IPage<ResBlogPage> selectUserBlogPage(Page page, int userId);
+            "ON b.vcuser_id=u.id WHERE (b.vcuser_id=${vcuser_id}) order by b.star_count desc")
+    IPage<ResBlogPage> selectUserBlogPage(Page page, int vcuser_id,Integer from_user_id);
 
 
     /**
@@ -124,4 +124,41 @@ public interface MyMapper {
             "WHERE (bp.person_id=${person_id}) ORDER BY b.created DESC")
     IPage<ResBrandPerson> selectBrandPersonPage(Page page, int person_id);
 
+
+    /**
+     * 获取好友动态
+     * 互相关注的是好友
+     * @param page
+     * @param vcuser_id
+     * @return
+     */
+    @Select("SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star " +
+            "FROM xunyee_blog b " +
+            "LEFT JOIN xunyee_follow f ON b.vcuser_id=f.followed_vcuser_id " +
+            "LEFT JOIN xunyee_vcuser u ON b.vcuser_id=u.id " +
+            "WHERE f.type=3 AND f.status=1 AND (f.vcuser_id=${vcuser_id})")
+    IPage<ResBlogPage> selectFriendBlogPage(Page page, int vcuser_id);
+
+
+
+    /**
+     * 搜索动态 需要登录
+     * 关注
+     *
+     * @param page
+     * @param vcuser_id
+     * @return "AND (b.title like CONCAT('%',#{keyword},'%') OR b.content like CONCAT('%',#{keyword},'%'))",
+     */
+    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
+            "<when test='vcuser_id!=null'>",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star ",
+            "</when>",
+            "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u ",
+            "ON b.vcuser_id=u.id WHERE (b.vcuser_id=${vcuser_id})" ,
+            "<when test='name!=null'>" ,
+            " AND b.title like CONCAT('%',#{name},'%') " ,
+            "</when>",
+            "ORDER BY b.star_count DESC</script>"})
+    IPage<ResBlogPage> selectMineBlogPage(Page page, int vcuser_id, String name);
 }

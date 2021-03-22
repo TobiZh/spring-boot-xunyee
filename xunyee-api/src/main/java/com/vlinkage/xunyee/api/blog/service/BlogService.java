@@ -50,9 +50,9 @@ public class BlogService {
         return R.ERROR("发布失败");
     }
 
-    public R<IPage<ResBlogPage>> getBlogByUserId(ReqPageBlogUser req) {
+    public R<IPage<ResBlogPage>> getBlogByUserId(Integer userId,ReqPageBlogUser req) {
         Page page=new Page(req.getCurrent(),req.getSize());
-        IPage<ResBlogPage> iPage=myMapper.selectUserBlogPage(page,req.getVcuser_id());
+        IPage<ResBlogPage> iPage=myMapper.selectUserBlogPage(page,req.getVcuser_id(),userId);
         for (ResBlogPage record : iPage.getRecords()) {
             if (StringUtils.isNotEmpty(record.getCover())){
                 record.setCover(imagePath+record.getCover());
@@ -61,6 +61,20 @@ public class BlogService {
 
         return R.OK(iPage);
     }
+
+    public R<IPage<ResBlogPage>> getMineBlog(ReqMyPage myPage, int userId, String name) {
+
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage<ResBlogPage> iPage=myMapper.selectMineBlogPage(page,userId,name);
+        for (ResBlogPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getCover())){
+                record.setCover(imagePath+record.getCover());
+            }
+        }
+
+        return R.OK(iPage);
+    }
+
 
     public R<IPage<ResBlogPage>> blogCategory(ReqMyPage myPage,Integer type,Integer userId) {
         Page page=new Page(myPage.getCurrent(),myPage.getSize());
@@ -261,8 +275,14 @@ public class BlogService {
         return R.ERROR("举报失败");
     }
 
-    public R<IPage<ResBlogPage>> getBlogByFriend(int userId) {
-
-        return null;
+    public R<IPage<ResBlogPage>> getBlogByFriend(ReqMyPage myPage, int userId) {
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage<ResBlogPage> iPage=myMapper.selectFriendBlogPage(page,userId);
+        for (ResBlogPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getCover())){
+                record.setCover(imagePath+record.getCover());
+            }
+        }
+        return R.OK(iPage);
     }
 }

@@ -3,12 +3,11 @@ package com.vlinkage.xunyee.api.user.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.user.service.UserService;
-import com.vlinkage.xunyee.entity.request.ReqBlogReport;
-import com.vlinkage.xunyee.entity.request.ReqPageFollow;
-import com.vlinkage.xunyee.entity.request.ReqUserInfo;
-import com.vlinkage.xunyee.entity.request.ReqVcuserId;
+import com.vlinkage.xunyee.entity.request.*;
+import com.vlinkage.xunyee.entity.response.ResBlogPage;
 import com.vlinkage.xunyee.entity.response.ResFollowPage;
 import com.vlinkage.xunyee.entity.response.ResMine;
+import com.vlinkage.xunyee.entity.response.ResUserInfoOhter;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
@@ -28,7 +27,16 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @ApiOperation("我的TAB")
+
+    @ApiOperation("非本人主页 头像、点赞、关注等")
+    @PassToken
+    @GetMapping("")
+    public R<ResUserInfoOhter> other(HttpServletRequest request, ReqVcuserId req){
+        Integer userId= UserUtil.getUserId(request);
+        return userService.other(userId,req.getVcuser_id());
+    }
+
+    @ApiOperation("我的TAB 头像、点赞、关注、我的爱豆数量")
     @GetMapping("mine")
     public R<ResMine> mine(HttpServletRequest request){
         int userId= UserUtil.getUserId(request);
@@ -42,7 +50,7 @@ public class UserController {
         return userService.editUser(userId,req);
     }
 
-    @PassToken
+
     @ApiOperation("关注/取消关注")
     @PostMapping("follow")
     public R follow(HttpServletRequest request,@Valid ReqVcuserId req){
@@ -51,7 +59,6 @@ public class UserController {
     }
 
     @ApiOperation("我的关注/我的粉丝")
-    @ApiImplicitParam(name = "type",value = "1 我的关注 2 我的粉丝")
     @GetMapping("follow")
     public R<IPage<ResFollowPage>> getFollows(HttpServletRequest request,@Valid ReqPageFollow req){
         Integer userId=UserUtil.getUserId(request);

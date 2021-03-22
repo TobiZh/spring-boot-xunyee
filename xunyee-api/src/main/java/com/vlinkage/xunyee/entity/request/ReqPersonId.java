@@ -1,15 +1,14 @@
 package com.vlinkage.xunyee.entity.request;
 
-import com.vlinkage.xunyee.entity.ReqMyPage;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 
 @Data
-public class ReqPageBlogUser extends ReqMyPage {
+public class ReqPersonId {
 
-    @ApiModelProperty("用户id")
+    @ApiModelProperty("艺人id")
     @NotNull
-    private Integer vcuser_id;
+    private Integer person;
 }

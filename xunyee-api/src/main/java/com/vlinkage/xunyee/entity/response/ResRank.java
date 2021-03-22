@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-public class ResRank {
+public class ResRank<T> {
     @ApiModelProperty("总数据")
     private int count;
     @ApiModelProperty("总页数")
@@ -26,5 +26,5 @@ public class ResRank {
     @ApiModelProperty("倒计时")
     private long today_reamin_second;
     @ApiModelProperty("榜单数据列表")
-    private Object results;
+    private T results;
 }

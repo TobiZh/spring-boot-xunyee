@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class XunyeeController {
 
     @ApiOperation("意见反馈")
     @GetMapping("feedback")
-    public R feedback(HttpServletRequest request, ReqFeedback req){
+    public R feedback(HttpServletRequest request,@Valid ReqFeedback req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.feedback(userId,req);
     }
@@ -107,14 +108,14 @@ public class XunyeeController {
     @PassToken
     @ApiOperation("签到榜")
     @GetMapping("person_check_count/rank")
-    public R<ResRank> personCheckCountRank(HttpServletRequest request, ReqPersonCheckCount req){
+    public R<ResRank<ResPersonCheckCount>> personCheckCountRank(HttpServletRequest request, ReqPersonCheckCount req){
         Integer userId= UserUtil.getUserId(request);
         return xunyeeService.personCheckCount(userId,req);
     }
 
     @ApiOperation("我的爱豆")
     @GetMapping("person_check_count/idol")
-    public R<ResRank> personCheckCountIdol(HttpServletRequest request,ReqMyPage myPage){
+    public R<ResRank<ResPersonCheckCountIdol>> personCheckCountIdol(HttpServletRequest request,ReqMyPage myPage){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.personCheckCountIdol(userId,myPage);
     }
@@ -122,7 +123,7 @@ public class XunyeeController {
 
     @ApiOperation("取消关注某个艺人")
     @PutMapping("vcuser_person")
-    public R vcuserPerson(HttpServletRequest request, ReqUserPersonCheck req){
+    public R vcuserPerson(HttpServletRequest request, @Valid ReqUserPersonCheck req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserPerson(userId,req);
     }
@@ -138,7 +139,7 @@ public class XunyeeController {
 
     @ApiOperation("签到接口")
     @PostMapping("vcuser_person_check")
-    public R vcuserPersonCheck(HttpServletRequest request, ReqPersonCheck req){
+    public R vcuserPersonCheck(HttpServletRequest request,@Valid ReqPersonCheck req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserPersonCheck(userId,req);
     }
@@ -146,7 +147,7 @@ public class XunyeeController {
 
     @ApiOperation("签到日历")
     @GetMapping("vcuser_person_check/calendar")
-    public R<ResUserPersonCheckCalendar> vcuserPersonCheckCalendar(HttpServletRequest request, ReqPersonCheckCalendar req){
+    public R<ResUserPersonCheckCalendar> vcuserPersonCheckCalendar(HttpServletRequest request,@Valid ReqPersonCheckCalendar req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserPersonCheckCalendar(userId,req);
     }
@@ -155,25 +156,25 @@ public class XunyeeController {
     @PassToken
     @ApiOperation("明星详情页")
     @GetMapping("vcuser_person/person_info/")
-    public R<ResPersonInfo> vcuserPersonPersonInfo(HttpServletRequest request,int person){
+    public R<ResPersonInfo> vcuserPersonPersonInfo(HttpServletRequest request,@Valid ReqPersonId req){
         Integer userId= UserUtil.getUserId(request);
-        return xunyeeService.vcuserPersonPersonInfo(userId,person);
+        return xunyeeService.vcuserPersonPersonInfo(userId,req.getPerson());
     }
 
 
     @PassToken
     @ApiOperation("明星曲线")
     @GetMapping("report_person/rpt_trend_all")
-    public R reportPersonRptTrendAll(int person){
-        return xunyeeService.reportPersonRptTrendAll(person);
+    public R reportPersonRptTrendAll(@Valid ReqPersonId req){
+        return xunyeeService.reportPersonRptTrendAll(req.getPerson());
     }
 
 
     @PassToken
     @ApiOperation("明星相册")
     @GetMapping("vcuser_person/person_album")
-    public R reportPersonAlbum(ReqMyPage myPage,int person){
-        return xunyeeService.reportPersonAlbum(myPage,person);
+    public R reportPersonAlbum(ReqMyPage myPage,@Valid ReqPersonId req){
+        return xunyeeService.reportPersonAlbum(myPage,req.getPerson());
     }
 
     @ApiOperation("兑换券")
@@ -185,7 +186,7 @@ public class XunyeeController {
 
     @ApiOperation("微信支付统一下单")
     @PostMapping("vcuser_benefit_payorder/submit")
-    public R vcuserBenefitPayOrderSubmit(HttpServletRequest request,ReqBenefitPayOrder req){
+    public R vcuserBenefitPayOrderSubmit(HttpServletRequest request,@Valid ReqBenefitPayOrder req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserBenefitPayOrderSubmit(request,userId,req);
     }
