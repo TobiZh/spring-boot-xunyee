@@ -161,4 +161,27 @@ public interface MyMapper {
             "</when>",
             "ORDER BY b.star_count DESC</script>"})
     IPage<ResBlogPage> selectMineBlogPage(Page page, int vcuser_id, String name);
+
+
+
+//    SELECT
+//    xbar.x_star,
+//    xbar.x_unstar,
+//    xbar_user.nickname,
+//    b.*
+//    FROM
+//    xunyee_blog b,
+//	(
+//    SELECT ID,
+//    round( ( star_count - 0 ) / ( 1000 - 0 ) :: NUMERIC, 4 ) AS x_star,
+//    round( ( unstar_count - 0 ) / ( 1000 - 0 )*0.3 :: NUMERIC, 4 ) AS x_unstar,
+//    round( ( favorite_count - 0 ) / ( 1000 - 0 ) :: NUMERIC, 4 ) AS x_favorite,
+//    round( ( report_count - 0 ) / ( 1000 - 0 )*0.3 :: NUMERIC, 4 ) AS x_report
+//    FROM xunyee_blog ) xbar,
+//            (select * from xunyee_vcuser) xbar_user
+//            WHERE
+//    b.ID = xbar.ID
+//    and b.vcuser_id=xbar_user.id
+//    ORDER BY
+//    xbar.x_star DESC
 }
