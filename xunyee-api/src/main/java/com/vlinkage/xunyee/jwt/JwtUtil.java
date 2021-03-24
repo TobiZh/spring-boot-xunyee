@@ -5,17 +5,24 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+
+@Slf4j
 public class JwtUtil {
     /**
-     * 过期时间 天
+     * 过期时间 7天过期
+     * refresh 15天过期
      */
-    private static final long EXPIRE_TIME = 15 * 60 * 60 * 60 * 1000L;
+//    private static final long ACCESS_EXPIRE_TIME = 7L * 60 * 1000 * 60 * 24;;
+//    private static final long REFRESH_EXPIRE_TIME = 15L * 60 * 1000 * 60 * 24;
 
+
+    private static final long ACCESS_EXPIRE_TIME = 1L * 60 * 1000;;
+    private static final long REFRESH_EXPIRE_TIME = 3L * 60 * 1000;
     /**
      * token私钥
      */
@@ -23,15 +30,28 @@ public class JwtUtil {
 
 
     /**
-     * 生成签名30分钟后过期
-     *
-     * @param userId   用户ID
-     * @return 加密的token
+     * 生成 access token
+     * @param userId
+     * @return
      */
-    public static String getToken(String userId) {
+    public static String getAccessToken(String userId) {
+        return getToken(userId,ACCESS_EXPIRE_TIME);
+    }
+
+    /**
+     * 生成 refresh token
+     * @param userId
+     * @return
+     */
+    public static String getRefreshToken(String userId) {
+       return getToken(userId,REFRESH_EXPIRE_TIME);
+    }
+
+
+    private static String getToken(String userId,long expireTime) {
         try {
             //过期时间
-            Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
+            Date date = new Date(System.currentTimeMillis() + expireTime);
             //私钥及加密算法
             Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
             //设置头部信息
@@ -53,7 +73,7 @@ public class JwtUtil {
 
     /**
      * 校验token是否正确
-     *
+     * 是否还有效
      * @param token 密钥
      * @return 是否正确
      */
@@ -68,6 +88,26 @@ public class JwtUtil {
             return false;
         }
     }
+
+
+
+    /**
+     * 验证token是否过期失效
+     * true 失效 false 还有效
+     * @param token
+     * @return
+     */
+    public static boolean isTokenExpired(String token) {
+        try {
+            DecodedJWT decode = JWT.decode(token);
+            boolean isExp=decode.getExpiresAt().before(new Date());
+            return isExp;
+        }catch (Exception e){
+            e.printStackTrace();
+            return true;
+        }
+    }
+
 
 
     /**
@@ -86,12 +126,12 @@ public class JwtUtil {
     }
 
 
+
     public static void main(String[] args) {
 
-        String token=getToken("19");
-        System.out.println(token);
 
-        System.out.println(verify(token));
+
+        System.out.println(isTokenExpired("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2MTY1NzQ1NDQsInVzZXJJZCI6IjE5IiwiaWF0IjoxNjE2NTc0NDg0fQ.tP9_fQjqXJlkSDObukiIVop4ORLkZp6bD2Otl3lkrx8"));
 
     }
 }

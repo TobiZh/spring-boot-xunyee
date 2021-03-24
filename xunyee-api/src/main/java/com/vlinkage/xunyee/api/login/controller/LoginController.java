@@ -30,6 +30,7 @@ public class LoginController {
         return loginService.wxOpenLogin(appId,code,6);
     }
 
+
     @ApiOperation(value="微信登录 小程序")
     @PassToken
     @GetMapping("login/wx/miniprogram")
@@ -38,4 +39,15 @@ public class LoginController {
 
         return loginService.wxLoginMini(appId,code,5);
     }
+
+
+    @ApiOperation(value="使用refresh_token刷新token")
+    @PassToken
+    @PostMapping("refresh/token")
+    public R refreshToken(String refresh_token) {
+
+        return loginService.refreshToken(refresh_token);
+    }
+
+
 }

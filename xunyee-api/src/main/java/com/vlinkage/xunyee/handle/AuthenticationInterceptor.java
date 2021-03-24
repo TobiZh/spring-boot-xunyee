@@ -53,7 +53,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                         }
 
                     } catch (JWTDecodeException j) {
-                        throw new BusinessException(ResultCode.NO_TOKEN);
+                        throw new BusinessException(ResultCode.NO_TOKEN_TO_LOGIN);
                     }
                 }
                 return true;
@@ -64,12 +64,12 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
         // 执行认证
         if (token == null) {
-            throw new BusinessException(ResultCode.NO_TOKEN);
+            throw new BusinessException(ResultCode.NO_TOKEN_TO_LOGIN);
         }
 
         // 验证 token
-        if (!JwtUtil.verify(token)) {
-            throw new BusinessException(ResultCode.TOKEN_ILLEGAL);
+        if (!JwtUtil.verify(token)) { // 通知用户去调用刷新token接口
+            throw new BusinessException(ResultCode.TOKEN_OUT_TIME_TO_REFRESH);
         }
 
         // 获取 token 中的 user id
@@ -77,10 +77,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         try {
             userId = JwtUtil.getUserId(token);
         } catch (JWTDecodeException j) {
-            throw new BusinessException(ResultCode.TOKEN_ILLEGAL);
+            throw new BusinessException(ResultCode.NO_TOKEN_TO_LOGIN);
         }
-        if (!redisUtil.hasKey("user_toke:"+userId)) {
-            throw new BusinessException(ResultCode.TOKEN_ILLEGAL);
+
+        if (!redisUtil.hasKey("user_toke:"+userId+":access_token")) {
+            throw new BusinessException(ResultCode.NO_TOKEN_TO_LOGIN);
         }
 
         // 将userId写入request

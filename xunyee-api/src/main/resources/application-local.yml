@@ -22,10 +22,10 @@ spring:
           password: wangxin@vlinkage
   #redis
   redis:
-    host: 115.29.163.237
+    host: localhost
     port: 6378
     database: 0
-    password: vlinkage80E2
+
   data:
     mongodb:
       database: xunyee

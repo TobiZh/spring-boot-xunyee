@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.common.entity.result.code.ResultCode;
 import com.vlinkage.common.redis.RedisUtil;
 import com.vlinkage.xunyee.config.weixin.WxMaConfiguration;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessApp;
@@ -80,15 +81,21 @@ public class LoginService {
                 userThird.setVcuser_id(user.getId());
                 userThird.insert();
                 // 生成token
-                String token = JwtUtil.getToken(String.valueOf(user.getId()));
-                redisUtil.set("user_toke:"+user.getId(),token);
+                String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
+                String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
+                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
+                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,15*24*60*60);
+
                 ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
                 resLoginSuccess.setToken(token);
                 return R.OK(resLoginSuccess);
             }
             // 生成token
-            String token = JwtUtil.getToken(String.valueOf(temp.getVcuser_id()));
-            redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
+            String token = JwtUtil.getAccessToken(String.valueOf(temp.getVcuser_id()));
+            String refresh_token = JwtUtil.getRefreshToken(String.valueOf(temp.getVcuser_id()));
+            redisUtil.set("user_token:"+temp.getVcuser_id()+":access_token",token,24*60*60);
+            redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,15*24*60*60);
+
             ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
             resLoginSuccess.setToken(token);
             return R.OK(resLoginSuccess);
@@ -130,8 +137,11 @@ public class LoginService {
                 userThird.setVcuser_id(user.getId());
                 userThird.insert();
                 // 登录成功 生成token
-                String token = JwtUtil.getToken(String.valueOf(user.getId()));
-                redisUtil.set("user_toke:"+user.getId(),token);
+                String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
+                String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
+                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
+                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,15*24*60*60);
+
                 ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
                 resLoginSuccess.setSession_key(sessionKey);
                 resLoginSuccess.setToken(token);
@@ -139,8 +149,12 @@ public class LoginService {
             }
             // 登录成功 生成token
             XunyeeVcuser vcuser=new XunyeeVcuser().selectById(temp.getVcuser_id());
-            String token = JwtUtil.getToken(String.valueOf(temp.getVcuser_id()));
-            redisUtil.set("user_toke:"+temp.getVcuser_id(),token);
+            String token = JwtUtil.getAccessToken(String.valueOf(temp.getVcuser_id()));
+            String refresh_token = JwtUtil.getRefreshToken(String.valueOf(temp.getVcuser_id()));
+            redisUtil.set("user_token:"+temp.getVcuser_id()+":access_token",token,24*60*60);
+            redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,15*24*60*60);
+
+
             ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
             resLoginSuccess.setSession_key(sessionKey);
             resLoginSuccess.setToken(token);
@@ -157,5 +171,24 @@ public class LoginService {
             log.error(e.getMessage(), e);
             return R.ERROR(e.getMessage());
         }
+    }
+
+    public R refreshToken(String refreshToken) {
+        if (!JwtUtil.verify(refreshToken)){
+            return R.ERROR(ResultCode.NO_TOKEN_TO_LOGIN);
+        }
+        String userId = JwtUtil.getUserId(refreshToken);
+
+        String token=JwtUtil.getAccessToken(userId);
+        String refresh_token=JwtUtil.getRefreshToken(userId);
+        redisUtil.set("user_token:"+userId+":access_token",token,24*60*60);
+        redisUtil.set("user_token:"+userId+":refresh_token",refresh_token,15*24*60*60);
+
+
+        ResLoginSuccessApp app=new ResLoginSuccessApp();
+        app.setToken(token);
+        app.setRefresh_token(refresh_token);
+        return R.OK(app);
+
     }
 }

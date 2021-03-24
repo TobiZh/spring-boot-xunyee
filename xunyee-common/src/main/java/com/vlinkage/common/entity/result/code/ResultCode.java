@@ -25,9 +25,8 @@ public enum ResultCode {
     USER_NOT_EXIST(20003,"用户不存在，请重新登录"),
 
     /* 认证失败错误：30001-39999*/
-    NO_TOKEN(30001,"无token，请重新登录"),
-    TOKEN_OUT_TIME(30002,"token超时,请重新登录"),
-    TOKEN_ILLEGAL(30003,"token 认证失败"),
+    NO_TOKEN_TO_LOGIN(30001,"请重新登录"),
+    TOKEN_OUT_TIME_TO_REFRESH(30002,"请重新获取token"),
 
     /* 文件失败错误：40001-49999*/
     EXCEL_NO_SHEET(40001,"Excel无Sheet")
