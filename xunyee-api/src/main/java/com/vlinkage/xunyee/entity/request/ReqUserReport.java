@@ -10,14 +10,6 @@ import javax.validation.constraints.NotNull;
 public class ReqUserReport {
 
     @NotNull
-    @ApiModelProperty(value = "创作id")
-    private Integer blog_id;
-
-    @NotNull
-    @ApiModelProperty(value = "举报人id")
-    private Integer vcuser_id;
-
-    @NotNull
     @ApiModelProperty(value = "被举报人id")
     private Integer report_vcuser_id;
 

@@ -80,9 +80,9 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             throw new BusinessException(ResultCode.NO_TOKEN_TO_LOGIN);
         }
 
-        if (!redisUtil.hasKey("user_toke:"+userId+":access_token")) {
-            throw new BusinessException(ResultCode.NO_TOKEN_TO_LOGIN);
-        }
+//        if (!redisUtil.hasKey("user_toke:"+userId+":access_token")) {
+//            throw new BusinessException(ResultCode.NO_TOKEN_TO_LOGIN);
+//        }
 
         // 将userId写入request
         httpServletRequest.setAttribute("userId", userId);

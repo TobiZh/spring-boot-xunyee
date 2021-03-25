@@ -18,6 +18,8 @@ public class ResMine {
     private int fans_count;
     @ApiModelProperty("点赞数量")
     private int star_count;
+    @ApiModelProperty("是否有新的点赞 0 表示没有 >0表示有新的点赞")
+    private int new_star;
     @ApiModelProperty("我的爱豆数量")
     private int idol_count;
     @ApiModelProperty("是不是会员")

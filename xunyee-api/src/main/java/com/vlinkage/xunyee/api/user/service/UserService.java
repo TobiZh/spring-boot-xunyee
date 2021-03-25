@@ -8,11 +8,15 @@ import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
+import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageFollow;
 import com.vlinkage.xunyee.entity.request.ReqUserInfo;
+import com.vlinkage.xunyee.entity.request.ReqUserReport;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
+import com.vlinkage.xunyee.utils.CopyListUtil;
+import com.vlinkage.xunyee.utils.DateUtil;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +28,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -203,6 +208,7 @@ public class UserService {
 
 
         ResMine resMine=new ResMine();
+        resMine.setVcuser_id(vcuser.getId());
         resMine.setAvatar(vcuser.getAvatar());
         resMine.setNickname(vcuser.getNickname());
         resMine.setFans_count(fans_count);
@@ -298,12 +304,41 @@ public class UserService {
         return R.OK(iPage);
     }
 
-    public R report(ReqBlogReport req) {
+    public R report(int userId, ReqUserReport req) {
         XunyeeVcuserReport report=BeanUtil.copyProperties(req, XunyeeVcuserReport.class);
+        report.setVcuser_id(userId);
         if (report.insert()){
             return R.OK();
         }
         return R.ERROR("举报失败");
     }
 
+    public R<IPage<ResPerson>> vcuserPerson(int userId, ReqMyPage myPage) {
+        int current = myPage.getCurrent();
+        int size = myPage.getSize();
+
+
+        Criteria criteria = new Criteria().where("vcuser").is(userId).and("is_enabled").is(true);
+        Query query = new Query(criteria);
+        // 查询记录总数 数据总页数 放在分页条件之前
+        int totalCount = (int) mongoTemplate.count(query, ResMonUserPerson.class);
+        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
+        // 分页 排序
+        query.skip((current - 1) * size).limit(size).with(Sort.by(Sort.Direction.DESC, "updated"));
+        // 查询我关注的艺人
+        List<ResMonUserPerson> resMGs = mongoTemplate.find(query, ResMonUserPerson.class);
+        // 提取teleplay id去数据库查询电视剧信息
+        Integer[] personIds = resMGs.stream().map(e -> e.getPerson()).collect(Collectors.toList())
+                .toArray(new Integer[resMGs.size()]);
+        // 查询数据库艺人信息
+        List<Person> persons = personIds.length > 0 ? metaService.getPerson(personIds) : new ArrayList<>();
+
+        IPage<ResPerson> iPage=new Page();
+        iPage.setPages(totalPage);
+        iPage.setSize(size);
+        iPage.setCurrent(current);
+        iPage.setTotal(totalCount);
+        iPage.setRecords(CopyListUtil.copyListProperties(persons,ResPerson.class));
+        return R.OK(iPage);
+    }
 }

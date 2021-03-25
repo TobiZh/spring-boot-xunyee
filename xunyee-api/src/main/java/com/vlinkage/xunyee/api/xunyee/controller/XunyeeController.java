@@ -55,7 +55,7 @@ public class XunyeeController {
     }
 
     @ApiOperation("意见反馈")
-    @GetMapping("feedback")
+    @PostMapping("feedback")
     public R feedback(HttpServletRequest request,@Valid ReqFeedback req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.feedback(userId,req);
@@ -93,7 +93,7 @@ public class XunyeeController {
     @ApiOperation("艺人相关的品牌")
     @PassToken
     @GetMapping("brand/person")
-    public R<IPage<ResBrandPerson>> brandPerson(ReqMyPage myPage,int person_id){
+    public R<IPage<ResBrandPerson>> brandPerson(ReqMyPage myPage,Integer person_id){
         IPage<ResBrandPerson> iPage=metaService.getBrandPerson(myPage,person_id);
         return R.OK(iPage);
     }
@@ -153,25 +153,25 @@ public class XunyeeController {
     }
 
 
-    @PassToken
     @ApiOperation("明星详情页")
-    @GetMapping("vcuser_person/person_info/")
+    @PassToken
+    @GetMapping("vcuser_person/person_info")
     public R<ResPersonInfo> vcuserPersonPersonInfo(HttpServletRequest request,@Valid ReqPersonId req){
         Integer userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserPersonPersonInfo(userId,req.getPerson());
     }
 
 
-    @PassToken
     @ApiOperation("明星曲线")
+    @PassToken
     @GetMapping("report_person/rpt_trend_all")
     public R reportPersonRptTrendAll(@Valid ReqPersonId req){
         return xunyeeService.reportPersonRptTrendAll(req.getPerson());
     }
 
 
-    @PassToken
     @ApiOperation("明星相册")
+    @PassToken
     @GetMapping("vcuser_person/person_album")
     public R reportPersonAlbum(ReqMyPage myPage,@Valid ReqPersonId req){
         return xunyeeService.reportPersonAlbum(myPage,req.getPerson());

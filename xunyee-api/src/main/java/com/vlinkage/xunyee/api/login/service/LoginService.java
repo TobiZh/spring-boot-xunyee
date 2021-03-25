@@ -34,7 +34,7 @@ public class LoginService {
     private WxMpService wxMpService;
 
     @Transactional
-    public R wxOpenLogin(String appId,String code,int site) {
+    public R<ResLoginSuccessApp> wxOpenLogin(String appId,String code,int site) {
         if (!this.wxMpService.switchover(appId)) {
             throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appId));
         }
@@ -106,7 +106,7 @@ public class LoginService {
         }
     }
 
-    public R wxLoginMini(String appId, String code,int site) {
+    public R<ResLoginSuccessMini> wxLoginMini(String appId, String code,int site) {
         final WxMaService wxService = WxMaConfiguration.getMaService(appId);
         // 用户信息校验
         try {
@@ -173,7 +173,7 @@ public class LoginService {
         }
     }
 
-    public R refreshToken(String refreshToken) {
+    public R<ResLoginSuccessApp> refreshToken(String refreshToken) {
         if (!JwtUtil.verify(refreshToken)){
             return R.ERROR(ResultCode.NO_TOKEN_TO_LOGIN);
         }

@@ -6,9 +6,12 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class ReqBlogCategory {
+public class ReqBlogStar {
 
-    @ApiModelProperty("动态类型 0 关注 1 推荐 2 截屏 3 现场热拍 4 品牌代言")
+    @ApiModelProperty("动态id")
+    @NotNull
+    private Integer blog_id;
+    @ApiModelProperty("类型 0 点踩  1 点赞")
     @NotNull
     private Integer type;
 }

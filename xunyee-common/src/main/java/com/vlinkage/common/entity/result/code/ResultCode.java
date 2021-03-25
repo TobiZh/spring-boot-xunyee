@@ -25,7 +25,7 @@ public enum ResultCode {
     USER_NOT_EXIST(20003,"用户不存在，请重新登录"),
 
     /* 认证失败错误：30001-39999*/
-    NO_TOKEN_TO_LOGIN(30001,"请重新登录"),
+    NO_TOKEN_TO_LOGIN(30001,"请登录"),
     TOKEN_OUT_TIME_TO_REFRESH(30002,"请重新获取token"),
 
     /* 文件失败错误：40001-49999*/

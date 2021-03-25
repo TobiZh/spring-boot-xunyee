@@ -10,10 +10,11 @@ import javax.validation.constraints.NotNull;
 @Data
 public class ReqBlog {
 
+    @NotNull
     @ApiModelProperty(value = "艺人id")
     private Integer person_id;
 
-    @Length(max = 15)
+    @Length(max = 10)
     @ApiModelProperty(value = "标题")
     private String title;
 

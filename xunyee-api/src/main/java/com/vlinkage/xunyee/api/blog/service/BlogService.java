@@ -10,10 +10,7 @@ import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
-import com.vlinkage.xunyee.entity.request.ReqBlog;
-import com.vlinkage.xunyee.entity.request.ReqBlogReport;
-import com.vlinkage.xunyee.entity.request.ReqPageBlogUser;
-import com.vlinkage.xunyee.entity.request.ReqRecommendPage;
+import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
 import com.vlinkage.xunyee.entity.response.ResPerson;
@@ -188,7 +185,9 @@ public class BlogService {
     }
 
     @Transactional
-    public R blogStar(Integer userId, int blogId, int type) {
+    public R blogStar(Integer userId, ReqBlogStar req) {
+        int blogId=req.getBlog_id();
+        int type=req.getType();
         QueryWrapper qw=new QueryWrapper();
         qw.eq("vcuser_id",userId);
         qw.eq("blog_id",blogId);
@@ -267,8 +266,9 @@ public class BlogService {
         return R.ERROR("收藏失败");
     }
 
-    public R blogReport(ReqBlogReport req) {
+    public R blogReport(int userId,ReqBlogReport req) {
         XunyeeBlogReport report=BeanUtil.copyProperties(req,XunyeeBlogReport.class);
+        report.setVcuser_id(userId);
         if (report.insert()){
             return R.OK();
         }

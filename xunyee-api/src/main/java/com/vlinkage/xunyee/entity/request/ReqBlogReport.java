@@ -10,8 +10,8 @@ import org.hibernate.validator.constraints.Length;
 public class ReqBlogReport {
 
     @NonNull
-    @ApiModelProperty(value = "举报人id")
-    private Integer vcuser_id;
+    @ApiModelProperty(value = "被举报的动态id")
+    private Integer blog_id;
 
     @NonNull
     @ApiModelProperty(value = "被举报人id")

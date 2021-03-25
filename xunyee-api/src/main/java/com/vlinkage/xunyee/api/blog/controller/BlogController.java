@@ -2,6 +2,7 @@ package com.vlinkage.xunyee.api.blog.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.common.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.blog.service.BlogService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
@@ -37,19 +38,29 @@ public class BlogController {
         return blogService.blog(userId,req);
     }
 
-    @ApiOperation("首页动态 关注")
-    @GetMapping("follow")
-    public R<IPage<ResBlogPage>> blogFollow(HttpServletRequest request,ReqMyPage myPage){
-        int userId=UserUtil.getUserId(request);
-        return blogService.blogFollow(myPage,userId);
-    }
+//    @ApiOperation("首页动态 关注")
+//    @GetMapping("follow")
+//    public R<IPage<ResBlogPage>> blogFollow(HttpServletRequest request,ReqMyPage myPage){
+//        int userId=UserUtil.getUserId(request);
+//        return blogService.blogFollow(myPage,userId);
+//    }
 
-    @ApiOperation("首页动态 剧作截图/现场热拍/品牌代言")
+    @ApiOperation("首页动态关注、推荐、截屏、现场热拍、品牌代言")
     @PassToken
     @GetMapping("category")
     public R<IPage<ResBlogPage>> blogCategory(HttpServletRequest request, ReqMyPage myPage, @Valid ReqBlogCategory req){
         Integer userId=UserUtil.getUserId(request);
-        return blogService.blogCategory(myPage,req.getType(),userId);
+        int type= req.getType();
+        if (type==0){//关注
+            if (userId==null){
+                return R.ERROR(ResultCode.NO_TOKEN_TO_LOGIN);
+            }
+            return blogService.blogFollow(myPage,userId);
+        }else if (type==1){//推荐
+            return blogService.blogCategory(myPage,type,userId);
+        }else{//截屏、现场热拍、品牌代言
+            return blogService.blogCategory(myPage,type-1,userId);
+        }
     }
 
     @ApiOperation("动态详情")
@@ -72,9 +83,9 @@ public class BlogController {
 
     @ApiOperation("点赞（取消点赞）/点踩（取消点踩）")
     @PostMapping("star")
-    public R blogStar(HttpServletRequest request,int blog_id,int type){
+    public R blogStar(HttpServletRequest request,@Valid ReqBlogStar req){
         Integer userId=UserUtil.getUserId(request);
-        return blogService.blogStar(userId,blog_id,type);
+        return blogService.blogStar(userId,req);
     }
 
     @ApiOperation("收藏/取消收藏")
@@ -88,15 +99,14 @@ public class BlogController {
     @ApiOperation("举报动态")
     @PostMapping("report")
     public R blogReport(HttpServletRequest request, @Valid ReqBlogReport req){
-        Integer userId=UserUtil.getUserId(request);
-        req.setVcuser_id(userId);
-        return blogService.blogReport(req);
+        int userId=UserUtil.getUserId(request);
+        return blogService.blogReport(userId,req);
     }
 
     @ApiOperation("TA的动态")
     @PassToken
     @GetMapping("vcuser")
-    public R<IPage<ResBlogPage>> getBlogByUserId(HttpServletRequest request,ReqPageBlogUser req){
+    public R<IPage<ResBlogPage>> getBlogByUserId(HttpServletRequest request,@Valid ReqPageBlogUser req){
         Integer userId=UserUtil.getUserId(request);
         return blogService.getBlogByUserId(userId,req);
     }
