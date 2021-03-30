@@ -43,7 +43,7 @@ public class UserController {
 
     @ApiOperation("修改个人资料")
     @PutMapping("info")
-    public R editUser(HttpServletRequest request, @Valid ReqUserInfo req){
+    public R editUser(HttpServletRequest request, ReqUserInfo req){
         int userId= UserUtil.getUserId(request);
         return userService.editUser(userId,req);
     }
@@ -75,5 +75,13 @@ public class UserController {
     public R<IPage<ResPerson>> vcuserPerson(HttpServletRequest request, ReqMyPage myPage){
         int userId= UserUtil.getUserId(request);
         return userService.vcuserPerson(userId,myPage);
+    }
+
+
+    @ApiOperation("我的获赞")
+    @GetMapping("blog/star")
+    public R<IPage<ResBlogStarPage>> getBlogStar(HttpServletRequest request,@Valid ReqMyPage myPage){
+        int userId=UserUtil.getUserId(request);
+        return userService.getBlogStar(userId,myPage);
     }
 }

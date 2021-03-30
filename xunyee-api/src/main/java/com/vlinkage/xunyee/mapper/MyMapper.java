@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.xunyee.entity.request.ReqRecommendPage;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
+import com.vlinkage.xunyee.entity.response.ResBlogStarPage;
 import com.vlinkage.xunyee.entity.response.ResBrandPerson;
 import com.vlinkage.xunyee.entity.response.ResFollowPage;
 import org.apache.ibatis.annotations.Param;
@@ -162,6 +163,14 @@ public interface MyMapper {
             "ORDER BY b.star_count DESC</script>"})
     IPage<ResBlogPage> selectMineBlogPage(Page page, int vcuser_id, String name);
 
+
+
+    @Select("select u.id,u.avatar,u.nickname,s.created,b.\"content\",b.images," +
+            "case when (select count(*) from xunyee_vcuser_benefit where now()<=finish_time and (vcuser_id=${vcuser_id}))>0 " +
+            "then true else false end is_vip " +
+            "FROM xunyee_blog_star s,xunyee_blog b,xunyee_vcuser u " +
+            "where s.blog_id=b.id and s.\"type\"=1 and s.status=1 and s.vcuser_id=u.id and (b.vcuser_id=${vcuser_id})")
+    IPage<ResBlogStarPage> selectBlogStarPage(Page page, int vcuser_id);
 
 
 //    SELECT

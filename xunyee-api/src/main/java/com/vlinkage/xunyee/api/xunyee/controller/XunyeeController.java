@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -165,7 +164,7 @@ public class XunyeeController {
     @ApiOperation("明星曲线")
     @PassToken
     @GetMapping("report_person/rpt_trend_all")
-    public R reportPersonRptTrendAll(@Valid ReqPersonId req){
+    public R<List<ResReportPersonRptTrendQux>> reportPersonRptTrendAll(@Valid ReqPersonQuxian req){
         return xunyeeService.reportPersonRptTrendAll(req.getPerson());
     }
 

@@ -555,14 +555,19 @@ public class XunyeeService {
         return R.OK(info);
     }
 
-    public R reportPersonRptTrendAll(int person) {
+    public R<List<ResReportPersonRptTrendQux>> reportPersonRptTrendAll(int person) {
         // 当前艺人指数
         LocalDate gteDate = LocalDate.now().minusDays(10); // >=
         LocalDate ltDate = LocalDate.now(); // <; // <
-        ResMonReportPersonRptTrend resMongo = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person).gte(gteDate).lt(ltDate)),
-                ResMonReportPersonRptTrend.class);
+        // count的查询条件
+        Criteria criteria = Criteria.where("period").is(1).and("person").in(person)
+                .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate));
+        Query query = new Query();
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, "updated"));
+        List<ResMonReportPersonRptTrend> resMongo = mongoTemplate.find(query, ResMonReportPersonRptTrend.class);
 
-        return R.OK();
+        return R.OK(resMongo);
     }
 
     public R reportPersonAlbum(ReqMyPage myPage, int person) {

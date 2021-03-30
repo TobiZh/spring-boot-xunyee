@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mysql.cj.xdevapi.InsertResultImpl;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
@@ -17,6 +18,7 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +29,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -340,5 +343,24 @@ public class UserService {
         iPage.setTotal(totalCount);
         iPage.setRecords(CopyListUtil.copyListProperties(persons,ResPerson.class));
         return R.OK(iPage);
+    }
+
+    public R<IPage<ResBlogStarPage>> getBlogStar(int userId, ReqMyPage myPage) {
+        Page page=new Page(myPage.getCurrent(),myPage.getSize());
+        IPage<ResBlogStarPage> iPage=myMapper.selectBlogStarPage(page,userId);
+        for (ResBlogStarPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getImages())){
+                String[] s=record.getImages().split(",");
+                List<String> reImages=new ArrayList<>();
+                for (int i = 0; i < s.length; i++) {
+                    reImages.add(imagePath+s[i]);
+                }
+                String newStr = reImages.stream().collect(Collectors.joining(","));
+                record.setImages(newStr);
+            }
+        }
+
+        return R.OK(iPage);
+
     }
 }
