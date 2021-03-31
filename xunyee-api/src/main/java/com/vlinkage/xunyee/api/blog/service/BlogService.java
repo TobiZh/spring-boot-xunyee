@@ -38,6 +38,11 @@ public class BlogService {
 
 
     public R blog(int userId, ReqBlog req) {
+
+        if (req.getImages().split(",").length>9){
+            return R.ERROR("图片最多上传9张");
+        }
+
         XunyeeBlog xunyeeBlog=new XunyeeBlog();
         BeanUtil.copyProperties(req,xunyeeBlog);
         xunyeeBlog.setVcuser_id(userId);

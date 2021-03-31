@@ -17,12 +17,12 @@ public class JwtUtil {
      * 过期时间 7天过期
      * refresh 15天过期
      */
-//    private static final long ACCESS_EXPIRE_TIME = 7L * 60 * 1000 * 60 * 24;;
-//    private static final long REFRESH_EXPIRE_TIME = 15L * 60 * 1000 * 60 * 24;
+    private static final long ACCESS_EXPIRE_TIME = 7L * 60 * 1000 * 60 * 24;;
+    private static final long REFRESH_EXPIRE_TIME = 15L * 60 * 1000 * 60 * 24;
 
 
-    private static final long ACCESS_EXPIRE_TIME = 1L * 60 * 1000;;
-    private static final long REFRESH_EXPIRE_TIME = 3L * 60 * 1000;
+//    private static final long ACCESS_EXPIRE_TIME = 1L * 60 * 1000;;
+//    private static final long REFRESH_EXPIRE_TIME = 3L * 60 * 1000;
     /**
      * token私钥
      */
@@ -128,10 +128,6 @@ public class JwtUtil {
 
 
     public static void main(String[] args) {
-
-
-
-        System.out.println(isTokenExpired("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2MTY1NzQ1NDQsInVzZXJJZCI6IjE5IiwiaWF0IjoxNjE2NTc0NDg0fQ.tP9_fQjqXJlkSDObukiIVop4ORLkZp6bD2Otl3lkrx8"));
-
+        System.out.println(getAccessToken("19"));
     }
 }

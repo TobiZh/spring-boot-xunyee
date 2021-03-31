@@ -22,8 +22,8 @@ public class ReqBlog {
     @ApiModelProperty(value = "图片地址多张 用英文逗号隔开")
     private String images;
 
-    @Length(min = 5)
-    @ApiModelProperty(value = "内容至少5个字符")
+    @Length(min = 5,max = 140)
+    @ApiModelProperty(value = "内容至少5个字符,最多140个字")
     private String content;
 
     @NotNull

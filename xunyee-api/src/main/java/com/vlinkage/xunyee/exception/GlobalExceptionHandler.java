@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public R handleBusinessException(BusinessException e, HttpServletRequest request) {
-        log.warn("URL:{} ,业务异常:{}", request.getRequestURI());
+        log.warn("URL:{} ,业务异常:{}", request.getRequestURI(),e.getMsg());
         return R.ERROR(e.getCode(),e.getMsg());
     }
 

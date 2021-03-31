@@ -15,7 +15,7 @@ public enum ResultCode {
 
 
     /* 参数错误：10001-19999 */
-    PARAM_IS_INVALID(10001, "参数无效"),
+    PARAM_IS_INVALID(-1, "参数无效"),
 
 
     /* 用户错误：20001-29999*/

@@ -351,12 +351,12 @@ public class UserService {
         for (ResBlogStarPage record : iPage.getRecords()) {
             if (StringUtils.isNotEmpty(record.getImages())){
                 String[] s=record.getImages().split(",");
-                List<String> reImages=new ArrayList<>();
+                List<String> image_list=new ArrayList<>();
                 for (int i = 0; i < s.length; i++) {
-                    reImages.add(imagePath+s[i]);
+                    image_list.add(imagePath+s[i]);
                 }
-                String newStr = reImages.stream().collect(Collectors.joining(","));
-                record.setImages(newStr);
+
+                record.setImage_list(image_list);
             }
         }
 

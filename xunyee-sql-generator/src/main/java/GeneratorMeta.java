@@ -24,7 +24,7 @@ public class GeneratorMeta {
         // 全局配置
         GlobalConfig gc = new GlobalConfig();
         String projectPath = System.getProperty("user.dir");
-        gc.setOutputDir(projectPath + "/xunyee-sql-generator/src/main/java");
+        gc.setOutputDir(projectPath + "/xunyee-api/src/main/java");
         gc.setSwagger2(true);
         gc.setOpen(false);
         gc.setFileOverride(true);

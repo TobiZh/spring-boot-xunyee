@@ -25,7 +25,7 @@ public interface MyMapper {
      * @param page
      * @return
      */
-    @Select("SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
+    @Select("SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
             "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${from_user_id})) is_star " +
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
             "ON b.vcuser_id=u.id WHERE (b.vcuser_id=${vcuser_id}) order by b.star_count desc")
@@ -40,7 +40,7 @@ public interface MyMapper {
      * @param type
      * @return
      */
-    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
+    @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
             "<when test='vcuser_id!=null'>",
             ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star ",
             "</when>",
@@ -57,7 +57,7 @@ public interface MyMapper {
      * @param vcuser_id
      * @return
      */
-    @Select("SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar, " +
+    @Select("SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar, " +
             "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star " +
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
             "ON b.vcuser_id=u.id " +
@@ -73,7 +73,7 @@ public interface MyMapper {
      * @param vcuser_id
      * @return "AND (b.title like CONCAT('%',#{keyword},'%') OR b.content like CONCAT('%',#{keyword},'%'))",
      */
-    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
+    @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
             "<when test='vcuser_id!=null'>",
             ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star ",
             "</when>",
@@ -111,7 +111,7 @@ public interface MyMapper {
      * @param page
      * @return
      */
-    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar" +
+    @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar" +
             "<when test='vcuser_id!=null'>",
             ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star " +
                     "</when>",
@@ -133,7 +133,7 @@ public interface MyMapper {
      * @param vcuser_id
      * @return
      */
-    @Select("SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
+    @Select("SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
             "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star " +
             "FROM xunyee_blog b " +
             "LEFT JOIN xunyee_follow f ON b.vcuser_id=f.followed_vcuser_id " +
@@ -151,7 +151,7 @@ public interface MyMapper {
      * @param vcuser_id
      * @return "AND (b.title like CONCAT('%',#{keyword},'%') OR b.content like CONCAT('%',#{keyword},'%'))",
      */
-    @Select({"<script>SELECT b.id,b.title,b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
+    @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
             "<when test='vcuser_id!=null'>",
             ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${vcuser_id})) is_star ",
             "</when>",
@@ -165,7 +165,7 @@ public interface MyMapper {
 
 
 
-    @Select("select u.id,u.avatar,u.nickname,s.created,b.\"content\",b.images," +
+    @Select("select u.id,u.avatar,u.nickname,s.created,SUBSTRING(b.content,1,20) \"content\",b.images," +
             "case when (select count(*) from xunyee_vcuser_benefit where now()<=finish_time and (vcuser_id=${vcuser_id}))>0 " +
             "then true else false end is_vip " +
             "FROM xunyee_blog_star s,xunyee_blog b,xunyee_vcuser u " +

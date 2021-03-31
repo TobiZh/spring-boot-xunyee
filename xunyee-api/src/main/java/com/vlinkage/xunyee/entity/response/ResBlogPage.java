@@ -18,6 +18,8 @@ public class ResBlogPage {
     private String cover;
     @ApiModelProperty("标题")
     private String title;
+    @ApiModelProperty("内容最多10个字")
+    private String content;
     @ApiModelProperty("点赞数量")
     private int star_count;
     @ApiModelProperty("是否点赞")

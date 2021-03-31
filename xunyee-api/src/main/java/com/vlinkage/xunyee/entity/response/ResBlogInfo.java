@@ -35,6 +35,9 @@ public class ResBlogInfo {
     @ApiModelProperty("图片 用英文,分割")
     private String images;
 
+    @ApiModelProperty("图片list")
+    private String image_list;
+
     @ApiModelProperty("动态类型 1 截屏 2 我在现场 3 品牌代言")
     private int type;
 
