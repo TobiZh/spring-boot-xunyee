@@ -58,7 +58,6 @@ sys-config:
 knife4j:
   enable: true
   documents:
-    -
-      group: xunyee-api-2.0
-      name: 寻艺api文档
-      locations: classpath:markdown/*
+    - group: xunyee-api-2.0
+      name: 寻艺文档md
+      locations: classpath:markdwon/*.md

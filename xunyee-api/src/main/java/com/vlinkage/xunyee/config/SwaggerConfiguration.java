@@ -41,9 +41,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .description("# swagger-bootstrap-ui-demo RESTful APIs")
-                .termsOfServiceUrl("http://www.xx.com/")
-                .version("1.0")
+                .description("# Xunyee RESTful APIs")
+                .version("2.0")
                 .build();
     }
 
