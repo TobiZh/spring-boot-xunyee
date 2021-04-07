@@ -2,10 +2,12 @@ package com.vlinkage.xunyee.entity.response;
 
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class ResBlogInfo {
@@ -32,17 +34,17 @@ public class ResBlogInfo {
     @ApiModelProperty("内容")
     private String content;
 
-    @ApiModelProperty("图片 用英文,分割")
-    private String images;
-
     @ApiModelProperty("图片list")
-    private String image_list;
+    private List<String> image_list;
 
     @ApiModelProperty("动态类型 1 截屏 2 我在现场 3 品牌代言")
     private int type;
 
     @ApiModelProperty("类型 id")
     private Integer type_id;
+
+    @ApiModelProperty("品牌名称 当type=3的时候才有值")
+    private String brand_name;
 
     @ApiModelProperty("艺人id")
     private int person_id;

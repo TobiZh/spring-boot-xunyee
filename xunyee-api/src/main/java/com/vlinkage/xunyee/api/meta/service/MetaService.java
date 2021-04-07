@@ -6,6 +6,7 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.vlinkage.ant.meta.entity.Brand;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.meta.entity.Teleplay;
 import com.vlinkage.ant.meta.entity.Zy;
@@ -144,4 +145,17 @@ public class MetaService {
         return zies;
     }
 
+    /**
+     * 获取品牌名称
+     * @param brandId
+     * @return
+     */
+    @DS("meta")
+    public String getBrandNameById(Integer brandId) {
+        Brand brand=new Brand().selectById(brandId);
+        if (brand!=null){
+            return brand.getName();
+        }
+       return "";
+    }
 }

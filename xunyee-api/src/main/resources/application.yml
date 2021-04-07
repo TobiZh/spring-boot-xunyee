@@ -2,7 +2,7 @@ server:
   port: 80
 spring:
   profiles:
-    active: test
+    active: local
   # 返回参数时间格式化
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -60,4 +60,4 @@ knife4j:
   documents:
     - group: xunyee-api-2.0
       name: 寻艺文档md
-      locations: classpath:markdwon/*.md
+      locations: classpath:markdwon/*

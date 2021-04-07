@@ -108,17 +108,20 @@ public class BlogService {
         info.setBlog_id(blog.getId());
         info.setTitle(blog.getTitle());
         info.setContent(blog.getContent());
-        info.setImages(blog.getImages());
+
         String[] imageArr=blog.getImages().split(",");
         if (imageArr.length>0){
             List<String> imageList=new ArrayList<>();
             for (String s : imageArr) {
                 imageList.add(imagePath+s);
             }
-            info.setImages(StringUtils.join(imageList,","));
+            info.setImage_list(imageList);
         }
 
-
+        if(blog.getType()==3){//品牌 需要读取品牌名称
+            String brandName=metaService.getBrandNameById(blog.getType_id());
+            info.setBrand_name(brandName);
+        }
         info.setCreated(blog.getCreated());
         info.setType(blog.getType());
         info.setType_id(blog.getType_id());
