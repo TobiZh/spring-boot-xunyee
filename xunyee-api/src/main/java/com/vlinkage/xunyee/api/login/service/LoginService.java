@@ -88,6 +88,7 @@ public class LoginService {
 
                 ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
                 resLoginSuccess.setToken(token);
+                resLoginSuccess.setVcuser_id(user.getId());
                 return R.OK(resLoginSuccess);
             }
             // 生成token
@@ -98,6 +99,7 @@ public class LoginService {
 
             ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
             resLoginSuccess.setToken(token);
+            resLoginSuccess.setVcuser_id(temp.getVcuser_id());
             return R.OK(resLoginSuccess);
             // ======================= 自己系统的登录逻辑 ===================================
         } catch (WxErrorException e) {
@@ -145,6 +147,7 @@ public class LoginService {
                 ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
                 resLoginSuccess.setSession_key(sessionKey);
                 resLoginSuccess.setToken(token);
+                resLoginSuccess.setVcuser_id(user.getId());
                 return R.OK(resLoginSuccess);
             }
             // 登录成功 生成token
@@ -158,6 +161,7 @@ public class LoginService {
             ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
             resLoginSuccess.setSession_key(sessionKey);
             resLoginSuccess.setToken(token);
+            resLoginSuccess.setVcuser_id(temp.getVcuser_id());
             if (StringUtils.isNotEmpty(vcuser.getNickname())){
                 resLoginSuccess.setNickname(vcuser.getNickname());
             }

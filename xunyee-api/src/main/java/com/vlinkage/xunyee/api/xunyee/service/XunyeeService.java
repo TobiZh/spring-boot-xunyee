@@ -170,6 +170,14 @@ public class XunyeeService {
         return R.OK(resBenefit);
     }
 
+    public R vcuserBenefitCount(int benefit) {
+        QueryWrapper qw=new QueryWrapper();
+        qw.eq("benefit_id",benefit);
+        int count=new XunyeeVcuserBenefit().selectCount(qw);
+        return R.OK(count);
+
+    }
+
     public R<ResRank<ResPersonCheckCount>> personCheckCount(Integer userId, ReqPersonCheckCount req) {
 
         int period = req.getPeriod();
@@ -211,7 +219,9 @@ public class XunyeeService {
         int totalCount = persons.size();
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
         // 查询当前用户关注的艺人和当天签到数
-        List<ResMonUserPersonCheck> userPersonChecks = period <= 1 && userId != null ? mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)),
+        List<ResMonUserPersonCheck> userPersonChecks = period <= 1 && userId != null ?
+                mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId)
+                                .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
                 ResMonUserPersonCheck.class) : new ArrayList<>();
 
         // 组装数据
@@ -221,30 +231,31 @@ public class XunyeeService {
             ResPersonCheckCount resPersonCheckCount = new ResPersonCheckCount();
             resPersonCheckCount.setPerson(personId);
             resPersonCheckCount.setId(personId);
-            resPersonCheckCount.setVcuser_person("");
+            resPersonCheckCount.setVcuser_person("");//不知道是什么参数
             resPersonCheckCount.setAvatar_custom(p.getAvatar_custom());
             resPersonCheckCount.setZh_name(p.getZh_name());
+
+            //-------------------- 当前用户>>艺人签到数 --------------------
+            if (period <= 1) {
+                for (ResMonUserPersonCheck userPersonCheck : userPersonChecks) {
+                    if (personId == userPersonCheck.getPerson()) {
+                        resPersonCheckCount.setCheck_my(userPersonCheck.getCheck());
+                        break;
+                    }
+                }
+            }
+            //-------------------- 当前用户>>艺人签到数 --------------------
+
+            //-------------------- 当前艺人签到数 --------------------
             for (int i = 0; i < resMgs.size(); i++) {
                 ResMonPersonCheckCount mon = resMgs.get(i);
                 Integer tmpPerson = mon.getId();
-                //-------------------- 当前用户>>艺人签到数 --------------------
-                if (period <= 1) {
-                    for (int j = 0; j < userPersonChecks.size(); j++) {
-                        if (personId == userPersonChecks.get(j).getPerson()) {
-                            resPersonCheckCount.setCheck_my(userPersonChecks.get(j).getCheck());
-                            break;
-                        }
-                    }
-                }
-                //-------------------- 当前用户>>艺人签到数 --------------------
-
-                //-------------------- 当前艺人头签到数 --------------------
                 if (personId == tmpPerson) {
                     resPersonCheckCount.setCheck(mon.getCheck());
                     break;
                 }
-                //-------------------- 当前艺人头签到数 --------------------
             }
+            //-------------------- 当前艺人签到数 --------------------
             resCheckCounts.add(resPersonCheckCount);
         }
 

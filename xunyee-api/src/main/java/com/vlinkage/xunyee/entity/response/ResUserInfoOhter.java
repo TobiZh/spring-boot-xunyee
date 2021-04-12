@@ -20,6 +20,15 @@ public class ResUserInfoOhter {
     @ApiModelProperty("点赞数量")
     private int star_count;
 
+    @ApiModelProperty("个性签名")
+    private String bio;
+
+    @ApiModelProperty("爱豆数量")
+    private int idol_count;
+
+    @ApiModelProperty("签到天数")
+    private int check_days_count;
+
     @ApiModelProperty("是不是会员")
     private Boolean is_vip;
 

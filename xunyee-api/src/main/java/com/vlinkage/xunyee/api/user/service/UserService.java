@@ -59,11 +59,8 @@ public class UserService {
     public R<ResUserInfoOhter> other(Integer mine_vcuser_id, Integer userId) {
 
         XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
-
-
         int follow_type=0;
         List<String> personList=new ArrayList<>();
-
         if (mine_vcuser_id!=null){
             // ===============  我是否以前关注过该用户  ====================
             //我是否关注过对方
@@ -142,7 +139,15 @@ public class UserService {
         // ===============  我的点赞  ====================
 
 
+        // ===============  我的爱豆数量  ====================
+        // 查询当前用户关注的艺人
+        List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId)), ResMonUserPersonCheck.class);
+        // ===============  我的爱豆数量  ====================
+
+
+
         ResUserInfoOhter resMine=new ResUserInfoOhter();
+        resMine.setVcuser_id(userId);
         resMine.setAvatar(vcuser.getAvatar());
         resMine.setNickname(vcuser.getNickname());
         resMine.setFans_count(fans_count);
@@ -151,6 +156,8 @@ public class UserService {
         resMine.setIs_vip(is_vip);
         resMine.setStar_count(star_count);
         resMine.setPersons(personList);
+        resMine.setBio("");
+        resMine.setIdol_count(resMonUserPersonChecks.size());
         return R.OK(resMine);
     }
 

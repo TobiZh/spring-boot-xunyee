@@ -27,6 +27,18 @@ public class R<T> {
     }
 
     /**
+     * 无返回参数，自定义返回msg
+     * @param msg
+     * @return
+     */
+    public static R OK(String msg) {
+        R result = new R();
+        result.setCode(ResultCode.SUCCESS.getCode());
+        result.setMsg(msg);
+        return result;
+    }
+
+    /**
      * 返回失败信息
      *
      * @param code 状态码

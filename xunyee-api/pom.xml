@@ -148,6 +148,13 @@
             <artifactId>hutool-all</artifactId>
         </dependency>
 
+        <!-- 七牛云 -->
+        <dependency>
+            <groupId>com.qiniu</groupId>
+            <artifactId>qiniu-java-sdk</artifactId>
+        </dependency>
+        <!-- 七牛云 -->
+
     </dependencies>
 
 

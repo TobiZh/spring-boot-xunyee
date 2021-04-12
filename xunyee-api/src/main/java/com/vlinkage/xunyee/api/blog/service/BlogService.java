@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.common.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.meta.service.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
@@ -152,9 +153,15 @@ public class BlogService {
             sqw.eq("vcuser_id",userId);
             sqw.eq("blog_id",blogId);
             sqw.eq("status",1);
+            sqw.eq("type",1);
             isStar=new XunyeeBlogStar().selectCount(sqw)>0;
-            sqw.eq("type",0);
-            isUnStar=new XunyeeBlogStar().selectCount(sqw)>0;
+
+            QueryWrapper unqw=new QueryWrapper();
+            unqw.eq("vcuser_id",userId);
+            unqw.eq("blog_id",blogId);
+            unqw.eq("status",1);
+            unqw.eq("type",0);
+            isUnStar=new XunyeeBlogStar().selectCount(unqw)>0;
 
             // 收藏
             QueryWrapper faqw=new QueryWrapper();
@@ -194,54 +201,91 @@ public class BlogService {
 
     @Transactional
     public R blogStar(Integer userId, ReqBlogStar req) {
+
+        String resultStr="";
+
         int blogId=req.getBlog_id();
         int type=req.getType();
         QueryWrapper qw=new QueryWrapper();
         qw.eq("vcuser_id",userId);
         qw.eq("blog_id",blogId);
-        qw.eq("type",type);
         XunyeeBlogStar temp=new XunyeeBlogStar().selectOne(qw);
         if (temp==null){
-            XunyeeBlogStar blogSatr=new XunyeeBlogStar();
-            blogSatr.setVcuser_id(userId);
-            blogSatr.setBlog_id(blogId);
-            blogSatr.setType(type);
-            blogSatr.setStatus(1);
-            if (blogSatr.insert()){
+            XunyeeBlogStar blogStar=new XunyeeBlogStar();
+            blogStar.setVcuser_id(userId);
+            blogStar.setBlog_id(blogId);
+            blogStar.setType(type);
+            blogStar.setStatus(1);
+            if (blogStar.insert()){
                 // 该动态添加 star_count计数+1
                 XunyeeBlog blog=new XunyeeBlog().selectById(blogId);
                 if (type==0){
                     //点踩
+                    resultStr="点踩成功";
                     blog.setUnstar_count(blog.getUnstar_count()+1);
                 }else if (type==1){
                     //点赞
+                    resultStr="点赞成功";
                     blog.setStar_count(blog.getStar_count()+1);
                 }
                 blog.updateById();
-                return R.OK();
+                return R.OK(resultStr);
             }
         }else{
-            temp.setStatus(temp.getStatus()==0?1:0);
+            int tempType=temp.getType();//获取之前的type
+            int tempStatus=temp.getStatus();//获取之前的status
+
+            if ((type==0&&tempType==0)||(type==1&&tempType==1)){//点踩 点赞
+                temp.setStatus(tempStatus==0?1:0);
+            }else if ((tempType==0&&type==1)||(tempType==1&&type==0)){//点踩-点赞 点赞-点踩
+                temp.setStatus(1);
+            }
+            temp.setType(type);
             if (temp.updateById()) {
                 // 该动态添加 star_count计数+1
                 XunyeeBlog blog=new XunyeeBlog().selectById(blogId);
-                if (type==0){
-                    //点踩
-                    int unstarCount=blog.getUnstar_count();
-                    blog.setUnstar_count(temp.getStatus()==0?unstarCount-1:unstarCount+1);
-                }else if (type==1){
-                    //点赞
-                    int starCount=blog.getStar_count();
-                    blog.setStar_count(temp.getStatus()==0?starCount-1:starCount+1);
+                int starCount=blog.getStar_count();
+                int unStarCount=blog.getUnstar_count();
+                if (type==0&&tempType==0){//点踩
+                    if (temp.getStatus()==0){
+                        resultStr="取消点踩成功";
+                        blog.setUnstar_count(unStarCount-1);
+                    }else{
+                        resultStr="点踩成功";
+                        blog.setUnstar_count(unStarCount+1);
+                    }
+                }else if(type==1&&tempType==1){//点赞
+                    if (temp.getStatus()==0){
+                        resultStr="取消点赞成功";
+                        blog.setStar_count(starCount-1);
+                    }else{
+                        resultStr="点赞成功";
+                        blog.setStar_count(starCount+1);
+                    }
+                }else if (tempType==0&&type==1){//点踩 > 点赞
+                    blog.setStar_count(starCount+1);
+                    if(tempStatus==1){
+                        blog.setUnstar_count(unStarCount-1);
+                    }
+                    resultStr="点赞成功";
+
+                }else if(tempType==1&&type==0){//点赞 > 点踩
+                    blog.setUnstar_count(unStarCount+1);
+                    if(tempStatus==1){
+                        blog.setStar_count(starCount-1);
+                    }
+                    resultStr="点踩成功";
+
                 }
-                blog.setStar_count(blog.getStar_count()+1);
                 blog.updateById();
-                return R.OK();
+                return R.OK(resultStr);
             }
         }
         return R.ERROR(type==0?"点踩失败":"点赞失败");
     }
 
+
+    @Transactional
     public R blogFavorite(Integer userId, int blogId) {
         QueryWrapper qw=new QueryWrapper();
         qw.eq("vcuser_id",userId);

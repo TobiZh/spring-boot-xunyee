@@ -25,10 +25,12 @@ public interface MyMapper {
      * @param page
      * @return
      */
-    @Select("SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
-            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${from_user_id})) is_star " +
+    @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar" +
+            "<when test='from_user_id!=null'>",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND (vcuser_id=${from_user_id})) is_star ",
+            "</when>",
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
-            "ON b.vcuser_id=u.id WHERE (b.vcuser_id=${vcuser_id}) order by b.star_count desc")
+                    "ON b.vcuser_id=u.id WHERE (b.vcuser_id=${vcuser_id}) order by b.star_count desc</script>"})
     IPage<ResBlogPage> selectUserBlogPage(Page page, int vcuser_id,Integer from_user_id);
 
 

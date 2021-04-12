@@ -74,7 +74,7 @@ public class XunyeeController {
         return xunyeeService.systemNotificationRead(userId,id);
     }
 
-    @ApiOperation("寻艺通知 标记已读")
+    @ApiOperation("寻艺通知 全部标记已读")
     @PutMapping("system/notification/read_all")
     public R systemNotificationReadAll(HttpServletRequest request){
         int userId= UserUtil.getUserId(request);
@@ -104,8 +104,16 @@ public class XunyeeController {
         return xunyeeService.vcuserBenefit(userId);
     }
 
+    @ApiOperation("共有多少用户拥有权益")
     @PassToken
+    @GetMapping("vcuser_benefit/count")
+    public R vcuserBenefitCount(int benefit){
+        return xunyeeService.vcuserBenefitCount(benefit);
+    }
+
+
     @ApiOperation("签到榜")
+    @PassToken
     @GetMapping("person_check_count/rank")
     public R<ResRank<ResPersonCheckCount>> personCheckCountRank(HttpServletRequest request, ReqPersonCheckCount req){
         Integer userId= UserUtil.getUserId(request);
