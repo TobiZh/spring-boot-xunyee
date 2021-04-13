@@ -176,6 +176,13 @@ public class XunyeeController {
         return xunyeeService.reportPersonRptTrendAll(req.getPerson());
     }
 
+    @ApiOperation("真爱排行")
+    @PassToken
+    @GetMapping("report_person/fans_rank")
+    public R<List<ResPersonFansRank>> reportPersonRptFansRank(@Valid ReqPersonId req){
+        return xunyeeService.reportPersonRptFansRank(req.getPerson());
+    }
+
 
     @ApiOperation("明星相册")
     @PassToken

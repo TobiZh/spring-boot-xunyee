@@ -2,7 +2,7 @@ server:
   port: 80
 spring:
   profiles:
-    active: test
+    active: local
   servlet:
     multipart:
       max-file-size: 60MB
@@ -18,7 +18,7 @@ spring:
 # mybatis-plus配置
 mybatis-plus:
   configuration:
-    # 关闭下划线转驼峰 不让获取数据为null
+    # 关闭下划线转驼峰 不然获取数据为null
     map-underscore-to-camel-case: false
 
 

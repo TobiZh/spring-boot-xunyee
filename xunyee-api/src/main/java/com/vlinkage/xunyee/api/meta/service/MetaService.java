@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+@DS("meta")
 @Service
 public class MetaService {
 
@@ -29,7 +29,6 @@ public class MetaService {
     private MyMapper myMapper;
 
 
-    @DS("meta")
     public IPage<ResPerson> getPersonPage(ReqMyPage myPage,String name){
 
         QueryWrapper qw=new QueryWrapper();
@@ -50,7 +49,6 @@ public class MetaService {
      * @param limit
      * @return
      */
-    @DS("meta")
     public List<ResPerson> getPersonLimit(String name,int limit){
 
         QueryWrapper qw=new QueryWrapper();
@@ -65,7 +63,6 @@ public class MetaService {
     }
 
 
-    @DS("meta")
     public Person getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
         qw.eq("id",person_id);
@@ -74,7 +71,6 @@ public class MetaService {
         return person;
     }
 
-    @DS("meta")
     public IPage<ResBrandPerson> getBrandPerson(ReqMyPage myPage, int person_id) {
         Page page=new Page(myPage.getCurrent(),myPage.getSize());
         IPage<ResBrandPerson> iPage=myMapper.selectBrandPersonPage(page,person_id);
@@ -82,7 +78,6 @@ public class MetaService {
         return iPage;
     }
 
-    @DS("meta")
     public List<Person> getPersonByXunyeeCheck(){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","zh_name","avatar_custom");
@@ -92,7 +87,6 @@ public class MetaService {
     }
 
 
-    @DS("meta")
     public List<Person> getPerson(Integer... ids){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","zh_name","avatar_custom");
@@ -103,7 +97,6 @@ public class MetaService {
         return personList;
     }
 
-    @DS("meta")
     public List<Person> getPersonByName(String name){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","zh_name","avatar_custom");
@@ -118,7 +111,6 @@ public class MetaService {
      * @param ids
      * @return
      */
-    @DS("meta")
     public List<Teleplay> getTeleplays(Integer... ids){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","title");
@@ -134,7 +126,6 @@ public class MetaService {
      * @param ids
      * @return
      */
-    @DS("meta")
     public List<Zy> getZys(Integer... ids){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","title");
@@ -150,7 +141,7 @@ public class MetaService {
      * @param brandId
      * @return
      */
-    @DS("meta")
+
     public String getBrandNameById(Integer brandId) {
         Brand brand=new Brand().selectById(brandId);
         if (brand!=null){

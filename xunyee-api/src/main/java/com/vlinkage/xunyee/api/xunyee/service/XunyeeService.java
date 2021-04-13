@@ -21,6 +21,7 @@ import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.OrderCodeFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +43,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class XunyeeService {
 
@@ -397,10 +399,11 @@ public class XunyeeService {
      * @param req
      * @return
      */
+    @Transactional
     public R vcuserPersonCheck(int userId, ReqPersonCheck req) {
         int personId = req.getPerson();
         Person person = metaService.getPersonById(personId);
-        if (!person.getIs_xunyee_check()) {
+        if (person==null||!person.getIs_xunyee_check()) {
             return R.ERROR("该艺人已关闭签到");
         }
 
@@ -424,7 +427,7 @@ public class XunyeeService {
             return R.ERROR("每天对所有艺人的签到数不能超过3。");
         }
         // 是否已为该艺人签到过
-        boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson().equals(personId));
+        boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson()==personId);
         if (b) {
             return R.ERROR("今天已经签到过了，明天再来吧");
         }
@@ -439,6 +442,19 @@ public class XunyeeService {
         ReqMonUserPersonCheck check = mongoTemplate.insert(reqCheck);
         if (check == null) {
             return R.ERROR("签到失败，请稍后再试");
+        }
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("vcuser").is(userId).and("person").is(person).and("year").is(LocalDate.now().getYear()));
+        Update update = new Update();
+        update.set("vcuser", userId);
+        update.set("person", personId);
+        update.set("year",LocalDate.now().getYear());
+        update.inc("check", checkCount);
+        update.set("update",LocalDateTime.now());
+        UpdateResult result = mongoTemplate.updateMulti(query,update,ReqMonUserPersonCheckCount.class);
+        if (result.getModifiedCount()<=0){
+            log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}",userId,personId,checkCount);
         }
         return R.OK(checkCount);
     }
@@ -579,6 +595,55 @@ public class XunyeeService {
         List<ResMonReportPersonRptTrend> resMongo = mongoTemplate.find(query, ResMonReportPersonRptTrend.class);
 
         return R.OK(resMongo);
+    }
+
+    public R<List<ResPersonFansRank>> reportPersonRptFansRank(Integer person) {
+        int nowYear=2020;
+        LocalDate gte=DateUtil.getCurrYearFirst(nowYear);
+        LocalDate lt=LocalDate.now().plusDays(1);
+        // 查询条件
+        Criteria criteria = Criteria.where("person").is(person).andOperator(Criteria.where("updated").gte(gte).lt(lt));
+        // 根据vcuser_id分组 check 求和
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(criteria),
+                Aggregation.group("vcuser").sum("check").as("check"),
+                Aggregation.sort(Sort.by(Sort.Direction.DESC, "check")),
+                Aggregation.limit(40)
+        );
+        AggregationResults<ResMonUserPersonCheck> resMon = mongoTemplate.aggregate(aggregation, "vc_user__person__check",
+                ResMonUserPersonCheck.class);
+        // 提取vcuser id去数据库查询用户信息
+        List<ResMonUserPersonCheck> resMonPersonCheckCounts=resMon.getMappedResults();
+
+        List<ResPersonFansRank.Fans> fans=new ArrayList<>();
+        if (resMonPersonCheckCounts.size()>0){
+            Integer[] vcuserIds = resMonPersonCheckCounts.stream().map(e -> e.getPerson()).collect(Collectors.toList())
+                    .toArray(new Integer[resMonPersonCheckCounts.size()]);
+            QueryWrapper qw=new QueryWrapper();
+            qw.in("id",vcuserIds);
+            List<XunyeeVcuser> vcusers=new XunyeeVcuser().selectList(qw);
+            for (XunyeeVcuser vcuser : vcusers) {
+                ResPersonFansRank.Fans fansRank=new ResPersonFansRank.Fans();
+                fansRank.setAvatar(vcuser.getAvatar());
+                fansRank.setVcuser_id(vcuser.getId());
+            }
+            for (ResPersonFansRank.Fans fansRank : fans) {
+                for (ResMonUserPersonCheck personCheckCount : resMonPersonCheckCounts) {
+                    if (fansRank.getVcuser_id()==personCheckCount.getPerson()){
+                        fansRank.setCheck(personCheckCount.getCheck());
+                        break;
+                    }
+                }
+            }
+        }
+
+
+        ResPersonFansRank fansRank=new ResPersonFansRank();
+        fansRank.setYear(nowYear);
+        fansRank.setEnd_date(lt.minusDays(1));
+        fansRank.setFans(fans);
+        return R.OK(fansRank);
+
     }
 
     public R reportPersonAlbum(ReqMyPage myPage, int person) {
