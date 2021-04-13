@@ -8,14 +8,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 
-
-@Document("vc_user__person__check__count")
 @Data
+@Document("vc_user__person__check__count")
 public class ReqMonUserPersonCheckCount {
 
     private int vcuser;
     private int person;
     private int check;
-    private LocalDateTime updated;
     private int year;
+    private LocalDateTime updated;
 }

@@ -1,7 +1,6 @@
-package com.vlinkage.xunyee.api.meta.service;
+package com.vlinkage.xunyee.api.meta;
 
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;

@@ -11,7 +11,7 @@ import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeSystemNotificationMapper;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.common.entity.result.R;
-import com.vlinkage.xunyee.api.meta.service.MetaService;
+import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.pay.service.PayService;
 import com.vlinkage.xunyee.api.star.service.StarService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
@@ -396,12 +396,11 @@ public class XunyeeService {
      * 非会员一天 3人1次
      *
      * @param userId
-     * @param req
+     * @param personId
      * @return
      */
-    @Transactional
-    public R vcuserPersonCheck(int userId, ReqPersonCheck req) {
-        int personId = req.getPerson();
+    public R vcuserPersonCheck(int userId, Integer personId) {
+
         Person person = metaService.getPersonById(personId);
         if (person==null||!person.getIs_xunyee_check()) {
             return R.ERROR("该艺人已关闭签到");
@@ -445,14 +444,14 @@ public class XunyeeService {
         }
 
         Query query = new Query();
-        query.addCriteria(Criteria.where("vcuser").is(userId).and("person").is(person).and("year").is(LocalDate.now().getYear()));
+        query.addCriteria(Criteria.where("vcuser").is(userId).and("person").is(personId).and("year").is(LocalDate.now().getYear()));
         Update update = new Update();
         update.set("vcuser", userId);
         update.set("person", personId);
         update.set("year",LocalDate.now().getYear());
-        update.inc("check", checkCount);
         update.set("update",LocalDateTime.now());
-        UpdateResult result = mongoTemplate.updateMulti(query,update,ReqMonUserPersonCheckCount.class);
+        update.inc("check", checkCount);//累加
+        UpdateResult result = mongoTemplate.upsert(query,update,"vc_user__person__check__count");
         if (result.getModifiedCount()<=0){
             log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}",userId,personId,checkCount);
         }
@@ -598,27 +597,20 @@ public class XunyeeService {
     }
 
     public R<List<ResPersonFansRank>> reportPersonRptFansRank(Integer person) {
-        int nowYear=2020;
-        LocalDate gte=DateUtil.getCurrYearFirst(nowYear);
-        LocalDate lt=LocalDate.now().plusDays(1);
+        int nowYear=LocalDate.now().getYear();
+
         // 查询条件
-        Criteria criteria = Criteria.where("person").is(person).andOperator(Criteria.where("updated").gte(gte).lt(lt));
-        // 根据vcuser_id分组 check 求和
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(criteria),
-                Aggregation.group("vcuser").sum("check").as("check"),
-                Aggregation.sort(Sort.by(Sort.Direction.DESC, "check")),
-                Aggregation.limit(40)
-        );
-        AggregationResults<ResMonUserPersonCheck> resMon = mongoTemplate.aggregate(aggregation, "vc_user__person__check",
-                ResMonUserPersonCheck.class);
-        // 提取vcuser id去数据库查询用户信息
-        List<ResMonUserPersonCheck> resMonPersonCheckCounts=resMon.getMappedResults();
+        Query query = new Query();
+        Criteria criteria = Criteria.where("person").is(person).and("year").is(nowYear);
+        query.addCriteria(criteria);
+        query.with(Sort.by(Sort.Direction.DESC, "check"));
+        query.limit(40);
+        List<ResMonUserPersonCheckCount> resMon = mongoTemplate.find(query, ResMonUserPersonCheckCount.class);
 
         List<ResPersonFansRank.Fans> fans=new ArrayList<>();
-        if (resMonPersonCheckCounts.size()>0){
-            Integer[] vcuserIds = resMonPersonCheckCounts.stream().map(e -> e.getPerson()).collect(Collectors.toList())
-                    .toArray(new Integer[resMonPersonCheckCounts.size()]);
+        if (resMon.size()>0){
+            Integer[] vcuserIds = resMon.stream().map(e -> e.getVcuser()).collect(Collectors.toList())
+                    .toArray(new Integer[resMon.size()]);
             QueryWrapper qw=new QueryWrapper();
             qw.in("id",vcuserIds);
             List<XunyeeVcuser> vcusers=new XunyeeVcuser().selectList(qw);
@@ -626,10 +618,12 @@ public class XunyeeService {
                 ResPersonFansRank.Fans fansRank=new ResPersonFansRank.Fans();
                 fansRank.setAvatar(vcuser.getAvatar());
                 fansRank.setVcuser_id(vcuser.getId());
+                fansRank.setNickname(vcuser.getNickname());
+                fans.add(fansRank);
             }
             for (ResPersonFansRank.Fans fansRank : fans) {
-                for (ResMonUserPersonCheck personCheckCount : resMonPersonCheckCounts) {
-                    if (fansRank.getVcuser_id()==personCheckCount.getPerson()){
+                for (ResMonUserPersonCheckCount personCheckCount : resMon) {
+                    if (fansRank.getVcuser_id()==personCheckCount.getVcuser()){
                         fansRank.setCheck(personCheckCount.getCheck());
                         break;
                     }
@@ -640,7 +634,7 @@ public class XunyeeService {
 
         ResPersonFansRank fansRank=new ResPersonFansRank();
         fansRank.setYear(nowYear);
-        fansRank.setEnd_date(lt.minusDays(1));
+        fansRank.setEnd_date(LocalDate.now());
         fansRank.setFans(fans);
         return R.OK(fansRank);
 
@@ -765,5 +759,21 @@ public class XunyeeService {
         map.put("persons",persons);
         map.put("blog_page",iPage);
         return R.OK(map);
+    }
+
+    public R testMong(int userId, int personId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("vcuser").is(userId).and("person").is(personId).and("year").is(LocalDate.now().getYear()));
+        Update update = new Update();
+        update.set("vcuser", userId);
+        update.set("person", personId);
+        update.set("year",LocalDate.now().getYear());
+        update.set("update", LocalDateTime.now());
+        update.inc("check", 1);//累加
+        UpdateResult result = mongoTemplate.upsert(query,update,"vc_user__person__check__count");
+        if (result.getModifiedCount()>=0){
+            log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}",userId,personId,1);
+        }
+        return R.OK(result);
     }
 }

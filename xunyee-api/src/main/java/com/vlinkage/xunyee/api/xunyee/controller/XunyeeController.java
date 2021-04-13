@@ -1,8 +1,9 @@
 package com.vlinkage.xunyee.api.xunyee.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.common.entity.result.R;
-import com.vlinkage.xunyee.api.meta.service.MetaService;
+import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
@@ -12,10 +13,15 @@ import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -144,11 +150,11 @@ public class XunyeeController {
     }
 
 
-    @ApiOperation("签到接口")
+    @ApiOperation("签到")
     @PostMapping("vcuser_person_check")
-    public R vcuserPersonCheck(HttpServletRequest request,@Valid ReqPersonCheck req){
+    public R vcuserPersonCheck(HttpServletRequest request,@Valid ReqPersonId req){
         int userId= UserUtil.getUserId(request);
-        return xunyeeService.vcuserPersonCheck(userId,req);
+        return xunyeeService.vcuserPersonCheck(userId,req.getPerson());
     }
 
 
@@ -215,4 +221,9 @@ public class XunyeeController {
     }
 
 
+    @PassToken
+    @PostMapping("test")
+    public R test(int user,int person){
+        return xunyeeService.testMong(user,person);
+    }
 }

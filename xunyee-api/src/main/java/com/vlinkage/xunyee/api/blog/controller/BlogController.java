@@ -38,13 +38,6 @@ public class BlogController {
         return blogService.blog(userId,req);
     }
 
-//    @ApiOperation("首页动态 关注")
-//    @GetMapping("follow")
-//    public R<IPage<ResBlogPage>> blogFollow(HttpServletRequest request,ReqMyPage myPage){
-//        int userId=UserUtil.getUserId(request);
-//        return blogService.blogFollow(myPage,userId);
-//    }
-
     @ApiOperation("首页动态关注、推荐、截屏、现场热拍、品牌代言")
     @PassToken
     @GetMapping("category")

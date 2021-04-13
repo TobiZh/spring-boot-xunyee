@@ -4,22 +4,18 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.mysql.cj.xdevapi.InsertResultImpl;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
-import com.vlinkage.xunyee.api.meta.service.MetaService;
+import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
-import com.vlinkage.xunyee.entity.request.ReqBlogReport;
 import com.vlinkage.xunyee.entity.request.ReqPageFollow;
 import com.vlinkage.xunyee.entity.request.ReqUserInfo;
 import com.vlinkage.xunyee.entity.request.ReqUserReport;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
-import com.vlinkage.xunyee.utils.DateUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
@@ -29,13 +25,10 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -142,6 +135,8 @@ public class UserService {
         // ===============  我的爱豆数量  ====================
         // 查询当前用户关注的艺人
         List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId)), ResMonUserPersonCheck.class);
+
+
         // ===============  我的爱豆数量  ====================
 
 
