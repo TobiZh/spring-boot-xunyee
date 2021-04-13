@@ -3,6 +3,12 @@ server:
 spring:
   profiles:
     active: local
+  datasource:
+    hikari:
+      pool-name: hikari-sso
+      connection-timeout: 60000
+      maximum-pool-size: 100
+      connection-init-sql: SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
   servlet:
     multipart:
       max-file-size: 60MB

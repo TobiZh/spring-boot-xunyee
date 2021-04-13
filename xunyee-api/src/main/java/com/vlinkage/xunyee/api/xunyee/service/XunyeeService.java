@@ -581,10 +581,10 @@ public class XunyeeService {
         return R.OK(info);
     }
 
-    public R<List<ResReportPersonRptTrendQux>> reportPersonRptTrendAll(int person) {
+    public R<List<ResPersonCurve>> reportPersonRptTrendAll(int person) {
         // 当前艺人指数
-        LocalDate gteDate = LocalDate.now().minusDays(10); // >=
-        LocalDate ltDate = LocalDate.now(); // <; // <
+        LocalDate gteDate = LocalDate.now().minusDays(10);
+        LocalDate ltDate = LocalDate.now();
         // count的查询条件
         Criteria criteria = Criteria.where("period").is(1).and("person").in(person)
                 .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate));
@@ -593,7 +593,15 @@ public class XunyeeService {
         query.with(Sort.by(Sort.Direction.DESC, "updated"));
         List<ResMonReportPersonRptTrend> resMongo = mongoTemplate.find(query, ResMonReportPersonRptTrend.class);
 
-        return R.OK(resMongo);
+        List<ResPersonCurve> quxes=new ArrayList<>();
+        for (ResMonReportPersonRptTrend mongo : resMongo) {
+            ResPersonCurve qux=new ResPersonCurve();
+            qux.setReport_1912_teleplay(mongo.getReport_1912_teleplay());
+            qux.setReport_1912_teleplay_rank(mongo.getReport_1912_teleplay_rank());
+            qux.setData_time(mongo.getUpdated().toLocalDate());
+            quxes.add(qux);
+        }
+        return R.OK(quxes);
     }
 
     public R<List<ResPersonFansRank>> reportPersonRptFansRank(Integer person) {

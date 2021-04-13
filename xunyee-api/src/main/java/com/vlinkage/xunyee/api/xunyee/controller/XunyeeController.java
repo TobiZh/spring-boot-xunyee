@@ -1,7 +1,6 @@
 package com.vlinkage.xunyee.api.xunyee.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
@@ -13,15 +12,10 @@ import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -178,7 +172,7 @@ public class XunyeeController {
     @ApiOperation("明星曲线")
     @PassToken
     @GetMapping("report_person/rpt_trend_all")
-    public R<List<ResReportPersonRptTrendQux>> reportPersonRptTrendAll(@Valid ReqPersonQuxian req){
+    public R<List<ResPersonCurve>> reportPersonRptTrendAll(@Valid ReqPersonQuxian req){
         return xunyeeService.reportPersonRptTrendAll(req.getPerson());
     }
 

@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Document("cache__report__person__rpt_trend")
@@ -18,4 +19,5 @@ public class ResMonReportPersonRptTrend {
     private Double report_1905_teleplay;
     private int report_1905_teleplay_rank;
     private int report_1905_teleplay_rank_incr;
+    private LocalDateTime updated;
 }
