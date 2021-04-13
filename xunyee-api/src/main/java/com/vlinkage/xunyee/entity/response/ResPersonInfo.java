@@ -23,6 +23,6 @@ public class ResPersonInfo {
     @ApiModelProperty("我签到次数 0 未签到")
     private int check_my;
     @ApiModelProperty("今日签到人数")
-    private int ckeck;
+    private int check;
 
 }
