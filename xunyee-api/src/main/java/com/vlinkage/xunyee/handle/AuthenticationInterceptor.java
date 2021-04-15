@@ -2,9 +2,8 @@ package com.vlinkage.xunyee.handle;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.common.entity.result.code.ResultCode;
-import com.vlinkage.common.redis.RedisUtil;
+import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.exception.BusinessException;
 import com.vlinkage.xunyee.jwt.JwtUtil;
 import com.vlinkage.xunyee.jwt.PassToken;

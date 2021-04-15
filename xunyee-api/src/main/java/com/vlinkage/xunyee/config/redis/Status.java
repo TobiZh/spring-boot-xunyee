@@ -1,4 +1,4 @@
-package com.vlinkage.common.redis;
+package com.vlinkage.xunyee.config.redis;
 
 import java.util.concurrent.TimeUnit;
 

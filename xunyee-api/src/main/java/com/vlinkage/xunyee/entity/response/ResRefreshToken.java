@@ -5,20 +5,14 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-public class ResLoginSuccessBase {
+public class ResRefreshToken {
 
     @ApiModelProperty("token")
     private String token;
 
+    @ApiModelProperty("有效时间单位 秒")
+    private int expires_in;
+
     @ApiModelProperty("refresh_token 当token过期时使用refresh_token 通过 /refresh/token重新获取")
     private String refresh_token;
-
-    @ApiModelProperty("用户id")
-    private int vcuser_id;
-
-    @ApiModelProperty("用户昵称")
-    private String nickname;
-
-    @ApiModelProperty("用户头像")
-    private String avatar;
 }

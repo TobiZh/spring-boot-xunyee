@@ -16,6 +16,7 @@ import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -77,6 +78,12 @@ public class MetaService {
         return iPage;
     }
 
+    /**
+     * 查询所有支持签到的艺人
+     * 做缓存
+     * @return
+     */
+    @Cacheable(value = "all_check_person")
     public List<Person> getPersonByXunyeeCheck(){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","zh_name","avatar_custom");

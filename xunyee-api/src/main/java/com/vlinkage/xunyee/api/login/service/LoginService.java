@@ -7,7 +7,7 @@ import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.common.entity.result.code.ResultCode;
-import com.vlinkage.common.redis.RedisUtil;
+import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.config.weixin.WxMaConfiguration;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessApp;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessMini;
@@ -89,17 +89,23 @@ public class LoginService {
                 ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
                 resLoginSuccess.setToken(token);
                 resLoginSuccess.setVcuser_id(user.getId());
+                resLoginSuccess.setNickname(user.getNickname());
+                resLoginSuccess.setAvatar(user.getAvatar());
+
                 return R.OK(resLoginSuccess);
             }
             // 生成token
-            String token = JwtUtil.getAccessToken(String.valueOf(temp.getVcuser_id()));
+            XunyeeVcuser vcuser=new XunyeeVcuser().selectById(temp.getVcuser_id());
+            String token = JwtUtil.getAccessToken(String.valueOf(vcuser.getId()));
             String refresh_token = JwtUtil.getRefreshToken(String.valueOf(temp.getVcuser_id()));
             redisUtil.set("user_token:"+temp.getVcuser_id()+":access_token",token,24*60*60);
             redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,15*24*60*60);
 
             ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
             resLoginSuccess.setToken(token);
-            resLoginSuccess.setVcuser_id(temp.getVcuser_id());
+            resLoginSuccess.setVcuser_id(vcuser.getId());
+            resLoginSuccess.setAvatar(vcuser.getAvatar());
+            resLoginSuccess.setNickname(vcuser.getNickname());
             return R.OK(resLoginSuccess);
             // ======================= 自己系统的登录逻辑 ===================================
         } catch (WxErrorException e) {
@@ -148,6 +154,9 @@ public class LoginService {
                 resLoginSuccess.setSession_key(sessionKey);
                 resLoginSuccess.setToken(token);
                 resLoginSuccess.setVcuser_id(user.getId());
+                resLoginSuccess.setNickname(user.getNickname());
+                resLoginSuccess.setAvatar(user.getAvatar());
+
                 return R.OK(resLoginSuccess);
             }
             // 登录成功 生成token

@@ -1,4 +1,4 @@
-package com.vlinkage.common.redis;
+package com.vlinkage.xunyee.config.redis;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundListOperations;
