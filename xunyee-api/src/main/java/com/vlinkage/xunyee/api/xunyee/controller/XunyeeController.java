@@ -115,7 +115,7 @@ public class XunyeeController {
     @ApiOperation("签到榜")
     @PassToken
     @GetMapping("person_check_count/rank")
-    public R<ResRank<ResPersonCheckCount>> personCheckCountRank(HttpServletRequest request, ReqPersonCheckCount req){
+    public R<ResRank<ResPersonCheckCount>> personCheckCountRank(HttpServletRequest request, @Valid ReqPersonCheckCount req){
         Integer userId= UserUtil.getUserId(request);
         return xunyeeService.personCheckCount(userId,req);
     }

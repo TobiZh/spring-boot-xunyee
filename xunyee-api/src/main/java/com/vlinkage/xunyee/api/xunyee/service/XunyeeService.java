@@ -128,7 +128,7 @@ public class XunyeeService {
         QueryWrapper qw = new QueryWrapper();
         qw.eq("receive_vcuser_id", userId);
         qw.or();
-        qw.eq("receive_vcuser_id",0);
+        qw.eq("receive_vcuser_id", 0);
         qw.orderByDesc("created");
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResSystemNotification> iPage = new XunyeeSystemNotification().selectPage(page, qw);
@@ -154,10 +154,10 @@ public class XunyeeService {
     }
 
     public R systemNotificationReadALl(int userId) {
-        String sql="update xunyee_system_notification set is_read=1,read_time=CURRENT_TIMESTAMP " +
-                "where receive_vcuser_id="+userId+" and is_read=0";
-        int count=jdbcTemplate.update(sql);
-        if (count<0){
+        String sql = "update xunyee_system_notification set is_read=1,read_time=CURRENT_TIMESTAMP " +
+                "where receive_vcuser_id=" + userId + " and is_read=0";
+        int count = jdbcTemplate.update(sql);
+        if (count < 0) {
             return R.ERROR();
         }
         return R.OK();
@@ -173,9 +173,9 @@ public class XunyeeService {
     }
 
     public R vcuserBenefitCount(int benefit) {
-        QueryWrapper qw=new QueryWrapper();
-        qw.eq("benefit_id",benefit);
-        int count=new XunyeeVcuserBenefit().selectCount(qw);
+        QueryWrapper qw = new QueryWrapper();
+        qw.eq("benefit_id", benefit);
+        int count = new XunyeeVcuserBenefit().selectCount(qw);
         return R.OK(count);
 
     }
@@ -188,11 +188,11 @@ public class XunyeeService {
         int rankStart = 1; // 分页rank起始值
 
         LocalDate nowDate = LocalDate.now();//今天
-        LocalDate gteDate; // >=
-        LocalDate ltDate; // <
+        LocalDate gteDate;
+        LocalDate ltDate;
         if (period <= 1) {//获取今天签到榜
             gteDate = nowDate;
-            ltDate = gteDate.plusDays(1); // <
+            ltDate = gteDate.plusDays(1);
         } else {
             gteDate = nowDate.minusDays(period);// 减去 7||30
             ltDate = nowDate;
@@ -210,10 +210,6 @@ public class XunyeeService {
                 ResMonPersonCheckCount.class);
         // 查询mongo中有签到数据的艺人
         List<ResMonPersonCheckCount> resMgs = outputTypeCount.getMappedResults();
-        if (resMgs.size() <= 0) {
-            //todo 这里做一个读取缓存
-        }
-
 
         // 查询所有的可签到艺人 大概500个
         List<Person> persons = metaService.getPersonByXunyeeCheck();
@@ -224,7 +220,7 @@ public class XunyeeService {
         List<ResMonUserPersonCheck> userPersonChecks = period <= 1 && userId != null ?
                 mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId)
                                 .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
-                ResMonUserPersonCheck.class) : new ArrayList<>();
+                        ResMonUserPersonCheck.class) : new ArrayList<>();
 
         // 组装数据
         List<ResPersonCheckCount> resCheckCounts = new ArrayList<>();
@@ -234,7 +230,7 @@ public class XunyeeService {
             resPersonCheckCount.setPerson(personId);
             resPersonCheckCount.setId(personId);
             resPersonCheckCount.setVcuser_person("");//不知道是什么参数
-            resPersonCheckCount.setAvatar_custom(p.getAvatar_custom());
+            resPersonCheckCount.setAvatar_custom(imagePath+p.getAvatar_custom());
             resPersonCheckCount.setZh_name(p.getZh_name());
 
             //-------------------- 当前用户>>艺人签到数 --------------------
@@ -274,6 +270,10 @@ public class XunyeeService {
                     .filter(checkCount -> checkCount.getZh_name().contains(req.getPerson__zh_name__icontains()))
                     .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
                     .collect(Collectors.toList());
+
+            // 搜索的总数和页数
+            totalCount = resSortCheckCounts.size();
+            totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
         } else {
             resSortCheckCounts = resCheckCounts.stream()
                     .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
@@ -402,7 +402,7 @@ public class XunyeeService {
     public R vcuserPersonCheck(int userId, Integer personId) {
 
         Person person = metaService.getPersonById(personId);
-        if (person==null||!person.getIs_xunyee_check()) {
+        if (person == null || !person.getIs_xunyee_check()) {
             return R.ERROR("该艺人已关闭签到");
         }
 
@@ -426,7 +426,7 @@ public class XunyeeService {
             return R.ERROR("每天对所有艺人的签到数不能超过3。");
         }
         // 是否已为该艺人签到过
-        boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson()==personId);
+        boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson() == personId);
         if (b) {
             return R.ERROR("今天已经签到过了，明天再来吧");
         }
@@ -448,12 +448,12 @@ public class XunyeeService {
         Update update = new Update();
         update.set("vcuser", userId);
         update.set("person", personId);
-        update.set("year",LocalDate.now().getYear());
-        update.set("update",LocalDateTime.now());
+        update.set("year", LocalDate.now().getYear());
+        update.set("update", LocalDateTime.now());
         update.inc("check", checkCount);//累加
-        UpdateResult result = mongoTemplate.upsert(query,update,"vc_user__person__check__count");
-        if (result.getModifiedCount()<=0){
-            log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}",userId,personId,checkCount);
+        UpdateResult result = mongoTemplate.upsert(query, update, "vc_user__person__check__count");
+        if (result.getModifiedCount() <= 0) {
+            log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}", userId, personId, checkCount);
         }
         return R.OK(checkCount);
     }
@@ -554,11 +554,11 @@ public class XunyeeService {
         info.setPerson(resPerson.getId());
         info.setAvatar_custom(imagePath + resPerson.getAvatar_custom());
         info.setSex(resPerson.getSex() == 1 ? "男" : "女");
-        if (resMongo!=null){
+        if (resMongo != null) {
             info.setReport_1912_teleplay(resMongo.getReport_1912_teleplay());
             info.setReport_1912_teleplay_rank(resMongo.getReport_1912_teleplay_rank());
             info.setReport_1912_teleplay_rank_incr(resMongo.getReport_1912_teleplay_rank_incr());
-        }else{
+        } else {
             info.setReport_1912_teleplay(5);
         }
 
@@ -590,12 +590,12 @@ public class XunyeeService {
                 .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate));
         Query query = new Query();
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.DESC, "updated"));
+        query.with(Sort.by(Sort.Direction.ASC, "updated"));
         List<ResMonReportPersonRptTrend> resMongo = mongoTemplate.find(query, ResMonReportPersonRptTrend.class);
 
-        List<ResPersonCurve> quxes=new ArrayList<>();
+        List<ResPersonCurve> quxes = new ArrayList<>();
         for (ResMonReportPersonRptTrend mongo : resMongo) {
-            ResPersonCurve qux=new ResPersonCurve();
+            ResPersonCurve qux = new ResPersonCurve();
             qux.setReport_1912_teleplay(mongo.getReport_1912_teleplay());
             qux.setReport_1912_teleplay_rank(mongo.getReport_1912_teleplay_rank());
             qux.setData_time(mongo.getUpdated().toLocalDate());
@@ -605,7 +605,7 @@ public class XunyeeService {
     }
 
     public R<List<ResPersonFansRank>> reportPersonRptFansRank(Integer person) {
-        int nowYear=LocalDate.now().getYear();
+        int nowYear = LocalDate.now().getYear();
 
         // 查询条件
         Query query = new Query();
@@ -615,15 +615,15 @@ public class XunyeeService {
         query.limit(40);
         List<ResMonUserPersonCheckCount> resMon = mongoTemplate.find(query, ResMonUserPersonCheckCount.class);
 
-        List<ResPersonFansRank.Fans> fans=new ArrayList<>();
-        if (resMon.size()>0){
+        List<ResPersonFansRank.Fans> fans = new ArrayList<>();
+        if (resMon.size() > 0) {
             Integer[] vcuserIds = resMon.stream().map(e -> e.getVcuser()).collect(Collectors.toList())
                     .toArray(new Integer[resMon.size()]);
-            QueryWrapper qw=new QueryWrapper();
-            qw.in("id",vcuserIds);
-            List<XunyeeVcuser> vcusers=new XunyeeVcuser().selectList(qw);
+            QueryWrapper qw = new QueryWrapper();
+            qw.in("id", vcuserIds);
+            List<XunyeeVcuser> vcusers = new XunyeeVcuser().selectList(qw);
             for (XunyeeVcuser vcuser : vcusers) {
-                ResPersonFansRank.Fans fansRank=new ResPersonFansRank.Fans();
+                ResPersonFansRank.Fans fansRank = new ResPersonFansRank.Fans();
                 fansRank.setAvatar(vcuser.getAvatar());
                 fansRank.setVcuser_id(vcuser.getId());
                 fansRank.setNickname(vcuser.getNickname());
@@ -631,7 +631,7 @@ public class XunyeeService {
             }
             for (ResPersonFansRank.Fans fansRank : fans) {
                 for (ResMonUserPersonCheckCount personCheckCount : resMon) {
-                    if (fansRank.getVcuser_id()==personCheckCount.getVcuser()){
+                    if (fansRank.getVcuser_id() == personCheckCount.getVcuser()) {
                         fansRank.setCheck(personCheckCount.getCheck());
                         break;
                     }
@@ -640,7 +640,7 @@ public class XunyeeService {
         }
 
 
-        ResPersonFansRank fansRank=new ResPersonFansRank();
+        ResPersonFansRank fansRank = new ResPersonFansRank();
         fansRank.setYear(nowYear);
         fansRank.setEnd_date(LocalDate.now());
         fansRank.setFans(fans);
@@ -746,26 +746,26 @@ public class XunyeeService {
         payorder.setUpdated(nowDate);
         payorder.setCreated(nowDate);
         if (payorder.insert()) {
-            return R.OK(payService.payBenefit(request,payorder));
+            return R.OK(payService.payBenefit(request, payorder));
         }
         return R.ERROR("下单失败");
     }
 
-    public R<Map<String,Object>> globalSearch(Integer userId,ReqMyPage myPage,ReqGlobalSearch reqGlobalSearch) {
+    public R<Map<String, Object>> globalSearch(Integer userId, ReqMyPage myPage, ReqGlobalSearch reqGlobalSearch) {
 
-        String keyword=reqGlobalSearch.getName();
-        List<ResPerson> persons=metaService.getPersonLimit(keyword,3);
-        Page page=new Page(myPage.getCurrent(),myPage.getSize());
-        IPage<ResBlogPage> iPage=myMapper.selectBlogBySearch(page,keyword,userId);
+        String keyword = reqGlobalSearch.getName();
+        List<ResPerson> persons = metaService.getPersonLimit(keyword, 3);
+        Page page = new Page(myPage.getCurrent(), myPage.getSize());
+        IPage<ResBlogPage> iPage = myMapper.selectBlogBySearch(page, keyword, userId);
         for (ResBlogPage record : iPage.getRecords()) {
-            if (StringUtils.isNotEmpty(record.getCover())){
-                record.setCover(imagePath+record.getCover());
+            if (StringUtils.isNotEmpty(record.getCover())) {
+                record.setCover(imagePath + record.getCover());
             }
         }
 
-        Map<String,Object> map=new HashMap<>();
-        map.put("persons",persons);
-        map.put("blog_page",iPage);
+        Map<String, Object> map = new HashMap<>();
+        map.put("persons", persons);
+        map.put("blog_page", iPage);
         return R.OK(map);
     }
 
@@ -775,12 +775,12 @@ public class XunyeeService {
         Update update = new Update();
         update.set("vcuser", userId);
         update.set("person", personId);
-        update.set("year",LocalDate.now().getYear());
+        update.set("year", LocalDate.now().getYear());
         update.set("update", LocalDateTime.now());
         update.inc("check", 1);//累加
-        UpdateResult result = mongoTemplate.upsert(query,update,"vc_user__person__check__count");
-        if (result.getModifiedCount()>=0){
-            log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}",userId,personId,1);
+        UpdateResult result = mongoTemplate.upsert(query, update, "vc_user__person__check__count");
+        if (result.getModifiedCount() >= 0) {
+            log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}", userId, personId, 1);
         }
         return R.OK(result);
     }
