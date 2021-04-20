@@ -10,8 +10,6 @@ public enum ResultCode {
     SUCCESS(0,"操作成功"),
     ERROR(-1,"操作失败"),
 
-    /* 系统500错误*/
-    SYSTEM_ERROR(10000, "系统异常，请稍后重试"),
 
 
     /* 参数错误：10001-19999 */

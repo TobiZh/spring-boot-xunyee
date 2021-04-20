@@ -11,6 +11,7 @@ import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.config.weixin.WxMaConfiguration;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessApp;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessMini;
+import com.vlinkage.xunyee.entity.response.ResRefreshToken;
 import com.vlinkage.xunyee.jwt.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
@@ -44,6 +45,7 @@ public class LoginService {
             WxOAuth2Service wxOAuth2Service=wxMpService.getOAuth2Service();
             WxOAuth2AccessToken oAuth2AccessToken=wxOAuth2Service.getAccessToken(code);
             WxOAuth2UserInfo userInfo=wxOAuth2Service.getUserInfo(oAuth2AccessToken,"zh_CN");
+
             String unionid= userInfo.getUnionId();
             String openid=userInfo.getOpenid();
             String nickname=userInfo.getNickname();
@@ -62,8 +64,10 @@ public class LoginService {
             if (temp == null) {
                 // 新增账号
                 XunyeeVcuser user = new XunyeeVcuser();
-                user.setNickname(nickname);
-                user.setAvatar(avatar);
+                user.setNickname(nickname);// 自己系统的头像
+                user.setAvatar(avatar);// 自己系统的昵称
+                user.setWx_nickanme(nickname);
+                user.setWx_avatar(avatar);
                 user.setWx_city(city);
                 user.setWx_country(country);
                 user.setWx_province(province);
@@ -83,14 +87,19 @@ public class LoginService {
                 // 生成token
                 String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
                 String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
-                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
-                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,15*24*60*60);
+
+//                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
+//                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
 
                 ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
                 resLoginSuccess.setToken(token);
+                resLoginSuccess.setRefresh_token(refresh_token);
+                resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
+
                 resLoginSuccess.setVcuser_id(user.getId());
                 resLoginSuccess.setNickname(user.getNickname());
                 resLoginSuccess.setAvatar(user.getAvatar());
+
 
                 return R.OK(resLoginSuccess);
             }
@@ -99,13 +108,17 @@ public class LoginService {
             String token = JwtUtil.getAccessToken(String.valueOf(vcuser.getId()));
             String refresh_token = JwtUtil.getRefreshToken(String.valueOf(temp.getVcuser_id()));
             redisUtil.set("user_token:"+temp.getVcuser_id()+":access_token",token,24*60*60);
-            redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,15*24*60*60);
+            redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,30*24*60*60);
 
             ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
             resLoginSuccess.setToken(token);
+            resLoginSuccess.setRefresh_token(refresh_token);
+            resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
+
             resLoginSuccess.setVcuser_id(vcuser.getId());
             resLoginSuccess.setAvatar(vcuser.getAvatar());
             resLoginSuccess.setNickname(vcuser.getNickname());
+
             return R.OK(resLoginSuccess);
             // ======================= 自己系统的登录逻辑 ===================================
         } catch (WxErrorException e) {
@@ -148,11 +161,14 @@ public class LoginService {
                 String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
                 String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
                 redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
-                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,15*24*60*60);
+                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
 
                 ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
                 resLoginSuccess.setSession_key(sessionKey);
                 resLoginSuccess.setToken(token);
+                resLoginSuccess.setRefresh_token(refresh_token);
+                resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
+
                 resLoginSuccess.setVcuser_id(user.getId());
                 resLoginSuccess.setNickname(user.getNickname());
                 resLoginSuccess.setAvatar(user.getAvatar());
@@ -164,12 +180,15 @@ public class LoginService {
             String token = JwtUtil.getAccessToken(String.valueOf(temp.getVcuser_id()));
             String refresh_token = JwtUtil.getRefreshToken(String.valueOf(temp.getVcuser_id()));
             redisUtil.set("user_token:"+temp.getVcuser_id()+":access_token",token,24*60*60);
-            redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,15*24*60*60);
+            redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,30*24*60*60);
 
 
             ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
             resLoginSuccess.setSession_key(sessionKey);
             resLoginSuccess.setToken(token);
+            resLoginSuccess.setRefresh_token(refresh_token);
+            resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
+
             resLoginSuccess.setVcuser_id(temp.getVcuser_id());
             if (StringUtils.isNotEmpty(vcuser.getNickname())){
                 resLoginSuccess.setNickname(vcuser.getNickname());
@@ -186,7 +205,7 @@ public class LoginService {
         }
     }
 
-    public R<ResLoginSuccessApp> refreshToken(String refreshToken) {
+    public R<ResRefreshToken> refreshToken(String refreshToken) {
         if (!JwtUtil.verify(refreshToken)){
             return R.ERROR(ResultCode.NO_TOKEN_TO_LOGIN);
         }
@@ -194,12 +213,14 @@ public class LoginService {
 
         String token=JwtUtil.getAccessToken(userId);
         String refresh_token=JwtUtil.getRefreshToken(userId);
+
         redisUtil.set("user_token:"+userId+":access_token",token,24*60*60);
-        redisUtil.set("user_token:"+userId+":refresh_token",refresh_token,15*24*60*60);
+        redisUtil.set("user_token:"+userId+":refresh_token",refresh_token,30*24*60*60);
 
 
-        ResLoginSuccessApp app=new ResLoginSuccessApp();
+        ResRefreshToken app=new ResRefreshToken();
         app.setToken(token);
+        app.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
         app.setRefresh_token(refresh_token);
         return R.OK(app);
 

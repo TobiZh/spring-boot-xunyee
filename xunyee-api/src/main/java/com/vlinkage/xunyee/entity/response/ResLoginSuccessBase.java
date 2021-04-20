@@ -13,6 +13,9 @@ public class ResLoginSuccessBase {
     @ApiModelProperty("refresh_token 当token过期时使用refresh_token 通过 /refresh/token重新获取")
     private String refresh_token;
 
+    @ApiModelProperty("token 有效时间单位秒")
+    private Long expires_in;
+
     @ApiModelProperty("用户id")
     private int vcuser_id;
 

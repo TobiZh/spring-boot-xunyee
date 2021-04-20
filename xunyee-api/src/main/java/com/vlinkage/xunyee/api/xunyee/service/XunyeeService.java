@@ -18,9 +18,7 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
-import com.vlinkage.xunyee.utils.CopyListUtil;
-import com.vlinkage.xunyee.utils.DateUtil;
-import com.vlinkage.xunyee.utils.OrderCodeFactory;
+import com.vlinkage.xunyee.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -767,21 +765,5 @@ public class XunyeeService {
         map.put("persons", persons);
         map.put("blog_page", iPage);
         return R.OK(map);
-    }
-
-    public R testMong(int userId, int personId) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("vcuser").is(userId).and("person").is(personId).and("year").is(LocalDate.now().getYear()));
-        Update update = new Update();
-        update.set("vcuser", userId);
-        update.set("person", personId);
-        update.set("year", LocalDate.now().getYear());
-        update.set("update", LocalDateTime.now());
-        update.inc("check", 1);//累加
-        UpdateResult result = mongoTemplate.upsert(query, update, "vc_user__person__check__count");
-        if (result.getModifiedCount() >= 0) {
-            log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}", userId, personId, 1);
-        }
-        return R.OK(result);
     }
 }

@@ -38,7 +38,6 @@ mybatis-plus:
     # 关闭下划线转驼峰 不然获取数据为null
     map-underscore-to-camel-case: false
 
-
 logging:
   level:
     org.springframework.web: info
@@ -73,8 +72,9 @@ wx:
 qiniu:
   accessKey: pMl4it5o_EuifiT-PRkhjQXJAHqJqktEIQfmxrpK
   secretKey: vffUicFA7RXCJdov5Ow6f-9z6UKy09LYgv60TdIA
-  bucket: xunyee-blog
+  bucket: xunyee-image
   path: https://up.qiniup.com  # (华东) 每个地区的地址都不一样
+
 
 
 # 系统参数

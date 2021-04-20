@@ -25,9 +25,9 @@ public class CommonController {
     @Autowired
     private QiNiuYunConfig qiNiuYunConfig;
 
+    private String pre="blog/";
 
     @ApiOperation(value="多图上传")
-    @PassToken
     @PostMapping("/upload/images")
     public R qiNiuYunUploadImages(@RequestParam("file") MultipartFile[] file) throws IOException {
         List<String> images = new ArrayList<>();
@@ -36,21 +36,20 @@ public class CommonController {
             FileInputStream inputStream = (FileInputStream) file[i].getInputStream();
             //为文件重命名：uuid+filename
             filename = UUID.randomUUID().toString().replaceAll("-", "") + filename;
-            String link = qiNiuYunConfig.uploadImgToQiNiu(inputStream, filename);
+            String link = qiNiuYunConfig.uploadImgToQiNiu(inputStream, pre+filename);
             images.add(link);
         }
         return R.OK(images);
     }
 
     @ApiOperation(value="单张图片上传")
-    @PassToken
     @PostMapping("/upload/image")
     public R qiNiuYunUploadImage(@RequestParam("file") MultipartFile file) throws IOException {
         String filename = file.getOriginalFilename();
         FileInputStream inputStream = (FileInputStream) file.getInputStream();
         //为文件重命名：uuid+filename
         filename = UUID.randomUUID().toString().replaceAll("-", "") + filename;
-        String link = qiNiuYunConfig.uploadImgToQiNiu(inputStream, filename);
+        String link = qiNiuYunConfig.uploadImgToQiNiu(inputStream, pre+filename);
         return R.OK(link);
     }
 }

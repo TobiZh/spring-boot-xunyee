@@ -214,11 +214,4 @@ public class XunyeeController {
         Integer userId= UserUtil.getUserId(request);
         return xunyeeService.globalSearch(userId,myPage,reqGlobalSearch);
     }
-
-
-    @PassToken
-    @PostMapping("test")
-    public R test(int user,int person){
-        return xunyeeService.testMong(user,person);
-    }
 }

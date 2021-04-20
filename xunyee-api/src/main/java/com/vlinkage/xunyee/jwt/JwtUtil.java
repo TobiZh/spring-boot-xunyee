@@ -6,6 +6,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.extern.slf4j.Slf4j;
+
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,11 +19,11 @@ public class JwtUtil {
      * 过期时间 7天过期
      * refresh 15天过期
      */
-    private static final long ACCESS_EXPIRE_TIME = 7L * 60 * 1000 * 60 * 24;;
-    private static final long REFRESH_EXPIRE_TIME = 15L * 60 * 1000 * 60 * 24;
+    public static final long ACCESS_EXPIRE_TIME = 1L * 60 * 60 * 24 * 1000;
+    public static final long REFRESH_EXPIRE_TIME = 30L * 60 * 60 * 24 * 1000;
 
 
-//    private static final long ACCESS_EXPIRE_TIME = 1L * 60 * 1000;;
+//    private static final long ACCESS_EXPIRE_TIME = 1L * 60 * 1000;
 //    private static final long REFRESH_EXPIRE_TIME = 3L * 60 * 1000;
     /**
      * token私钥
@@ -108,8 +110,6 @@ public class JwtUtil {
         }
     }
 
-
-
     /**
      * 获取token中的信息无需secret解密也能获取
      *
@@ -128,6 +128,13 @@ public class JwtUtil {
 
 
     public static void main(String[] args) {
+        Date date = new Date(System.currentTimeMillis() + ACCESS_EXPIRE_TIME);
+        SimpleDateFormat sd=new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+
+        System.out.println(ACCESS_EXPIRE_TIME);
+        System.out.println(sd.format(date));
+
         System.out.println(getAccessToken("19"));
+        System.out.println(getRefreshToken("19"));
     }
 }

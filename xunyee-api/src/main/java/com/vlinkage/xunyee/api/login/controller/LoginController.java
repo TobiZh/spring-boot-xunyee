@@ -6,6 +6,7 @@ import com.vlinkage.xunyee.config.weixin.WxMaProperties;
 import com.vlinkage.xunyee.config.weixin.WxMpProperties;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessApp;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessMini;
+import com.vlinkage.xunyee.entity.response.ResRefreshToken;
 import com.vlinkage.xunyee.jwt.PassToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,7 +47,7 @@ public class LoginController {
     @ApiOperation(value="使用refresh_token刷新token")
     @PassToken
     @GetMapping("refresh/token")
-    public R<ResLoginSuccessApp> refreshToken(String refresh_token) {
+    public R<ResRefreshToken> refreshToken(String refresh_token) {
 
         return loginService.refreshToken(refresh_token);
     }
