@@ -17,4 +17,7 @@ public class ResFollowPage {
     @ApiModelProperty(value = "类型 1 我的关注'已关注' 我的粉丝 '回关'; 3 互相关注")
     private int type;
 
+    @ApiModelProperty("个人简介")
+    private String bio;
+
 }

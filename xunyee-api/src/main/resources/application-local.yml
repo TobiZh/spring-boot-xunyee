@@ -37,3 +37,11 @@ spring:
 xunyee:
   config:
     host: http://wx.xunyee.cn
+
+
+logging:
+  level:
+    org.springframework.data.mongodb: debug
+    org.springframework.web: info
+    com.github.binarywang.demo.wx.miniapp: debug
+    cn.binarywang.wx.miniapp: debug

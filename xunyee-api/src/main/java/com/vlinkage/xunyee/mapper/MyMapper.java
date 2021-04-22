@@ -96,7 +96,7 @@ public interface MyMapper {
      * @param vcuser_id
      * @return
      */
-    @Select({"<script>SELECT f.id,f.type,u.id vcuser_id,u.avatar,u.nickname FROM xunyee_follow f LEFT JOIN xunyee_vcuser u " +
+    @Select({"<script>SELECT f.id,f.type,u.id vcuser_id,u.bio,u.avatar,u.nickname FROM xunyee_follow f LEFT JOIN xunyee_vcuser u " +
             "<when test='type==1' >",
             " on f.followed_vcuser_id=u.id where (f.vcuser_id=${vcuser_id})",
             "</when>",

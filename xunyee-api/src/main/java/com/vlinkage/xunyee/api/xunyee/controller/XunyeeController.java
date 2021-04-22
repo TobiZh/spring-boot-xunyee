@@ -12,7 +12,6 @@ import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,12 +29,21 @@ public class XunyeeController {
     @Autowired
     private MetaService metaService;
 
-    @ApiOperation("封面与轮播")
+    @ApiOperation("启动广告（不是闪屏页）")
     @PassToken
-    @GetMapping("pic/current")
-    public R<Map> getPic(@Valid ReqPic req){
+    @GetMapping("ad/launch")
+    public R<ResPic> getAdLaunch(@Valid ReqPic req){
 
-        return xunyeeService.getPic(req);
+        return xunyeeService.getAdLaunch(req);
+    }
+
+
+    @ApiOperation("轮播图")
+    @PassToken
+    @GetMapping("ad/banner")
+    public R<List<ResPic>> getAdBanner(@Valid ReqPic req){
+
+        return xunyeeService.getAdBanner(req);
     }
 
     @ApiOperation("快速导航按钮")

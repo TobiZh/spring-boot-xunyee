@@ -60,18 +60,40 @@ public class XunyeeService {
     private PayService payService;
     @Autowired
     private MyMapper myMapper;
-    @Resource
-    private XunyeeSystemNotificationMapper notificationMapper;
 
     @Resource
     private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
 
 
-    public R<Map> getPic(ReqPic req) {
+    public R<ResPic> getAdLaunch(ReqPic req) {
         LocalDateTime nowDate = LocalDateTime.now();
 
         QueryWrapper qw = new QueryWrapper();
-        qw.eq("type_id", req.getType());
+        qw.eq("type_id", 3);//广告图
+        if (req.getIs_enabled_5() != null) {
+            qw.eq("is_enabled_5", req.getIs_enabled_5() == 0 ? false : true);
+        }
+        if (req.getIs_enabled_6() != null) {
+            qw.eq("is_enabled_6", req.getIs_enabled_6() == 0 ? false : true);
+        }
+        qw.le("start_time", nowDate);// >=
+        qw.ge("finish_time", nowDate);// <=
+        qw.orderByAsc("sequence");
+        XunyeePic xunyeePic = new XunyeePic().selectOne(qw);
+        if (xunyeePic!=null){
+            ResPic resPic =BeanUtil.copyProperties(xunyeePic, ResPic.class);
+            resPic.setPic(imagePath+resPic.getPic());
+            return R.OK(resPic);
+        }
+        return R.OK(xunyeePic);
+    }
+
+
+    public R<List<ResPic>> getAdBanner(ReqPic req) {
+        LocalDateTime nowDate = LocalDateTime.now();
+
+        QueryWrapper qw = new QueryWrapper();
+        qw.eq("type_id", 2);//轮播广告
         if (req.getIs_enabled_5() != null) {
             qw.eq("is_enabled_5", req.getIs_enabled_5() == 0 ? false : true);
         }
@@ -86,10 +108,7 @@ public class XunyeeService {
         for (ResPic p : resPics) {
             p.setPic(imagePath + p.getPic());
         }
-        Map map = new HashMap();
-        map.put("count", resPics.size());
-        map.put("results", resPics);
-        return R.OK(map);
+        return R.OK(resPics);
     }
 
     public R<List<ResNavigation>> getNavigation() {
