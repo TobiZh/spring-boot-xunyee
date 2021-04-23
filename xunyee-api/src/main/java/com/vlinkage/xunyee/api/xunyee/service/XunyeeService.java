@@ -11,6 +11,7 @@ import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeSystemNotificationMapper;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.common.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.pay.service.PayService;
 import com.vlinkage.xunyee.api.star.service.StarService;
@@ -445,7 +446,12 @@ public class XunyeeService {
         // 是否已为该艺人签到过
         boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson() == personId);
         if (b) {
-            return R.ERROR("今天已经签到过了，明天再来吧");
+            if(vcuserBenefit!=null){
+                return R.ERROR("今天已经签到过了，明天再来吧");
+            }else{
+                return R.ERROR(ResultCode.USER_NOT_OPEN_VIP);
+            }
+
         }
 
         // 本次签到次数
