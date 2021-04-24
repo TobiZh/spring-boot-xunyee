@@ -62,7 +62,12 @@ public class MetaService {
         return resPeople;
     }
 
-
+    /**
+     * 查询某个艺人的头像昵称
+     * 做缓存
+     * @return
+     */
+    @Cacheable(value = "get_person_by_id" ,key = "#{person_id}")
     public Person getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
         qw.eq("id",person_id);

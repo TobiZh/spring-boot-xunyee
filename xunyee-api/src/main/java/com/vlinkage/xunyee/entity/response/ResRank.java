@@ -4,11 +4,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-public class ResRank<T> {
+public class ResRank<T> implements Serializable {
     @ApiModelProperty("总数据")
     private int count;
     @ApiModelProperty("总页数")

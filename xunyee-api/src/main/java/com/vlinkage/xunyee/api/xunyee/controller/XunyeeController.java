@@ -76,6 +76,13 @@ public class XunyeeController {
         return xunyeeService.systemNotification(userId,myPage);
     }
 
+    @ApiOperation("寻艺通知数量")
+    @GetMapping("system/notification/count")
+    public R<Integer> systemNotificationCount(HttpServletRequest request){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.systemNotificationCount(userId);
+    }
+
     @ApiOperation("寻艺通知 标记已读")
     @PutMapping("system/notification/read")
     public R systemNotificationRead(HttpServletRequest request,int id){
@@ -129,6 +136,20 @@ public class XunyeeController {
         return xunyeeService.personCheckCount(userId,req);
     }
 
+    @ApiOperation("签到之前先获调用这个验证一下")
+    @GetMapping("vcuser_person_check/verify")
+    public R vcuserPersonCheckVerify(HttpServletRequest request,@Valid ReqPersonId req){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.vcuserPersonCheckVerify(userId,req.getPerson());
+    }
+
+    @ApiOperation("签到")
+    @PostMapping("vcuser_person_check")
+    public R vcuserPersonCheck(HttpServletRequest request,@Valid ReqPersonId req){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.vcuserPersonCheck(userId,req.getPerson());
+    }
+
     @ApiOperation("我的爱豆")
     @GetMapping("person_check_count/idol")
     public R<ResRank<ResPersonCheckCountIdol>> personCheckCountIdol(HttpServletRequest request,ReqMyPage myPage){
@@ -144,22 +165,13 @@ public class XunyeeController {
         return xunyeeService.vcuserPerson(userId,req);
     }
 
-    @PassToken
     @ApiOperation("权益价格")
+    @PassToken
     @GetMapping("benefit_price/current")
     public R<ResXunyeeBenefitPrice> benefitPrice(){
 
         return xunyeeService.benefitPrice();
     }
-
-
-    @ApiOperation("签到")
-    @PostMapping("vcuser_person_check")
-    public R vcuserPersonCheck(HttpServletRequest request,@Valid ReqPersonId req){
-        int userId= UserUtil.getUserId(request);
-        return xunyeeService.vcuserPersonCheck(userId,req.getPerson());
-    }
-
 
     @ApiOperation("签到日历")
     @GetMapping("vcuser_person_check/calendar")
@@ -215,11 +227,20 @@ public class XunyeeController {
     }
 
 
-    @ApiOperation("搜索内容/艺人")
+    @ApiOperation("(综合搜索)动态/艺人")
     @PassToken
     @GetMapping("global/search")
     public R<Map<String,Object>> globalSearch(HttpServletRequest request,ReqMyPage myPage,@Valid ReqGlobalSearch reqGlobalSearch){
         Integer userId= UserUtil.getUserId(request);
         return xunyeeService.globalSearch(userId,myPage,reqGlobalSearch);
     }
+
+    @ApiOperation("搜索动态")
+    @PassToken
+    @GetMapping("blog/search")
+    public R<IPage<ResBlogPage>> blogSearch(HttpServletRequest request,ReqMyPage myPage,@Valid ReqGlobalSearch reqGlobalSearch){
+        Integer userId= UserUtil.getUserId(request);
+        return xunyeeService.blogSearch(userId,myPage,reqGlobalSearch);
+    }
+
 }

@@ -155,8 +155,23 @@ public class XunyeeService {
         return R.OK(iPage);
     }
 
+
+    public R<Integer> systemNotificationCount(int userId) {
+
+        QueryWrapper qw = new QueryWrapper();
+        qw.eq("is_read",0);
+        qw.eq("receive_vcuser_id", userId);
+        qw.or();
+        qw.eq("receive_vcuser_id", 0);
+       int count = new XunyeeSystemNotification().selectCount(qw);
+       return R.OK(count);
+    }
+
     public R systemNotificationRead(int userId, int id) {
         XunyeeSystemNotification notification = new XunyeeSystemNotification().selectById(id);
+        if (notification.getReceive_vcuser_id()!=userId){
+            return R.ERROR("不是你的通知");
+        }
         if (notification != null) {
             if (notification.getIs_read() == 1) {
                 return R.ERROR("已标记过");
@@ -417,6 +432,56 @@ public class XunyeeService {
      * @param personId
      * @return
      */
+    public R vcuserPersonCheckVerify(int userId, Integer personId) {
+
+        Person person = metaService.getPersonById(personId);
+        if (person == null || !person.getIs_xunyee_check()) {
+            return R.ERROR("该艺人已关闭签到");
+        }
+
+        LocalDate gteDate = LocalDate.now(); // >=
+        LocalDate ltDate = gteDate.plusDays(1); // <; // <
+
+        QueryWrapper qw = new QueryWrapper();
+        qw.eq("vcuser_id", userId);
+        qw.ge("start_time", gteDate);//<=
+        qw.lt("finish_time", ltDate);// >
+        XunyeeVcuserBenefit userBenefit = new XunyeeVcuserBenefit().selectOne(qw);
+
+        // 查询当前用户关注的艺人和当天签到数
+        List<ResMonUserPersonCheck> resPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser")
+                        .is(userId).and("updated")
+                        .gte(gteDate).lt(ltDate)),
+                ResMonUserPersonCheck.class);
+        // 今日已使用次数
+        int checkCounted = resPersonChecks.stream().collect(Collectors.summingInt(ResMonUserPersonCheck::getCheck));
+        // 是否已为该艺人签到过
+        boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson() == personId);
+
+        if (b) {
+            if(userBenefit!=null){
+                return R.ERROR("今天已经签到过了，明天再来吧");
+            }else{
+                return R.ERROR(ResultCode.USER_NOT_OPEN_VIP);
+            }
+
+        }
+
+        if (checkCounted >= 3) {
+            return R.ERROR("每天对所有艺人的签到数不能超过3。");
+        }
+
+        return R.OK();
+    }
+
+    /**
+     * 会员一天 3次只能签一个人
+     * 非会员一天 3人1次
+     *
+     * @param userId
+     * @param personId
+     * @return
+     */
     public R vcuserPersonCheck(int userId, Integer personId) {
 
         Person person = metaService.getPersonById(personId);
@@ -440,9 +505,6 @@ public class XunyeeService {
                 ResMonUserPersonCheck.class);
         // 今日已使用次数
         int checkCounted = resPersonChecks.stream().collect(Collectors.summingInt(ResMonUserPersonCheck::getCheck));
-        if (checkCounted >= 3) {
-            return R.ERROR("每天对所有艺人的签到数不能超过3。");
-        }
         // 是否已为该艺人签到过
         boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson() == personId);
         if (b) {
@@ -451,7 +513,10 @@ public class XunyeeService {
             }else{
                 return R.ERROR(ResultCode.USER_NOT_OPEN_VIP);
             }
+        }
 
+        if (checkCounted >= 3) {
+            return R.ERROR("每天对所有艺人的签到数不能超过3。");
         }
 
         // 本次签到次数
@@ -791,4 +856,17 @@ public class XunyeeService {
         map.put("blog_page", iPage);
         return R.OK(map);
     }
+
+    public R<IPage<ResBlogPage>> blogSearch(Integer userId, ReqMyPage myPage, ReqGlobalSearch reqGlobalSearch) {
+        String keyword = reqGlobalSearch.getName();
+        Page page = new Page(myPage.getCurrent(), myPage.getSize());
+        IPage<ResBlogPage> iPage = myMapper.selectBlogBySearch(page, keyword, userId);
+        for (ResBlogPage record : iPage.getRecords()) {
+            if (StringUtils.isNotEmpty(record.getCover())) {
+                record.setCover(imagePath + record.getCover());
+            }
+        }
+        return R.OK(iPage);
+    }
+
 }
