@@ -3,10 +3,7 @@ package com.vlinkage.xunyee.mapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.xunyee.entity.request.ReqRecommendPage;
-import com.vlinkage.xunyee.entity.response.ResBlogPage;
-import com.vlinkage.xunyee.entity.response.ResBlogStarPage;
-import com.vlinkage.xunyee.entity.response.ResBrandPerson;
-import com.vlinkage.xunyee.entity.response.ResFollowPage;
+import com.vlinkage.xunyee.entity.response.*;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Component;
@@ -128,9 +125,11 @@ public interface MyMapper {
             "WHERE (bp.person_id=${person_id}) ORDER BY b.created DESC")
     IPage<ResBrandPerson> selectBrandPersonPage(Page page, int person_id);
 
-    @Select("SELECT b.id,b.name,b.logo,bps.url,bps.finish_time_new FROM brand b LEFT JOIN meta_brand_person bp LEFT JOIN meta_brand_person_site bps ON b.id=bp.brand_id " +
-            "WHERE (bp.person_id=${person_id}) and bp.id=bps.brand_person_id and bps.is_enabled=true ORDER BY b.created DESC")
-    List<ResBrandPerson> selectBrandPersonList(int person_id);
+    @Select("SELECT b.id,b.name,b.logo,bps.url,bps.finish_time_new FROM brand b " +
+            "LEFT JOIN meta_brand_person bp ON b.id=bp.brand_id " +
+            "LEFT JOIN meta_brand_person_site bps ON bp.id=bps.brand_person_id " +
+            "WHERE bp.person_id=${person_id} and bps.is_enabled=true ORDER BY b.created DESC")
+    List<ResBrandPersonList> selectBrandPersonList(int person_id);
 
     /**
      * 获取好友动态

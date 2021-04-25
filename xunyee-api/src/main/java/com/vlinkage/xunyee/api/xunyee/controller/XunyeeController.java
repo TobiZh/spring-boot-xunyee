@@ -192,7 +192,7 @@ public class XunyeeController {
     @ApiOperation("单个艺人品牌带货排行")
     @PassToken
     @GetMapping("vcuser_person/person_brand")
-    public R<List<ResBrandPerson>> vcuserPersonPersonBrand(@Valid ReqPersonId req){
+    public R<Map<String,Object>> vcuserPersonPersonBrand(@Valid ReqPersonId req){
         return xunyeeService.vcuserPersonPersonBrand(req.getPerson());
     }
 

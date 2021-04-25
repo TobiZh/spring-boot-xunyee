@@ -11,11 +11,13 @@ import com.vlinkage.ant.meta.entity.Teleplay;
 import com.vlinkage.ant.meta.entity.Zy;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.response.ResBrandPerson;
+import com.vlinkage.xunyee.entity.response.ResBrandPersonList;
 import com.vlinkage.xunyee.entity.response.ResPerson;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,8 @@ public class MetaService {
     @Autowired
     private MyMapper myMapper;
 
+    @Value("${sys-config.image-path}")
+    private String imagePath;
 
     public IPage<ResPerson> getPersonPage(ReqMyPage myPage,String name){
 
@@ -89,8 +93,8 @@ public class MetaService {
      * @return
      */
     @Cacheable(value = "springboot_person_brand" ,key = "#person_id")
-    public List<ResBrandPerson> getBrandPersonList(int person_id) {
-        List<ResBrandPerson> resBrandPeople=myMapper.selectBrandPersonList(person_id);
+    public List<ResBrandPersonList> getBrandPersonList(int person_id) {
+        List<ResBrandPersonList> resBrandPeople=myMapper.selectBrandPersonList(person_id);
         return resBrandPeople;
     }
 

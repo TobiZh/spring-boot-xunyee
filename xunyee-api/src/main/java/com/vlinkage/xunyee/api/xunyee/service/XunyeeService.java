@@ -626,9 +626,15 @@ public class XunyeeService {
         return R.OK(checkCalendar);
     }
 
-    public R<List<ResBrandPerson>> vcuserPersonPersonBrand(Integer person) {
-        List<ResBrandPerson> brandPeople=metaService.getBrandPersonList(person);
-       return R.OK(brandPeople);
+    public R<Map<String,Object>> vcuserPersonPersonBrand(Integer person) {
+        Map<String,Object> map=new HashMap<>();
+        List<ResBrandPersonList> brands=metaService.getBrandPersonList(person);
+        for (ResBrandPersonList brand : brands) {
+            brand.setLogo(imagePath+brand.getLogo());
+        }
+        map.put("brands",brands);
+        map.put("click_rank",brands);
+       return R.OK(map);
 
     }
 
