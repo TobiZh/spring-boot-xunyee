@@ -2,7 +2,7 @@ server:
   port: 80
 spring:
   profiles:
-    active: test
+    active: local
   datasource:
     hikari:
       # 连接池名称

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class ResBrandPerson implements Serializable {
+public class ResBrandPersonList implements Serializable {
 
     @ApiModelProperty("品牌id")
     private Integer id;

@@ -626,6 +626,12 @@ public class XunyeeService {
         return R.OK(checkCalendar);
     }
 
+    public R<List<ResBrandPerson>> vcuserPersonPersonBrand(Integer person) {
+        List<ResBrandPerson> brandPeople=metaService.getBrandPersonList(person);
+       return R.OK(brandPeople);
+
+    }
+
     public R<ResPersonInfo> vcuserPersonPersonInfo(Integer userId, int person) {
         Person resPerson = metaService.getPersonById(person);
         if (resPerson == null) {
@@ -868,5 +874,4 @@ public class XunyeeService {
         }
         return R.OK(iPage);
     }
-
 }

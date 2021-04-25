@@ -67,7 +67,7 @@ public class MetaService {
      * 做缓存
      * @return
      */
-    @Cacheable(value = "get_person_by_id" ,key = "#{person_id}")
+    @Cacheable(value = "springboot_person_name_avatar" ,key = "#person_id")
     public Person getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
         qw.eq("id",person_id);
@@ -84,11 +84,22 @@ public class MetaService {
     }
 
     /**
+     * 缓存艺人代言的所有品牌列表
+     * @param person_id
+     * @return
+     */
+    @Cacheable(value = "springboot_person_brand" ,key = "#person_id")
+    public List<ResBrandPerson> getBrandPersonList(int person_id) {
+        List<ResBrandPerson> resBrandPeople=myMapper.selectBrandPersonList(person_id);
+        return resBrandPeople;
+    }
+
+    /**
      * 查询所有支持签到的艺人
      * 做缓存
      * @return
      */
-    @Cacheable(value = "all_check_person")
+    @Cacheable(value = "springboot_all_check_person")
     public List<Person> getPersonByXunyeeCheck(){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","zh_name","avatar_custom");
