@@ -35,6 +35,9 @@ public class ResUserInfoOhter {
     @ApiModelProperty("关注类型 0 未关注， 1 已关注，2 回关，3 互相关注")
     private int follow_type;
 
+    @ApiModelProperty("用户封面图")
+    private String cover;
+
     @ApiModelProperty("共同关注")
     private List<String> persons;
 }

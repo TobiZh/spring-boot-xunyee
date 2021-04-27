@@ -10,12 +10,14 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -105,12 +107,12 @@ public class XunyeeController {
         return R.OK(iPage);
     }
 
-    @ApiOperation("艺人相关的品牌")
+    @ApiOperation("艺人相关的品牌(动态类型-品牌代言)")
     @PassToken
     @GetMapping("brand/person")
-    public R<IPage<ResBrandPerson>> brandPerson(ReqMyPage myPage,Integer person_id){
-        IPage<ResBrandPerson> iPage=metaService.getBrandPerson(myPage,person_id);
-        return R.OK(iPage);
+    public R<List<ResBrandPerson>> brandPerson(@Valid ReqPersonId req){
+        List<ResBrandPersonList> brands=metaService.getBrandPersonList(req.getPerson());
+        return R.OK(brands);
     }
 
     @ApiOperation("用户权益")
@@ -192,7 +194,7 @@ public class XunyeeController {
     @ApiOperation("单个艺人品牌带货排行")
     @PassToken
     @GetMapping("vcuser_person/person_brand")
-    public R<Map<String,Object>> vcuserPersonPersonBrand(@Valid ReqPersonId req){
+    public R<ResPersonBrandInfo> vcuserPersonPersonBrand(@Valid ReqPersonId req){
         return xunyeeService.vcuserPersonPersonBrand(req.getPerson());
     }
 
@@ -251,6 +253,13 @@ public class XunyeeController {
     }
 
 
+    @ApiOperation("用户隐私政策和协议")
+    @PassToken
+    @GetMapping("ver/agreement")
+    public R agreement(int t) throws IOException {
+
+        return xunyeeService.agreement(t);
+    }
 
 
 }

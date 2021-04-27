@@ -80,19 +80,18 @@ public class MetaService {
         return person;
     }
 
-    public IPage<ResBrandPerson> getBrandPerson(ReqMyPage myPage, int person_id) {
-        Page page=new Page(myPage.getCurrent(),myPage.getSize());
-        IPage<ResBrandPerson> iPage=myMapper.selectBrandPersonPage(page,person_id);
-        iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(),ResBrandPerson.class));
-        return iPage;
-    }
+//    public List<ResBrandPersonList> getBrandPerson(int person_id) {
+//
+//        List<ResBrandPersonList> iPage=myMapper.selectBrandPersonList(person_id);
+//        return iPage;
+//    }
 
     /**
      * 缓存艺人代言的所有品牌列表
      * @param person_id
      * @return
      */
-    @Cacheable(value = "springboot_person_brand" ,key = "#person_id")
+    @Cacheable(value = "springboot_person_brand" ,key = "#person_id",unless = "#result == null or #result.size() == 0")
     public List<ResBrandPersonList> getBrandPersonList(int person_id) {
         List<ResBrandPersonList> resBrandPeople=myMapper.selectBrandPersonList(person_id);
         return resBrandPeople;

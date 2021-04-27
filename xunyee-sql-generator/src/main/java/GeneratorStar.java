@@ -48,8 +48,7 @@ public class GeneratorStar {
 
         // 策略配置
         StrategyConfig strategy = new StrategyConfig();
-        strategy.setInclude("sdb_person_gallery");
-        strategy.setTablePrefix("sdb");
+        strategy.setInclude("sdb_person_gallery","sdb_jd_sale");
         strategy.setNaming(NamingStrategy.underline_to_camel);// 表名生成策略
         strategy.setColumnNaming(NamingStrategy.no_change);
         strategy.setEntityLombokModel(true);

@@ -1,15 +1,9 @@
-package com.vlinkage.xunyee.api.controller;
+package com.vlinkage.xunyee.api.common.service;
 
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.config.QiNiuYunConfig;
-import com.vlinkage.xunyee.jwt.PassToken;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileInputStream;
@@ -18,18 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Api(tags = "公共接口")
-@RestController
-public class CommonController {
-
+@Service
+public class CommonService {
     @Autowired
     private QiNiuYunConfig qiNiuYunConfig;
 
-    private String pre="blog/";
-
-    @ApiOperation(value="多图上传")
-    @PostMapping("/upload/images")
-    public R qiNiuYunUploadImages(@RequestParam("file") MultipartFile[] file) throws IOException {
+    public R<List<String>> qiNiuYunUploadImages(MultipartFile[] file, String pre) throws IOException {
         List<String> images = new ArrayList<>();
         for (int i = 0; i < file.length; i++) {
             String filename = file[i].getOriginalFilename();
@@ -42,9 +30,7 @@ public class CommonController {
         return R.OK(images);
     }
 
-    @ApiOperation(value="单张图片上传")
-    @PostMapping("/upload/image")
-    public R qiNiuYunUploadImage(@RequestParam("file") MultipartFile file) throws IOException {
+    public R qiNiuYunUploadImage(MultipartFile file, String pre) throws IOException {
         String filename = file.getOriginalFilename();
         FileInputStream inputStream = (FileInputStream) file.getInputStream();
         //为文件重命名：uuid+filename

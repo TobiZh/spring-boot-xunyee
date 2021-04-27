@@ -2,14 +2,14 @@ server:
   port: 80
 spring:
   profiles:
-    active: local
+    active: test
   datasource:
+    type: com.zaxxer.hikari.HikariDataSource
     hikari:
       # 连接池名称
       pool-name: MyHikariCP
-      # 连接池最大连接数，默认是10
-      maximum-pool-size: 17
       connection-test-query: SELECT 1
+
 
   servlet:
     multipart:

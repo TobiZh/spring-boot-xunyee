@@ -2,6 +2,7 @@ package com.vlinkage.xunyee.entity.response;
 
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -19,7 +20,8 @@ public class ResBlogInfo {
     @ApiModelProperty("用户头像")
     private String avatar;
 
-    @ApiModelProperty("发布时间")
+    @ApiModelProperty("发布时间 8月19日17:30 ")
+    @JsonFormat(pattern="MM月dd日HH:mm",timezone = "GMT+8")
     private Date created;
 
     @ApiModelProperty("0 关注 1 已关注 2 回关 3 互相关注")

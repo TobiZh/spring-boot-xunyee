@@ -15,6 +15,11 @@ spring:
           url: jdbc:postgresql://116.62.236.230:5432/vlkdj?currentSchema=meta&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
           username: vlkdj
           password: weiling@qinghai118
+        star:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://112.124.118.75:3306/star?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+          username: wangxin
+          password: wangxin@vlinkage
   #redis
   redis:
     host: 115.29.163.237
@@ -23,11 +28,11 @@ spring:
     password: vlinkage80E2
   data:
     mongodb:
+      host: 116.62.203.183
+      port: 27017
       database: xunyee
       username: vlkdj
       password: weiling@qinghai118
-      host: 116.62.203.183
-      port: 27017
 
 
 xunyee:

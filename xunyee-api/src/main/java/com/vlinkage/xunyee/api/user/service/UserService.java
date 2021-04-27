@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.api.common.service.CommonService;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqPageFollow;
@@ -24,7 +25,9 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,13 +51,16 @@ public class UserService {
     @Autowired
     private MetaService metaService;
 
+    @Autowired
+    private CommonService commonService;
+
 
     public R<ResUserInfoOhter> other(Integer mine_vcuser_id, Integer userId) {
 
         XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
         int follow_type=0;
         List<String> personList=new ArrayList<>();
-        if (mine_vcuser_id!=null){
+        if (mine_vcuser_id!=null||mine_vcuser_id!=userId){
             // ===============  我是否以前关注过该用户  ====================
             //我是否关注过对方
             QueryWrapper fqw=new QueryWrapper();
@@ -145,6 +151,7 @@ public class UserService {
         resMine.setVcuser_id(userId);
         resMine.setAvatar(vcuser.getAvatar());
         resMine.setNickname(vcuser.getNickname());
+        resMine.setCover(vcuser.getCover());
         resMine.setFans_count(fans_count);
         resMine.setFollow_count(follow_count);
         resMine.setFollow_type(follow_type);
@@ -364,5 +371,27 @@ public class UserService {
 
         return R.OK(iPage);
 
+    }
+
+    public R<ResMine> uploadCover(int userId, MultipartFile file) throws IOException {
+        R<String> result=commonService.qiNiuYunUploadImage(file,"user/cover/");
+        if (result.getCode()==0){
+            XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
+            vcuser.setCover(result.getData());
+            if(vcuser.updateById()){
+                return R.OK();
+            }
+            return R.ERROR("封面图上传失败");
+        }
+        return R.ERROR("更新用户封面图失败");
+    }
+
+    public R<ResMine> uploaduploadCoverDefaultCover(int userId) {
+        XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
+        vcuser.setCover("");//使用默认的
+        if(vcuser.updateById()){
+            return R.OK();
+        }
+        return R.ERROR("封面图上传失败");
     }
 }

@@ -9,13 +9,14 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 
 @Api(tags = "用户模块")
 @RequestMapping("vcuser")
@@ -26,7 +27,7 @@ public class UserController {
     private UserService userService;
 
 
-    @ApiOperation("非本人主页 头像、点赞、关注等")
+    @ApiOperation("用户详情本人和非本人")
     @PassToken
     @GetMapping("")
     public R<ResUserInfoOhter> other(HttpServletRequest request, ReqVcuserId req){
@@ -84,4 +85,20 @@ public class UserController {
         int userId=UserUtil.getUserId(request);
         return userService.getBlogStar(userId,myPage);
     }
+
+    @ApiOperation("上传封面图")
+    @PostMapping("cover")
+    public R<ResMine> uploadCover(HttpServletRequest request,@RequestParam("file") MultipartFile file) throws IOException {
+        int userId=UserUtil.getUserId(request);
+        return userService.uploadCover(userId,file);
+    }
+
+
+    @ApiOperation("默认封面图")
+    @PostMapping("cover/default")
+    public R<ResMine> uploadCoverDefault(HttpServletRequest request) {
+        int userId=UserUtil.getUserId(request);
+        return userService.uploaduploadCoverDefaultCover(userId);
+    }
+
 }

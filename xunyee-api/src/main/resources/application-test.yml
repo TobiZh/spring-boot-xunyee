@@ -28,11 +28,11 @@ spring:
     password: vlinkage80E2
   data:
     mongodb:
+      host: 115.29.163.237
+      port: 27017
       database: xunyee
       username: vlkdj
       password: weiling@qinghai118
-      host: 115.29.163.237
-      port: 27017
 
 xunyee:
   config:
