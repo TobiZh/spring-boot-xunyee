@@ -14,7 +14,7 @@ public class ReqUserInfo {
     @Length(max = 10)
     private String nickname;
 
-    @ApiModelProperty("头像 传绝对路径连接")
+    @ApiModelProperty("头像传相对路径")
     private String avatar;
 
     @ApiModelProperty("性别")
@@ -29,10 +29,10 @@ public class ReqUserInfo {
     @ApiModelProperty("小程序登录时候使用 微信nickname")
     private String wx_nickname;
 
-    @ApiModelProperty("微信city")
+    @ApiModelProperty("小程序登录时候使用 微信city")
     private String wx_city;
-    @ApiModelProperty("微信country")
+    @ApiModelProperty("小程序登录时候使用 微信country")
     private String wx_country;
-    @ApiModelProperty("微信province")
+    @ApiModelProperty("小程序登录时候使用 微信province")
     private String wx_province;
 }

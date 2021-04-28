@@ -262,4 +262,13 @@ public class XunyeeController {
     }
 
 
+    @ApiOperation("寻艺app检查更新")
+    @PassToken
+    @GetMapping("version/check")
+    public R<ResAppVersion> appVersionCheck(int version_code) {
+
+        return xunyeeService.appVersionCheck(version_code);
+    }
+
+
 }

@@ -1,11 +1,14 @@
 package com.vlinkage.xunyee.api.user.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
+import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserMapper;
 import com.vlinkage.common.entity.result.R;
 import com.vlinkage.xunyee.api.common.service.CommonService;
 import com.vlinkage.xunyee.api.meta.MetaService;
@@ -17,6 +20,7 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
@@ -27,6 +31,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -54,6 +59,8 @@ public class UserService {
     @Autowired
     private CommonService commonService;
 
+    @Resource
+    private XunyeeVcuserMapper vcuserMapper;
 
     public R<ResUserInfoOhter> other(Integer mine_vcuser_id, Integer userId) {
 
@@ -233,13 +240,48 @@ public class UserService {
     }
 
     public R editUser(int userId, ReqUserInfo req) {
-        XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
-        if (vcuser==null){
-            return R.ERROR("用户不存在");
+        XunyeeVcuser vcuser=new XunyeeVcuser();
+        if (StringUtils.isNotEmpty(req.getBio())){
+            vcuser.setBio(req.getBio());
         }
-        BeanUtil.copyProperties(req,vcuser);
 
-        if (vcuser.updateById()){
+        if (StringUtils.isNotEmpty(req.getNickname())){
+            vcuser.setNickname(req.getNickname());
+        }
+
+        if (StringUtils.isNotEmpty(req.getAvatar())){
+            vcuser.setAvatar(req.getAvatar());
+        }
+
+        if (StringUtils.isNotEmpty(req.getWx_avatar())){
+            vcuser.setWx_avatar(req.getWx_avatar());
+        }
+
+        if (req.getSex()!=null){
+            vcuser.setSex(req.getSex());
+        }
+
+        if (StringUtils.isNotEmpty(req.getWx_country())){
+            vcuser.setWx_country(req.getWx_country());
+        }
+
+        if (StringUtils.isNotEmpty(req.getWx_city())){
+            vcuser.setWx_city(req.getWx_city());
+        }
+
+        if (StringUtils.isNotEmpty(req.getWx_province())){
+            vcuser.setWx_province(req.getWx_province());
+        }
+
+        if (vcuser==null){
+            return R.ERROR("未修改任何信息");
+        }
+
+
+        vcuser.setId(userId);
+        vcuser.setUpdated(new Date());
+
+        if (vcuserMapper.updateById(vcuser)>0){
             return R.OK();
         }
         return R.ERROR("修改失败");
@@ -373,12 +415,13 @@ public class UserService {
 
     }
 
-    public R<ResMine> uploadCover(int userId, MultipartFile file) throws IOException {
+    public R uploadCover(int userId, MultipartFile file) throws IOException {
         R<String> result=commonService.qiNiuYunUploadImage(file,"user/cover/");
         if (result.getCode()==0){
-            XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
-            vcuser.setCover(result.getData());
-            if(vcuser.updateById()){
+            UpdateWrapper<XunyeeVcuser> wrapper=new UpdateWrapper<>();
+            wrapper.eq("id",userId).set("cover",result.getData());
+            boolean isUpdate=new XunyeeVcuser().update(wrapper);
+            if(isUpdate){
                 return R.OK();
             }
             return R.ERROR("封面图上传失败");
@@ -386,10 +429,11 @@ public class UserService {
         return R.ERROR("更新用户封面图失败");
     }
 
-    public R<ResMine> uploaduploadCoverDefaultCover(int userId) {
-        XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
-        vcuser.setCover("");//使用默认的
-        if(vcuser.updateById()){
+    public R uploaduploadCoverDefaultCover(int userId) {
+        UpdateWrapper<XunyeeVcuser> wrapper=new UpdateWrapper<>();
+        wrapper.eq("id",userId).set("cover","");
+        boolean isUpdate=new XunyeeVcuser().update(wrapper);
+        if(isUpdate){
             return R.OK();
         }
         return R.ERROR("封面图上传失败");

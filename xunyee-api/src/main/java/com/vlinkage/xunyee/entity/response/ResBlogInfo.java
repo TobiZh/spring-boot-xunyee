@@ -24,7 +24,7 @@ public class ResBlogInfo {
     @JsonFormat(pattern="MM月dd日HH:mm",timezone = "GMT+8")
     private Date created;
 
-    @ApiModelProperty("0 关注 1 已关注 2 回关 3 互相关注")
+    @ApiModelProperty("0 关注 1 回关 2 已关注 3 互相关注")
     private int follow_type;
 
     @ApiModelProperty("动态id")

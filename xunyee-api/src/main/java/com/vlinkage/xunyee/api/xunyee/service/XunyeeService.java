@@ -22,6 +22,7 @@ import com.vlinkage.xunyee.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -1265,5 +1266,19 @@ public class XunyeeService {
         }else{
             return R.ERROR("type:[1,2]");
         }
+    }
+
+    public R<ResAppVersion> appVersionCheck(int version_code) {
+        QueryWrapper<XunyeeAppVersion> qw=new QueryWrapper<>();
+        qw.gt("version_code",version_code);
+        qw.orderByDesc("version_code");
+        qw.last("limit 1");
+        XunyeeAppVersion appVersion=new XunyeeAppVersion().selectOne(qw);
+        if(appVersion==null){
+            return R.ERROR("您当前已是最新版本");
+        }
+        appVersion.setApk_download_url(imagePath+ appVersion.getApk_download_url());
+        ResAppVersion resAppVersion=BeanUtil.copyProperties(appVersion,ResAppVersion.class);
+        return R.OK(resAppVersion);
     }
 }

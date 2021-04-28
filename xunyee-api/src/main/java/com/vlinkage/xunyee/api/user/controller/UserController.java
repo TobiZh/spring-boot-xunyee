@@ -88,7 +88,7 @@ public class UserController {
 
     @ApiOperation("上传封面图")
     @PostMapping("cover")
-    public R<ResMine> uploadCover(HttpServletRequest request,@RequestParam("file") MultipartFile file) throws IOException {
+    public R uploadCover(HttpServletRequest request,@RequestParam("file") MultipartFile file) throws IOException {
         int userId=UserUtil.getUserId(request);
         return userService.uploadCover(userId,file);
     }
@@ -96,7 +96,7 @@ public class UserController {
 
     @ApiOperation("默认封面图")
     @PostMapping("cover/default")
-    public R<ResMine> uploadCoverDefault(HttpServletRequest request) {
+    public R uploadCoverDefault(HttpServletRequest request) {
         int userId=UserUtil.getUserId(request);
         return userService.uploaduploadCoverDefaultCover(userId);
     }
