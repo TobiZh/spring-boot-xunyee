@@ -32,7 +32,7 @@ public class ResUserInfoOhter {
     @ApiModelProperty("是不是会员")
     private Boolean is_vip;
 
-    @ApiModelProperty("关注类型 0 未关注， 1 已关注，2 回关，3 互相关注")
+    @ApiModelProperty("关注类型 0 关注， 1 回关，2 已关注，3 互相关注")
     private int follow_type;
 
     @ApiModelProperty("用户封面图")

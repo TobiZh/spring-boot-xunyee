@@ -69,19 +69,23 @@ public class UserService {
         List<String> personList=new ArrayList<>();
         if (mine_vcuser_id!=null||mine_vcuser_id!=userId){
             // ===============  我是否以前关注过该用户  ====================
-            //我是否关注过对方
-            QueryWrapper fqw=new QueryWrapper();
-            fqw.eq("followed_vcuser_id",userId);
-            fqw.eq("vcuser_id",mine_vcuser_id);
-            fqw.eq("status",1);
-            XunyeeFollow xunyeeFollow=new XunyeeFollow().selectOne(fqw);
 
             //对方是否关注了我
             QueryWrapper tqw=new QueryWrapper();
-            tqw.eq("followed_vcuser_id",mine_vcuser_id);
             tqw.eq("vcuser_id",userId);
+            tqw.eq("followed_vcuser_id",mine_vcuser_id);
             tqw.eq("status",1);
             XunyeeFollow tFollow=new XunyeeFollow().selectOne(tqw);
+
+            // 关注状态
+            QueryWrapper foqw=new QueryWrapper();
+            foqw.eq("vcuser_id",userId);
+            foqw.eq("followed_vcuser_id",mine_vcuser_id);
+            foqw.eq("status",1);
+            XunyeeFollow follow=new XunyeeFollow().selectOne(foqw);
+            if (follow!=null){
+                follow_type=follow.getType();
+            }
 
             // ===============  我是否以前关注过该用户  ====================
 
