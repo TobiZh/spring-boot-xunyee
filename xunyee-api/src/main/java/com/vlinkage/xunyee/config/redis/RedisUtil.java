@@ -107,6 +107,20 @@ public class RedisUtil {
     }
 
     /**
+     * 将值 value 关联到 key ，并将 key 的过期时间设为 timeout
+     *
+     * @param key
+     * @param value
+     * @param timeout 过期时间
+     * @param unit    时间单位, 天:TimeUnit.DAYS 小时:TimeUnit.HOURS 分钟:TimeUnit.MINUTES
+     *                秒:TimeUnit.SECONDS 毫秒:TimeUnit.MILLISECONDS
+     */
+    public void setEx(String key, String value, long timeout, TimeUnit unit) {
+        redisTemplate.opsForValue().set(key, value, timeout, unit);
+    }
+
+
+    /**
      * 普通缓存放入并设置时间
      * @param key 键
      * @param value 值
@@ -594,6 +608,60 @@ public class RedisUtil {
     }
 
     //=========BoundListOperations 用法 End============
+
+
+
+
+
+
+    /**
+     * 删除一个或多个哈希表字段
+     *
+     * @param key
+     * @param fields
+     * @return
+     */
+    public Long hDelete(String key, Object... fields) {
+        return redisTemplate.opsForHash().delete(key, fields);
+    }
+
+    /**
+     * 查看哈希表 key 中，指定的字段是否存在
+     *
+     * @param key
+     * @param field
+     * @return
+     */
+    public boolean hExists(String key, String field) {
+        return redisTemplate.opsForHash().hasKey(key, field);
+    }
+
+    /**
+     * 为哈希表 key 中的指定字段的整数值加上增量 increment
+     *
+     * @param key
+     * @param field
+     * @param increment
+     * @return
+     */
+    public Long hIncrBy(String key, Object field, long increment) {
+        return redisTemplate.opsForHash().increment(key, field, increment);
+    }
+
+    /**
+     * 获取存储在哈希表中指定字段的值
+     *
+     * @param key
+     * @param field
+     * @return
+     */
+    public Object hGet(String key, String field) {
+        return redisTemplate.opsForHash().get(key, field);
+    }
+
+    public void hPut(String key, String hashKey, String value) {
+        redisTemplate.opsForHash().put(key, hashKey, value);
+    }
 
 }
 

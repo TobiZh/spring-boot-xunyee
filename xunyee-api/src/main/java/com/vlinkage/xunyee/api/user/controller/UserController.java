@@ -1,7 +1,7 @@
 package com.vlinkage.xunyee.api.user.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.api.user.service.UserService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;

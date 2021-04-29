@@ -1,6 +1,6 @@
-package com.vlinkage.common.entity.result;
+package com.vlinkage.xunyee.entity.result;
 
-import com.vlinkage.common.entity.result.code.ResultCode;
+import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import lombok.Data;
 
 @Data

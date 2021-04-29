@@ -1,4 +1,4 @@
-package com.vlinkage.common.entity.result.code;
+package com.vlinkage.xunyee.entity.result.code;
 
 import lombok.Getter;
 

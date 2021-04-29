@@ -1,7 +1,7 @@
 package com.vlinkage.xunyee.exception;
 
-import com.vlinkage.common.entity.result.R;
-import com.vlinkage.common.entity.result.code.ResultCode;
+import com.vlinkage.xunyee.entity.result.R;
+import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.springframework.http.HttpStatus;
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public R handleBusinessException(BusinessException e, HttpServletRequest request) {
-        log.warn("URL:{} ,业务异常:{}", request.getRequestURI(),e.getMsg());
+        log.error("URL:{} ,业务异常:{}", request.getRequestURI(),e.getMsg());
         return R.ERROR(e.getCode(),e.getMsg());
     }
 
@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     public R BindExceptionHandler(BindException e,HttpServletRequest request){
         String msgs = this.handle(e.getBindingResult().getFieldErrors());
-        log.warn("URL:{} ,参数校验异常B:{}", request.getRequestURI(),msgs);
+        log.error("URL:{} ,参数校验异常B:{}", request.getRequestURI(),msgs);
         return R.ERROR(msgs);
     }
 
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public R handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest request) {
         String msgs = this.handle(e.getBindingResult().getFieldErrors());
-        log.warn("URL:{} ,参数校验异常M:{}", request.getRequestURI(),msgs);
+        log.error("URL:{} ,参数校验异常M:{}", request.getRequestURI(),msgs);
         return R.ERROR(ResultCode.PARAM_IS_INVALID,e.getClass().getName()+":--->"+msgs);
     }
  
@@ -77,8 +77,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public R illegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
-        log.warn("URL:{} ,业务校验异常:{}", request.getRequestURI(),e);
-        return R.ERROR(4000,e.getClass().getName()+":--->"+e.getMessage());
+        log.error("URL:{} ,业务校验异常:{}", request.getRequestURI(),e);
+        return R.ERROR(-1,e.getClass().getName()+":--->"+e.getMessage());
     }
 
     /**
@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PersistenceException.class)
     public R persistenceException(PersistenceException e, HttpServletRequest request) {
 
-        log.warn("URL:{} ,参数校验异常M:{}", request.getRequestURI(),e.getMessage());
+        log.error("URL:{} ,参数校验异常M:{}", request.getRequestURI(),e.getMessage());
         return R.ERROR(-1,e.getClass().getName()+":--->"+e.getMessage());
     }
 }

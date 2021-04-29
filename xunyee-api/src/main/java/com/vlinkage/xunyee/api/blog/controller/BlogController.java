@@ -1,8 +1,8 @@
 package com.vlinkage.xunyee.api.blog.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.vlinkage.common.entity.result.R;
-import com.vlinkage.common.entity.result.code.ResultCode;
+import com.vlinkage.xunyee.entity.result.R;
+import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.blog.service.BlogService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
@@ -11,16 +11,12 @@ import com.vlinkage.xunyee.entity.response.ResBlogPage;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 @Api(tags = "动态相关")
 @RequestMapping("blog")

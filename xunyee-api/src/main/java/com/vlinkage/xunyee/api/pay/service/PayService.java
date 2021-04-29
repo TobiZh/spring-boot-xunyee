@@ -16,7 +16,7 @@ import com.vlinkage.ant.xunyee.entity.XunyeeBenefitPrice;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefit;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefitPayorder;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
-import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.config.weixin.WxMpProperties;
 import com.vlinkage.xunyee.config.weixin.WxPayProperties;
 import com.vlinkage.xunyee.utils.weixin.WeiXinUtil;

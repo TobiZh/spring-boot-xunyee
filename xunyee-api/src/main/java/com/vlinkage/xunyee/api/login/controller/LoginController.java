@@ -1,6 +1,6 @@
 package com.vlinkage.xunyee.api.login.controller;
 
-import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.api.login.service.LoginService;
 import com.vlinkage.xunyee.config.weixin.WxMaProperties;
 import com.vlinkage.xunyee.config.weixin.WxMpProperties;
@@ -12,7 +12,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import javax.validation.constraints.NotNull;
 
 @Api(tags = "登录注销")
 @RestController

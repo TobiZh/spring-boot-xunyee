@@ -1,6 +1,6 @@
 package com.vlinkage.xunyee.exception;
 
-import com.vlinkage.common.entity.result.code.ResultCode;
+import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import lombok.Data;
 
 /**

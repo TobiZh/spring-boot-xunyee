@@ -1,7 +1,7 @@
 package com.vlinkage.xunyee.api.vdata.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.api.vdata.service.VdataService;
 import com.vlinkage.xunyee.entity.request.ReqReportPersonRptTrend;
 import com.vlinkage.xunyee.entity.request.ReqReportTeleplayRptTrend;
@@ -11,7 +11,6 @@ import com.vlinkage.xunyee.jwt.PassToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

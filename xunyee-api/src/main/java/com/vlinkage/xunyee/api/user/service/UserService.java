@@ -1,7 +1,6 @@
 package com.vlinkage.xunyee.api.user.service;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -9,7 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserMapper;
-import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.api.common.service.CommonService;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
@@ -20,7 +19,6 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;

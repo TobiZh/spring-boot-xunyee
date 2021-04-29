@@ -12,11 +12,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <dependency>
-            <groupId>com.vlinkage</groupId>
-            <artifactId>xunyee-common</artifactId>
-            <version>1.0.0</version>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -42,6 +37,12 @@
         </dependency>
         <!-- springboot 缓存 -->
 
+        <!-- redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- redis -->
 
         <!-- mongodb -->
         <dependency>

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.meta.entity.Teleplay;
 import com.vlinkage.ant.meta.entity.Zy;
-import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.entity.request.ReqReportPersonRptTrend;
 import com.vlinkage.xunyee.entity.request.ReqReportTeleplayRptTrend;

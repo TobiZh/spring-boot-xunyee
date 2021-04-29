@@ -1,6 +1,6 @@
 package com.vlinkage.xunyee.api.common.service;
 
-import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.config.QiNiuYunConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

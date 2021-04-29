@@ -9,8 +9,8 @@ import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.star.entity.SdbPersonGallery;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
-import com.vlinkage.common.entity.result.R;
-import com.vlinkage.common.entity.result.code.ResultCode;
+import com.vlinkage.xunyee.entity.result.R;
+import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.pay.service.PayService;
 import com.vlinkage.xunyee.api.star.service.StarService;
@@ -18,14 +18,13 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
-import com.vlinkage.xunyee.utils.*;
+import com.vlinkage.xunyee.utils.CopyListUtil;
+import com.vlinkage.xunyee.utils.DateUtil;
+import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -40,8 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -72,6 +69,9 @@ public class XunyeeService {
 
 
     public R<ResPic> getAdLaunch(ReqPic req) {
+
+        log.info("我记录日志了");
+
         LocalDateTime nowDate = LocalDateTime.now();
 
         QueryWrapper qw = new QueryWrapper();

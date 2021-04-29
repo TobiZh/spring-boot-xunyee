@@ -1,7 +1,7 @@
 package com.vlinkage.xunyee.api.xunyee.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.vlinkage.common.entity.result.R;
+import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
@@ -10,7 +10,6 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
