@@ -94,14 +94,15 @@ public interface MyMapper {
      * @param vcuser_id
      * @return
      */
-    @Select({"<script>SELECT f.id,f.type,u.id vcuser_id,u.bio,u.avatar,u.nickname FROM xunyee_follow f LEFT JOIN xunyee_vcuser u " +
+    @Select({"<script>SELECT f.id,f.type,u.id vcuser_id,u.bio,u.avatar,u.nickname FROM xunyee_follow f,xunyee_vcuser u " +
+            "WHERE f.status=1 " +
             "<when test='type==1' >",
-            " on f.followed_vcuser_id=u.id where f.vcuser_id=${vcuser_id}",
+            "AND f.followed_vcuser_id=u.id AND f.vcuser_id=${vcuser_id} ",
             "</when>",
             "<when test='type==2' >",
-            " on f.vcuser_id=u.id where f.followed_vcuser_id=${vcuser_id}",
+            "AND f.vcuser_id=u.id AND f.followed_vcuser_id=${vcuser_id} ",
             "</when>",
-            " order by f.updated desc</script>"})
+            "ORDER BY f.updated DESC</script>"})
     IPage<ResFollowPage> selectFollowPage(Page page, Integer type, Integer vcuser_id);
 
 

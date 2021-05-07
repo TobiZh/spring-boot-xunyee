@@ -697,7 +697,9 @@ public class XunyeeService {
         }
 
         // 当前艺人今日签到数
-        ResMonPersonCheckCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person).andOperator(Criteria.where("data_time").gte(gteDate).lt(ltDate))), ResMonPersonCheckCount.class);
+        ResMonPersonCheckCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person)
+                .andOperator(Criteria.where("data_time").gte(gteDate).lt(ltDate))),
+                ResMonPersonCheckCount.class);
         if (personCheckCount != null) {
             info.setCheck(person);
         }

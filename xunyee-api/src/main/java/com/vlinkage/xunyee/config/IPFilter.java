@@ -12,11 +12,11 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-
+//
 @Slf4j
-@Order(0)
-@Component
-@WebFilter(filterName = "IPFilter", urlPatterns = "/*")
+//@Order(0)
+//@Component
+//@WebFilter(filterName = "IPFilter", urlPatterns = "/*")
 public class IPFilter implements Filter {
 
     //单位时间内最大访问数
