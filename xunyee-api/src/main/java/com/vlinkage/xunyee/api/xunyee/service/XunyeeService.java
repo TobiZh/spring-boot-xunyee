@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.binarywang.wxpay.bean.order.WxPayAppOrderResult;
 import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.star.entity.SdbPersonGallery;
@@ -124,6 +125,9 @@ public class XunyeeService {
         qw.eq("is_enabled", 1);
         List<XunyeeNavigation> navigation = new XunyeeNavigation().selectList(qw);
         List<ResNavigation> resNavigations = CopyListUtil.copyListProperties(navigation, ResNavigation.class);
+        for (ResNavigation resNavigation : resNavigations) {
+            resNavigation.setIcon(imagePath+resNavigation.getIcon());
+        }
         return R.OK(resNavigations);
     }
 
@@ -697,9 +701,9 @@ public class XunyeeService {
         }
 
         // 当前艺人今日签到数
-        ResMonPersonCheckCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person)
+        ResMonPersonCheckCountCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person)
                 .andOperator(Criteria.where("data_time").gte(gteDate).lt(ltDate))),
-                ResMonPersonCheckCount.class);
+                ResMonPersonCheckCountCount.class);
         if (personCheckCount != null) {
             info.setCheck(person);
         }
@@ -860,15 +864,14 @@ public class XunyeeService {
 
     }
 
-    public R vcuserBenefitPayOrderSubmit(HttpServletRequest request, int userId, ReqBenefitPayOrder req) {
+    public R<WxPayAppOrderResult> vcuserBenefitPayOrderSubmit(HttpServletRequest request, int userId, ReqBenefitPayOrder req) {
         int site = req.getSite();
 
         XunyeeBenefitPrice price = new XunyeeBenefitPrice().selectById(req.getBenefit_price());
         if (price == null) {
             return R.ERROR("您购买的会员服务不存在");
         }
-
-        long orderNo = Long.parseLong(OrderCodeFactory.getSimpleOrderCode((long) userId));
+        // 生成一条付款记录 状态是未支付
         XunyeeVcuserBenefitPayorder payorder = new XunyeeVcuserBenefitPayorder();
         payorder.setVcuser_id(userId);
         payorder.setBenefit_price_id(price.getId());
@@ -876,8 +879,8 @@ public class XunyeeService {
         payorder.setQuantity(price.getQuantity());
         payorder.setSite(site);
         payorder.setPrice(price.getPrice());
-        payorder.setRel_order_id(orderNo);
-
+        String orderNo = OrderCodeFactory.getOrderCode((long) userId);
+        payorder.setSite_transaction_id(orderNo);
         Date nowDate = new Date();
         payorder.setUpdated(nowDate);
         payorder.setCreated(nowDate);
@@ -1270,9 +1273,12 @@ public class XunyeeService {
         }
     }
 
-    public R<ResAppVersion> appVersionCheck(int version_code) {
+    public R<ResAppVersion> appVersionCheck(Integer version_code) {
         QueryWrapper<XunyeeAppVersion> qw=new QueryWrapper<>();
-        qw.gt("version_code",version_code);
+
+        if(version_code!=null){
+            qw.gt("version_code",version_code);
+        }
         qw.orderByDesc("version_code");
         qw.last("limit 1");
         XunyeeAppVersion appVersion=new XunyeeAppVersion().selectOne(qw);

@@ -116,20 +116,20 @@ public class OrderCodeFactory {
     public static String getSimpleOrderCode(Long userId){
         StringBuffer stringBuffer = new StringBuffer(userId.toString());
         //id长度大于4  取后四位
-        if(stringBuffer.length()>8){
+        if(stringBuffer.length()>10){
             stringBuffer = new StringBuffer(stringBuffer.substring(stringBuffer.length()-8,stringBuffer.length()));
         }
         //长度小于4  补全4位
-        while (stringBuffer.length()<8){
+        while (stringBuffer.length()<10){
             stringBuffer.insert(0,"0");
         }
-        return RandomUtil.randomNumbers(6)+stringBuffer.toString();
+        return RandomUtil.randomNumbers(12)+stringBuffer.toString();
     }
 
 
     public static void main(String[] args) {
         for (int i = 0; i < 10; i++) {
-            System.out.println(getSimpleOrderCode(7635l));
+            System.out.println(getSimpleOrderCode(976351234l));
         }
 
     }

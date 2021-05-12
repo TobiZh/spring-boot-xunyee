@@ -36,7 +36,7 @@ spring:
 
 xunyee:
   config:
-    host: http://wx.xunyee.cn
+    host: http://luobin.iask.in
 
 
 logging:

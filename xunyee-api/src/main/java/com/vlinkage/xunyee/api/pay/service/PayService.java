@@ -1,9 +1,12 @@
 package com.vlinkage.xunyee.api.pay.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.binarywang.wxpay.bean.WxPayApiData;
 import com.github.binarywang.wxpay.bean.notify.WxPayNotifyResponse;
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
+import com.github.binarywang.wxpay.bean.order.WxPayAppOrderResult;
 import com.github.binarywang.wxpay.bean.request.BaseWxPayRequest;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest;
 import com.github.binarywang.wxpay.bean.result.WxPayUnifiedOrderResult;
@@ -50,8 +53,8 @@ public class PayService {
     @Resource
     private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
 
-    // ===========================  商品支付  ===================================
-    public R payBenefit(HttpServletRequest request, XunyeeVcuserBenefitPayorder order) {
+    // ===========================  商品支付 app  ===================================
+    public R<WxPayAppOrderResult> payBenefit(HttpServletRequest request, XunyeeVcuserBenefitPayorder order) {
 
         if (order.getIs_paid()) {
             return R.ERROR("该订单无需支付");
@@ -64,7 +67,7 @@ public class PayService {
             WxPayUnifiedOrderRequest orderRequest = new WxPayUnifiedOrderRequest();
             orderRequest.setBody("寻艺会员");
 
-            orderRequest.setOutTradeNo(String.valueOf(order.getRel_order_id()));//商户订单号
+            orderRequest.setOutTradeNo(order.getSite_transaction_id());//商户订单号
             orderRequest.setTotalFee(BaseWxPayRequest.yuanToFen(String.valueOf(order.getPrice())));//元转成分
             orderRequest.setNonceStr(WeiXinUtil.getRandomStringByLength(32));//随机字符串
             orderRequest.setSpbillCreateIp(WeiXinUtil.getIpAddr(request));//ip地址
@@ -79,10 +82,13 @@ public class PayService {
             // ------------------- 微信支付的参数配置 -------------------
             WxPayService wxPayService = new WxPayServiceImpl();
             wxPayService.setConfig(payConfig);
-            WxPayUnifiedOrderResult result = wxPayService.createOrder(orderRequest);
+            // 创建一个app支付
+            WxPayAppOrderResult result = wxPayService.createOrder(orderRequest);
+
+            log.error("微信支付成功:{}",JSONObject.toJSONString(result));
             return R.OK(result);
         } catch (Exception e) {
-            log.error("微信支付失败！订单号：{},原因:{}", order.getRel_order_id(), e.getMessage());
+            log.error("微信支付失败！订单号：{},原因:{}", order.getSite_transaction_id(), e.getMessage());
             e.printStackTrace();
             return R.ERROR(e.getMessage());
         }
@@ -96,8 +102,8 @@ public class PayService {
         BigDecimal totalFee = BigDecimal.valueOf(notifyResult.getTotalFee()).divide(new BigDecimal(100));
 
 
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("rel_order_id", outTradeNo);
+        LambdaQueryWrapper<XunyeeVcuserBenefitPayorder> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeVcuserBenefitPayorder::getSite_transaction_id, outTradeNo);
         XunyeeVcuserBenefitPayorder order = new XunyeeVcuserBenefitPayorder().selectOne(qw);
         if (order != null) {
             Date date = new Date();

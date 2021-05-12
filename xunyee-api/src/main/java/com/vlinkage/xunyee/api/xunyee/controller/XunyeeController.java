@@ -1,6 +1,7 @@
 package com.vlinkage.xunyee.api.xunyee.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.github.binarywang.wxpay.bean.order.WxPayAppOrderResult;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
@@ -229,7 +230,7 @@ public class XunyeeController {
 
     @ApiOperation("微信支付统一下单")
     @PostMapping("vcuser_benefit_payorder/submit")
-    public R vcuserBenefitPayOrderSubmit(HttpServletRequest request,@Valid ReqBenefitPayOrder req){
+    public R<WxPayAppOrderResult> vcuserBenefitPayOrderSubmit(HttpServletRequest request, @Valid ReqBenefitPayOrder req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserBenefitPayOrderSubmit(request,userId,req);
     }
@@ -264,7 +265,7 @@ public class XunyeeController {
     @ApiOperation("寻艺app检查更新")
     @PassToken
     @GetMapping("version/check")
-    public R<ResAppVersion> appVersionCheck(int version_code) {
+    public R<ResAppVersion> appVersionCheck(Integer version_code) {
 
         return xunyeeService.appVersionCheck(version_code);
     }
