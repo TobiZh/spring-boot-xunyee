@@ -85,7 +85,7 @@ public class PayService {
             // 创建一个app支付
             WxPayAppOrderResult result = wxPayService.createOrder(orderRequest);
 
-            log.error("微信支付成功:{}",JSONObject.toJSONString(result));
+            log.info("微信支付成功:{}",JSONObject.toJSONString(result));
             return R.OK(result);
         } catch (Exception e) {
             log.error("微信支付失败！订单号：{},原因:{}", order.getSite_transaction_id(), e.getMessage());
@@ -106,23 +106,25 @@ public class PayService {
         qw.eq(XunyeeVcuserBenefitPayorder::getSite_transaction_id, outTradeNo);
         XunyeeVcuserBenefitPayorder order = new XunyeeVcuserBenefitPayorder().selectOne(qw);
         if (order != null) {
+            if (order.getIs_paid()){
+                return WxPayNotifyResponse.success("此订单已经支付过了");
+            }
+
             Date date = new Date();
-            order.setSite_transaction_id(transactionId);
+            //order.setSite_transaction_id(transactionId);
             order.setUpdated(date);
             order.setIs_paid(true);
             if (order.updateById()) {
                 int userId=order.getVcuser_id();
                 int plusDays = order.getQuantity();
 
-
                 XunyeeBenefitPrice benefitPrice=new XunyeeBenefitPrice().selectById(order.getBenefit_price_id());
                 int benefitId=benefitPrice.getBenefit_id();
 
-
                 LocalDate nowDate = LocalDate.now();
-                QueryWrapper bqw = new QueryWrapper();
-                bqw.eq("vcuser_id", userId);
-                bqw.ge("finish_time", nowDate);// <=
+                LambdaQueryWrapper<XunyeeVcuserBenefit> bqw = new LambdaQueryWrapper<>();
+                bqw.eq(XunyeeVcuserBenefit::getVcuser_id, userId);
+                bqw.le(XunyeeVcuserBenefit::getFinish_time, nowDate);
                 XunyeeVcuserBenefit temp = new XunyeeVcuserBenefit().selectOne(bqw);
 
                 if (temp == null) {
@@ -138,7 +140,6 @@ public class PayService {
                         return WxPayNotifyResponse.fail("支付失败");
                     }
                 } else {
-
                     // 这里使用xunyeeVcuserBenefitMapper 是因为 pgsql的主键使用的是uuid类型，不能updateById;
                     QueryWrapper updateQw = new QueryWrapper();
                     updateQw.eq("id", UUID.fromString(temp.getId()));
@@ -149,13 +150,11 @@ public class PayService {
                         return WxPayNotifyResponse.fail("支付失败");
                     }
                 }
-
-
                 return WxPayNotifyResponse.success("成功");
             }
         }
         log.info("查不到订单号{}", JSONObject.toJSONString(outTradeNo));
-        return WxPayNotifyResponse.fail("支付失败");
+        return WxPayNotifyResponse.fail("查不到订单号");
     }
     // ===========================  商品支付  ===================================
 }

@@ -1,6 +1,7 @@
 package com.vlinkage.xunyee.api.xunyee.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -70,9 +71,6 @@ public class XunyeeService {
 
 
     public R<ResPic> getAdLaunch(ReqPic req) {
-
-        log.info("我记录日志了");
-
         LocalDateTime nowDate = LocalDateTime.now();
 
         QueryWrapper qw = new QueryWrapper();
@@ -367,8 +365,9 @@ public class XunyeeService {
         List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)), ResMonUserPersonCheck.class);
 
 
-//        // 查询当前用户关注的艺人和今年签到的天数
-//        List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)), ResMonUserPersonCheck.class);
+        // 查询当前用户关注的艺人和今年签到的天数
+
+        //List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)), ResMonUserPersonCheck.class);
 
 
         // 组装数据
@@ -512,10 +511,10 @@ public class XunyeeService {
         LocalDate gteDate = LocalDate.now(); // >=
         LocalDate ltDate = gteDate.plusDays(1); // <; // <
 
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("vcuser_id", userId);
-        qw.ge("start_time", gteDate);//<=
-        qw.lt("finish_time", ltDate);// >
+        LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId);
+        qw.ge(XunyeeVcuserBenefit::getStart_time, gteDate);//<=
+        qw.lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
         XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
 
         // 查询当前用户关注的艺人和当天签到数
@@ -553,6 +552,15 @@ public class XunyeeService {
         }
 
 
+        Update upUpdate = new Update();
+        upUpdate.set("person", personId);
+        upUpdate.set("updated", LocalDateTime.now());
+        upUpdate.set("is_enabled",true);
+        UpdateResult upResult = mongoTemplate.upsert(Query.query(Criteria.where("vcuser").is(userId)
+                        .and("data_time").is(LocalDate.now())),
+                upUpdate,
+                "vc_user__person");
+
         Update pUpdate = new Update();
         pUpdate.set("person", personId);
         pUpdate.set("data_time", LocalDateTime.now());
@@ -563,7 +571,6 @@ public class XunyeeService {
                 "person__check__count");
 
         // 更新真爱排行
-
         Update update = new Update();
         update.set("vcuser", userId);
         update.set("person", personId);
@@ -885,7 +892,7 @@ public class XunyeeService {
         payorder.setUpdated(nowDate);
         payorder.setCreated(nowDate);
         if (payorder.insert()) {
-            return R.OK(payService.payBenefit(request, payorder));
+            return payService.payBenefit(request, payorder);
         }
         return R.ERROR("下单失败");
     }
