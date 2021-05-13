@@ -1,6 +1,7 @@
 package com.vlinkage.xunyee.api.user.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -18,6 +19,7 @@ import com.vlinkage.xunyee.entity.request.ReqUserReport;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
+import com.vlinkage.xunyee.utils.ImageHostUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,8 +42,8 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    @Value("${sys-config.image-path}")
-    private String imagePath;
+    @Autowired
+    private ImageHostUtil imageHostUtil;
 
     @Autowired
     private MyMapper myMapper;
@@ -62,27 +64,20 @@ public class UserService {
 
     public R<ResUserInfoOhter> other(Integer mine_vcuser_id, Integer userId) {
 
-        XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
-        int follow_type=0;
-        List<String> personList=new ArrayList<>();
-        if (mine_vcuser_id!=null||mine_vcuser_id!=userId){
+        XunyeeVcuser vcuser = new XunyeeVcuser().selectById(userId);
+        int follow_type = 0;
+        List<String> personList = new ArrayList<>();
+        if (mine_vcuser_id != null || mine_vcuser_id != userId) {
             // ===============  我是否以前关注过该用户  ====================
 
-            //对方是否关注了我
-            QueryWrapper tqw=new QueryWrapper();
-            tqw.eq("vcuser_id",userId);
-            tqw.eq("followed_vcuser_id",mine_vcuser_id);
-            tqw.eq("status",1);
-            XunyeeFollow tFollow=new XunyeeFollow().selectOne(tqw);
-
             // 关注状态
-            QueryWrapper foqw=new QueryWrapper();
-            foqw.eq("vcuser_id",userId);
-            foqw.eq("followed_vcuser_id",mine_vcuser_id);
-            foqw.eq("status",1);
-            XunyeeFollow follow=new XunyeeFollow().selectOne(foqw);
-            if (follow!=null){
-                follow_type=follow.getType();
+            LambdaQueryWrapper<XunyeeFollow> foqw = new LambdaQueryWrapper<>();
+            foqw.eq(XunyeeFollow::getVcuser_id, userId)
+                    .eq(XunyeeFollow::getFollowed_vcuser_id, mine_vcuser_id)
+                    .eq(XunyeeFollow::getStatus, 1);
+            XunyeeFollow follow = new XunyeeFollow().selectOne(foqw);
+            if (follow != null) {
+                follow_type = follow.getType();
             }
 
             // ===============  我是否以前关注过该用户  ====================
@@ -103,9 +98,9 @@ public class UserService {
             List<Integer> personIdsMine = resMGsMine.stream().map(e -> e.getPerson()).collect(Collectors.toList());
             List<Integer> intersection = personIds.stream().filter(item -> personIdsMine.contains(item)).collect(Collectors.toList());
 
-            if (intersection.size()>0){
+            if (intersection.size() > 0) {
                 // 查询数据库艺人信息
-                Integer[] personIdArr=new Integer[intersection.size()];
+                Integer[] personIdArr = new Integer[intersection.size()];
                 List<Person> persons = metaService.getPerson(personIdArr);
                 for (Person person : persons) {
                     personList.add(person.getZh_name());
@@ -119,31 +114,31 @@ public class UserService {
         LocalDate gteDate = LocalDate.now(); // >=
         LocalDate ltDate = gteDate.plusDays(1); // <; // <
 
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("vcuser_id", userId);
-        qw.ge("start_time", gteDate);//<=
-        qw.lt("finish_time", ltDate);// >
+        LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper();
+        qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
+                .ge(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
+                .lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
         XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
-        boolean is_vip=vcuserBenefit==null;
+        boolean is_vip = vcuserBenefit == null;
         // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================
-        QueryWrapper fqw=new QueryWrapper();
-        fqw.eq("vcuser_id",userId);
-        fqw.eq("status",1);
-        int follow_count=new XunyeeFollow().selectCount(fqw);
+        LambdaQueryWrapper<XunyeeFollow> fqw = new LambdaQueryWrapper<>();
+        fqw.eq(XunyeeFollow::getVcuser_id, userId)
+                .eq(XunyeeFollow::getStatus, 1);
+        int follow_count = new XunyeeFollow().selectCount(fqw);
         // ===============  我的关注  ====================
 
         // ===============  我的粉丝  ====================
-        QueryWrapper tqw=new QueryWrapper();
-        tqw.eq("followed_vcuser_id",userId);
-        tqw.eq("status",1);
-        int fans_count=new XunyeeFollow().selectCount(tqw);
+        LambdaQueryWrapper<XunyeeFollow> tqw = new LambdaQueryWrapper<>();
+        tqw.eq(XunyeeFollow::getFollowed_vcuser_id, userId)
+                .eq(XunyeeFollow::getStatus, 1);
+        int fans_count = new XunyeeFollow().selectCount(tqw);
         // ===============  我的粉丝  ====================
 
         // ===============  我的点赞  ====================
-        String sql="SELECT COALESCE(sum(star_count),0) star_count FROM xunyee_blog where vcuser_id="+userId;
-        int star_count=jdbcTemplate.queryForObject(sql,int.class);
+        String sql = "SELECT COALESCE(sum(star_count),0) star_count FROM xunyee_blog where vcuser_id=" + userId;
+        int star_count = jdbcTemplate.queryForObject(sql, int.class);
         // ===============  我的点赞  ====================
 
 
@@ -155,13 +150,12 @@ public class UserService {
         // ===============  我的爱豆数量  ====================
 
 
-
-        ResUserInfoOhter resMine=new ResUserInfoOhter();
+        ResUserInfoOhter resMine = new ResUserInfoOhter();
         resMine.setVcuser_id(userId);
 
-        resMine.setAvatar(vcuser.getAvatar());
+        resMine.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
         resMine.setNickname(vcuser.getNickname());
-        resMine.setCover(vcuser.getCover());
+        resMine.setCover(imageHostUtil.absImagePath(vcuser.getCover()));
         resMine.setFans_count(fans_count);
         resMine.setFollow_count(follow_count);
         resMine.setFollow_type(follow_type);
@@ -175,7 +169,7 @@ public class UserService {
 
 
     public R<ResMine> getUser(int userId) {
-        XunyeeVcuser vcuser=new XunyeeVcuser().selectById(userId);
+        XunyeeVcuser vcuser = new XunyeeVcuser().selectById(userId);
 
         // ===============  是不是会员  ====================
         LocalDate gteDate = LocalDate.now(); // >=
@@ -186,26 +180,26 @@ public class UserService {
         qw.ge("start_time", gteDate);//<=
         qw.lt("finish_time", ltDate);// >
         XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
-        boolean is_vip=vcuserBenefit==null;
+        boolean is_vip = vcuserBenefit == null;
         // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================
-        QueryWrapper fqw=new QueryWrapper();
-        fqw.eq("vcuser_id",userId);
-        fqw.eq("status",1);
-        int follow_count=new XunyeeFollow().selectCount(fqw);
+        QueryWrapper fqw = new QueryWrapper();
+        fqw.eq("vcuser_id", userId);
+        fqw.eq("status", 1);
+        int follow_count = new XunyeeFollow().selectCount(fqw);
         // ===============  我的关注  ====================
 
         // ===============  我的粉丝  ====================
-        QueryWrapper tqw=new QueryWrapper();
-        tqw.eq("followed_vcuser_id",userId);
-        tqw.eq("status",1);
-        int fans_count=new XunyeeFollow().selectCount(tqw);
+        QueryWrapper tqw = new QueryWrapper();
+        tqw.eq("followed_vcuser_id", userId);
+        tqw.eq("status", 1);
+        int fans_count = new XunyeeFollow().selectCount(tqw);
         // ===============  我的粉丝  ====================
 
         // ===============  我的点赞  ====================
-        String sql="SELECT COALESCE(sum(star_count),0) star_count FROM xunyee_blog where vcuser_id="+userId;
-        int star_count=jdbcTemplate.queryForObject(sql,int.class);
+        String sql = "SELECT COALESCE(sum(star_count),0) star_count FROM xunyee_blog where vcuser_id=" + userId;
+        int star_count = jdbcTemplate.queryForObject(sql, int.class);
         // ===============  我的点赞  ====================
 
         // ===============  我的爱豆  ====================
@@ -222,14 +216,14 @@ public class UserService {
                 .toArray(new Integer[resMGs.size()]);
         // 查询数据库艺人信息
         List<Person> persons = personIds.length > 0 ? metaService.getPerson(personIds) : new ArrayList<>();
-        List<String> avatarList=new ArrayList<>();
+        List<String> avatarList = new ArrayList<>();
         for (Person person : persons) {
-            avatarList.add(imagePath+person.getAvatar_custom());
+            avatarList.add(imageHostUtil.absImagePath(person.getAvatar_custom()));
         }
         // ===============  我的爱豆  ====================
 
 
-        ResMine resMine=new ResMine();
+        ResMine resMine = new ResMine();
         resMine.setVcuser_id(vcuser.getId());
         resMine.setAvatar(vcuser.getAvatar());
         resMine.setNickname(vcuser.getNickname());
@@ -243,40 +237,40 @@ public class UserService {
     }
 
     public R editUser(int userId, ReqUserInfo req) {
-        XunyeeVcuser vcuser=new XunyeeVcuser();
-        if (StringUtils.isNotEmpty(req.getBio())){
+        XunyeeVcuser vcuser = new XunyeeVcuser();
+        if (StringUtils.isNotEmpty(req.getBio())) {
             vcuser.setBio(req.getBio());
         }
 
-        if (StringUtils.isNotEmpty(req.getNickname())){
+        if (StringUtils.isNotEmpty(req.getNickname())) {
             vcuser.setNickname(req.getNickname());
         }
 
-        if (StringUtils.isNotEmpty(req.getAvatar())){
+        if (StringUtils.isNotEmpty(req.getAvatar())) {
             vcuser.setAvatar(req.getAvatar());
         }
 
-        if (StringUtils.isNotEmpty(req.getWx_avatar())){
+        if (StringUtils.isNotEmpty(req.getWx_avatar())) {
             vcuser.setWx_avatar(req.getWx_avatar());
         }
 
-        if (req.getSex()!=null){
+        if (req.getSex() != null) {
             vcuser.setSex(req.getSex());
         }
 
-        if (StringUtils.isNotEmpty(req.getWx_country())){
+        if (StringUtils.isNotEmpty(req.getWx_country())) {
             vcuser.setWx_country(req.getWx_country());
         }
 
-        if (StringUtils.isNotEmpty(req.getWx_city())){
+        if (StringUtils.isNotEmpty(req.getWx_city())) {
             vcuser.setWx_city(req.getWx_city());
         }
 
-        if (StringUtils.isNotEmpty(req.getWx_province())){
+        if (StringUtils.isNotEmpty(req.getWx_province())) {
             vcuser.setWx_province(req.getWx_province());
         }
 
-        if (vcuser==null){
+        if (vcuser == null) {
             return R.ERROR("未修改任何信息");
         }
 
@@ -284,7 +278,7 @@ public class UserService {
         vcuser.setId(userId);
         vcuser.setUpdated(new Date());
 
-        if (vcuserMapper.updateById(vcuser)>0){
+        if (vcuserMapper.updateById(vcuser) > 0) {
             return R.OK();
         }
         return R.ERROR("修改失败");
@@ -292,63 +286,63 @@ public class UserService {
 
     public R follow(Integer from_userid, int vcuser_id) {
 
-        if (from_userid==vcuser_id){
+        if (from_userid == vcuser_id) {
             return R.ERROR("不能关注自己");
         }
         // ===============  我是否以前关注过该用户  ====================
-        QueryWrapper fqw=new QueryWrapper();
-        fqw.eq("followed_vcuser_id",vcuser_id);
-        fqw.eq("vcuser_id",from_userid);
-        XunyeeFollow temp=new XunyeeFollow().selectOne(fqw);
+        QueryWrapper fqw = new QueryWrapper();
+        fqw.eq("followed_vcuser_id", vcuser_id);
+        fqw.eq("vcuser_id", from_userid);
+        XunyeeFollow temp = new XunyeeFollow().selectOne(fqw);
         // ===============  我是否以前关注过该用户  ====================
 
         // ===============  对方是否关注了我  ====================
-        QueryWrapper tqw=new QueryWrapper();
-        tqw.eq("followed_vcuser_id",from_userid);
-        tqw.eq("vcuser_id",vcuser_id);
-        tqw.eq("status",1);
-        XunyeeFollow toFollow=new XunyeeFollow().selectOne(tqw);
+        QueryWrapper tqw = new QueryWrapper();
+        tqw.eq("followed_vcuser_id", from_userid);
+        tqw.eq("vcuser_id", vcuser_id);
+        tqw.eq("status", 1);
+        XunyeeFollow toFollow = new XunyeeFollow().selectOne(tqw);
         // ===============  对方是否关注了我  ====================
 
 
-        if (temp!=null){//如果当前用户之前关注过该用户
-            int status=temp.getStatus();
-            if (status==0){
+        if (temp != null) {//如果当前用户之前关注过该用户
+            int status = temp.getStatus();
+            if (status == 0) {
                 temp.setStatus(1);
-                if(toFollow!=null&&toFollow.getType()!=3){
+                if (toFollow != null && toFollow.getType() != 3) {
                     temp.setType(3);//互相关注
                     toFollow.setType(3);//互相关注
                     toFollow.updateById();//更新对方的关注状态为互相关注
-                }else{
+                } else {
                     temp.setType(1);
                 }
-            }else{
+            } else {
                 temp.setStatus(0);//取关
                 temp.setType(1);
-                if(toFollow!=null){
+                if (toFollow != null) {
                     toFollow.setType(1);//改为关注
                     toFollow.updateById();//更新对方的关注状态为互相关注
                 }
             }
 
             temp.setUpdated(new Date());
-            if(temp.updateById()){
+            if (temp.updateById()) {
                 return R.OK();
             }
-        }else{ //当前用户并没有关注该用户
-            XunyeeFollow follow=new XunyeeFollow();
+        } else { //当前用户并没有关注该用户
+            XunyeeFollow follow = new XunyeeFollow();
             follow.setFollowed_vcuser_id(vcuser_id);
             follow.setVcuser_id(from_userid);
             follow.setStatus(1);//关注
-            if(toFollow!=null){
+            if (toFollow != null) {
                 follow.setType(3);//互相关注状态
                 toFollow.setType(3);
                 toFollow.updateById();//更新对方的关注状态为互相关注
-            }else{
+            } else {
                 follow.setType(1);//关注状态
             }
 
-            if(follow.insert()){
+            if (follow.insert()) {
                 return R.OK();
             }
         }
@@ -356,15 +350,15 @@ public class UserService {
     }
 
     public R<IPage<ResFollowPage>> getFollows(Integer vcuser_id, ReqPageFollow req) {
-        Page page=new Page(req.getCurrent(),req.getSize());
-        IPage<ResFollowPage> iPage=myMapper.selectFollowPage(page,req.getType(),vcuser_id);
+        Page page = new Page(req.getCurrent(), req.getSize());
+        IPage<ResFollowPage> iPage = myMapper.selectFollowPage(page, req.getType(), vcuser_id);
         return R.OK(iPage);
     }
 
     public R report(int userId, ReqUserReport req) {
-        XunyeeVcuserReport report=BeanUtil.copyProperties(req, XunyeeVcuserReport.class);
+        XunyeeVcuserReport report = BeanUtil.copyProperties(req, XunyeeVcuserReport.class);
         report.setVcuser_id(userId);
-        if (report.insert()){
+        if (report.insert()) {
             return R.OK();
         }
         return R.ERROR("举报失败");
@@ -390,26 +384,26 @@ public class UserService {
         // 查询数据库艺人信息
         List<Person> persons = personIds.length > 0 ? metaService.getPerson(personIds) : new ArrayList<>();
 
-        IPage<ResPerson> iPage=new Page();
+        IPage<ResPerson> iPage = new Page();
         iPage.setPages(totalPage);
         iPage.setSize(size);
         iPage.setCurrent(current);
         iPage.setTotal(totalCount);
-        iPage.setRecords(CopyListUtil.copyListProperties(persons,ResPerson.class));
+        iPage.setRecords(CopyListUtil.copyListProperties(persons, ResPerson.class));
         return R.OK(iPage);
     }
 
     public R<IPage<ResBlogStarPage>> getBlogStar(int userId, ReqMyPage myPage) {
-        Page page=new Page(myPage.getCurrent(),myPage.getSize());
-        IPage<ResBlogStarPage> iPage=myMapper.selectBlogStarPage(page,userId);
+        Page page = new Page(myPage.getCurrent(), myPage.getSize());
+        IPage<ResBlogStarPage> iPage = myMapper.selectBlogStarPage(page, userId);
         for (ResBlogStarPage record : iPage.getRecords()) {
 
 
-            if (StringUtils.isNotEmpty(record.getImages())){
-                String[] s=record.getImages().split(",");
-                List<String> image_list=new ArrayList<>();
+            if (StringUtils.isNotEmpty(record.getImages())) {
+                String[] s = record.getImages().split(",");
+                List<String> image_list = new ArrayList<>();
                 for (int i = 0; i < s.length; i++) {
-                    image_list.add(imagePath+s[i]);
+                    image_list.add(imageHostUtil.absImagePath(s[i]));
                 }
 
                 record.setImage_list(image_list);
@@ -421,12 +415,12 @@ public class UserService {
     }
 
     public R uploadCover(int userId, MultipartFile file) throws IOException {
-        R<String> result=commonService.qiNiuYunUploadImage(file,"user/cover/");
-        if (result.getCode()==0){
-            UpdateWrapper<XunyeeVcuser> wrapper=new UpdateWrapper<>();
-            wrapper.eq("id",userId).set("cover",result.getData());
-            boolean isUpdate=new XunyeeVcuser().update(wrapper);
-            if(isUpdate){
+        R<String> result = commonService.qiNiuYunUploadImage(file, "user/cover/");
+        if (result.getCode() == 0) {
+            UpdateWrapper<XunyeeVcuser> wrapper = new UpdateWrapper<>();
+            wrapper.eq("id", userId).set("cover", result.getData());
+            boolean isUpdate = new XunyeeVcuser().update(wrapper);
+            if (isUpdate) {
                 return R.OK();
             }
             return R.ERROR("封面图上传失败");
@@ -435,10 +429,10 @@ public class UserService {
     }
 
     public R uploaduploadCoverDefaultCover(int userId) {
-        UpdateWrapper<XunyeeVcuser> wrapper=new UpdateWrapper<>();
-        wrapper.eq("id",userId).set("cover","");
-        boolean isUpdate=new XunyeeVcuser().update(wrapper);
-        if(isUpdate){
+        UpdateWrapper<XunyeeVcuser> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", userId).set("cover", "");
+        boolean isUpdate = new XunyeeVcuser().update(wrapper);
+        if (isUpdate) {
             return R.OK();
         }
         return R.ERROR("封面图上传失败");

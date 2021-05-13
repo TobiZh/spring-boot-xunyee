@@ -95,16 +95,17 @@ public class XunyeeService {
 
 
     public R<List<ResPic>> getAdBanner(ReqPic req) {
+        System.out.println(req.getIs_enabled_5()!=null);
         LocalDateTime nowDate = LocalDateTime.now();
         LambdaQueryWrapper<XunyeePic> qw = new LambdaQueryWrapper<>();
-        qw.eq(XunyeePic::getType_id, 2)//轮播广告
-            .eq(req.getIs_enabled_5() != null,XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true)
-            .eq(req.getIs_enabled_6() != null,XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true)
-            .le(XunyeePic::getStart_time, nowDate)// >=
+        qw.eq(XunyeePic::getType_id, 2);//轮播广告
+        qw.eq(req.getIs_enabled_5() != null,XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true);
+        qw.eq(req.getIs_enabled_6() != null,XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true);
+        qw.le(XunyeePic::getStart_time, nowDate)// >=
             .ge(XunyeePic::getFinish_time, nowDate)// <=
             .orderByAsc(XunyeePic::getSequence);
-        List<XunyeePic> xunyeePics = new XunyeePic().selectList(qw);
-        List<ResPic> resPics = CopyListUtil.copyListProperties(xunyeePics, ResPic.class);
+        List<XunyeePic> picList = new XunyeePic().selectList(qw);
+        List<ResPic> resPics = CopyListUtil.copyListProperties(picList, ResPic.class);
         for (ResPic p : resPics) {
             p.setPic(imageHostUtil.absImagePath(p.getPic()));
         }

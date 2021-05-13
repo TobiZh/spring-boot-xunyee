@@ -13,8 +13,7 @@ public class ImageHostUtil {
    private XunyeeProperties xunyeeProperties;
 
     public String absImagePath(String imgUrl){
-
-        if (!StringUtils.startsWith(imgUrl,"http")){
+        if (StringUtils.isNotEmpty(imgUrl)&&!StringUtils.startsWith(imgUrl,"http")){
             imgUrl=xunyeeProperties.getImageHost()+imgUrl;
         }
         return imgUrl;

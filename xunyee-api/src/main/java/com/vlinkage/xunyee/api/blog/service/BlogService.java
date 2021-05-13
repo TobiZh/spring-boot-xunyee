@@ -3,7 +3,6 @@ package com.vlinkage.xunyee.api.blog.service;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
@@ -56,6 +55,7 @@ public class BlogService {
         Page page = new Page(req.getCurrent(), req.getSize());
         IPage<ResBlogPage> iPage = myMapper.selectUserBlogPage(page, req.getVcuser_id(), userId);
         for (ResBlogPage record : iPage.getRecords()) {
+            record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
             if (StringUtils.isNotEmpty(record.getCover())) {
                 record.setCover(imageHostUtil.absImagePath(record.getCover()));
             }
@@ -69,6 +69,7 @@ public class BlogService {
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogPage> iPage = myMapper.selectMineBlogPage(page, userId, name);
         for (ResBlogPage record : iPage.getRecords()) {
+            record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
             if (StringUtils.isNotEmpty(record.getCover())) {
                 record.setCover(imageHostUtil.absImagePath(record.getCover()));
             }
@@ -82,6 +83,7 @@ public class BlogService {
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogPage> iPage = myMapper.selectBlogCategoryPage(page, type, userId);
         for (ResBlogPage record : iPage.getRecords()) {
+            record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
             if (StringUtils.isNotEmpty(record.getCover())) {
                 record.setCover(imageHostUtil.absImagePath(record.getCover()));
             }
@@ -93,6 +95,7 @@ public class BlogService {
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogPage> iPage = myMapper.selectBlogFollowPage(page, userId);
         for (ResBlogPage record : iPage.getRecords()) {
+            record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
             if (StringUtils.isNotEmpty(record.getCover())) {
                 record.setCover(imageHostUtil.absImagePath(record.getCover()));
             }
@@ -140,7 +143,7 @@ public class BlogService {
         // 相关艺人
         Person person = metaService.getPersonById(blog.getPerson_id());
         info.setPerson_name(person.getZh_name());
-        info.setPerson_avatar_customer(person.getAvatar_custom());
+        info.setPerson_avatar_customer(imageHostUtil.absImagePath(person.getAvatar_custom()));
 
         // 是否 点赞 点踩 收藏 关注状态
         boolean isStar = false;
@@ -331,7 +334,6 @@ public class BlogService {
         IPage<ResBlogPage> iPage = myMapper.selectFriendBlogPage(page, userId);
         for (ResBlogPage record : iPage.getRecords()) {
             record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
-
             if (StringUtils.isNotEmpty(record.getCover())) {
                 record.setCover(imageHostUtil.absImagePath(record.getCover()));
             }
