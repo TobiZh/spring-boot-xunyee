@@ -75,12 +75,11 @@ public class XunyeeService {
 
         QueryWrapper qw = new QueryWrapper();
         qw.eq("type_id", 1);//封面图
-        if (req.getIs_enabled_5() != null) {
-            qw.eq("is_enabled_5", req.getIs_enabled_5() == 0 ? false : true);
-        }
-        if (req.getIs_enabled_6() != null) {
-            qw.eq("is_enabled_6", req.getIs_enabled_6() == 0 ? false : true);
-        }
+
+        qw.eq(req.getIs_enabled_5() != null,"is_enabled_5", req.getIs_enabled_5() == 0 ? false : true);
+
+        qw.eq(req.getIs_enabled_6() != null,"is_enabled_6", req.getIs_enabled_6() == 0 ? false : true);
+
         qw.le("start_time", nowDate);// >=
         qw.ge("finish_time", nowDate);// <=
         qw.orderByAsc("sequence");
@@ -99,12 +98,10 @@ public class XunyeeService {
 
         QueryWrapper qw = new QueryWrapper();
         qw.eq("type_id", 2);//轮播广告
-        if (req.getIs_enabled_5() != null) {
-            qw.eq("is_enabled_5", req.getIs_enabled_5() == 0 ? false : true);
-        }
-        if (req.getIs_enabled_6() != null) {
-            qw.eq("is_enabled_6", req.getIs_enabled_6() == 0 ? false : true);
-        }
+
+        qw.eq(req.getIs_enabled_5() != null,"is_enabled_5", req.getIs_enabled_5() == 0 ? false : true);
+        qw.eq(req.getIs_enabled_6() != null,"is_enabled_6", req.getIs_enabled_6() == 0 ? false : true);
+
         qw.le("start_time", nowDate);// >=
         qw.ge("finish_time", nowDate);// <=
         qw.orderByAsc("sequence");

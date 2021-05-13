@@ -2,7 +2,7 @@ server:
   port: 80
 spring:
   profiles:
-    active: test
+    active: local
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
