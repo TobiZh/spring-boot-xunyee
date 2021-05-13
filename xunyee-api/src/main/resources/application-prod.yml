@@ -37,4 +37,5 @@ spring:
 
 xunyee:
   config:
+    # 系统部署到服务器 映射域名 用于微信支付回调
     host: http://wx.xunyee.cn

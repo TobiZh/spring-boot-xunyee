@@ -62,17 +62,18 @@ qiniu:
   path: https://up.qiniup.com  # (华东) 每个地区的地址都不一样
 
 
-
-# 系统参数
-sys-config:
-  # 图片地址
-  image-path: https://img.xunyee.cn/
-
-
-
 knife4j:
   enable: true
   documents:
     - group: xunyee-api-2.0
       name: 寻艺文档md
       locations: classpath:markdown/*
+
+sys-config:
+  image-path: http://
+
+# 系统参数
+xunyee:
+  config:
+    # 图片地址
+    image-host: https://img.xunyee.cn/

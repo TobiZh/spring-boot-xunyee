@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefit;
 import com.vlinkage.xunyee.entity.response.ResMonUserPersonCheck;
+import com.vlinkage.xunyee.utils.DateUtil;
+import com.vlinkage.xunyee.utils.ImageHostUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RunWith(SpringRunner.class)
@@ -42,12 +45,21 @@ class XunyeeApiApplicationTests {
     @Test
     public void mongo(){
         Aggregation aggregation=Aggregation.newAggregation(
-                Aggregation.project().and("updated").dateAsFormattedString("%Y-%m-%d").as("updated"),
-                Aggregation.match(Criteria.where("vcuser").is(3358279)),
-                Aggregation.group("updated").count().as("person")
+                Aggregation.match(Criteria.where("vcuser").is(3358279).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
+                Aggregation.group("person").count().as("check")
         );
         AggregationResults<ResMonUserPersonCheck> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheck.class);
-        System.out.println(JSONObject.toJSONString(res));
+        System.out.println(JSONObject.toJSONString(res.getMappedResults()));
     }
+
+
+
+    @Autowired
+    ImageHostUtil imageHostUtil;
+    @Test
+    public void host(){
+        System.out.println(imageHostUtil.absImagePath("http://blog"));
+    }
+
 
 }

@@ -34,10 +34,6 @@ spring:
       username: vlkdj
       password: weiling@qinghai118
 
-xunyee:
-  config:
-    host: http://luobin.iask.in
-
 
 logging:
   level:
@@ -45,3 +41,8 @@ logging:
     org.springframework.web: info
     com.github.binarywang.demo.wx.miniapp: debug
     cn.binarywang.wx.miniapp: debug
+
+xunyee:
+  config:
+    # 系统部署到服务器 映射域名 用于微信支付回调
+    host: http://luobin.iask.in

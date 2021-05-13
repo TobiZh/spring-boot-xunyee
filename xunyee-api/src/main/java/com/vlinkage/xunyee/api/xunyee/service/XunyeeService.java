@@ -1,6 +1,7 @@
 package com.vlinkage.xunyee.api.xunyee.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -22,6 +23,7 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
+import com.vlinkage.xunyee.utils.ImageHostUtil;
 import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -50,8 +52,8 @@ import java.util.stream.Collectors;
 @Service
 public class XunyeeService {
 
-    @Value("${sys-config.image-path}")
-    private String imagePath;
+    @Autowired
+    private ImageHostUtil imageHostUtil;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -73,20 +75,19 @@ public class XunyeeService {
     public R<ResPic> getAdLaunch(ReqPic req) {
         LocalDateTime nowDate = LocalDateTime.now();
 
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("type_id", 1);//封面图
-
-        qw.eq(req.getIs_enabled_5() != null,"is_enabled_5", req.getIs_enabled_5() == 0 ? false : true);
-
-        qw.eq(req.getIs_enabled_6() != null,"is_enabled_6", req.getIs_enabled_6() == 0 ? false : true);
-
-        qw.le("start_time", nowDate);// >=
-        qw.ge("finish_time", nowDate);// <=
-        qw.orderByAsc("sequence");
+        LambdaQueryWrapper<XunyeePic> qw = new LambdaQueryWrapper();
+        qw.eq(XunyeePic::getType_id, 1)
+                .eq(req.getIs_enabled_5() != null,
+                        XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true)
+                .eq(req.getIs_enabled_6() != null,
+                        XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true)
+                .le(XunyeePic::getStart_time, nowDate)
+                .ge(XunyeePic::getFinish_time, nowDate)
+                .orderByAsc(XunyeePic::getSequence);
         XunyeePic xunyeePic = new XunyeePic().selectOne(qw);
         if (xunyeePic!=null){
             ResPic resPic =BeanUtil.copyProperties(xunyeePic, ResPic.class);
-            resPic.setPic(imagePath+resPic.getPic());
+            resPic.setPic(imageHostUtil.absImagePath(resPic.getPic()));
             return R.OK(resPic);
         }
         return R.OK(xunyeePic);
@@ -95,42 +96,40 @@ public class XunyeeService {
 
     public R<List<ResPic>> getAdBanner(ReqPic req) {
         LocalDateTime nowDate = LocalDateTime.now();
-
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("type_id", 2);//轮播广告
-
-        qw.eq(req.getIs_enabled_5() != null,"is_enabled_5", req.getIs_enabled_5() == 0 ? false : true);
-        qw.eq(req.getIs_enabled_6() != null,"is_enabled_6", req.getIs_enabled_6() == 0 ? false : true);
-
-        qw.le("start_time", nowDate);// >=
-        qw.ge("finish_time", nowDate);// <=
-        qw.orderByAsc("sequence");
+        LambdaQueryWrapper<XunyeePic> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeePic::getType_id, 2)//轮播广告
+            .eq(req.getIs_enabled_5() != null,XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true)
+            .eq(req.getIs_enabled_6() != null,XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true)
+            .le(XunyeePic::getStart_time, nowDate)// >=
+            .ge(XunyeePic::getFinish_time, nowDate)// <=
+            .orderByAsc(XunyeePic::getSequence);
         List<XunyeePic> xunyeePics = new XunyeePic().selectList(qw);
         List<ResPic> resPics = CopyListUtil.copyListProperties(xunyeePics, ResPic.class);
         for (ResPic p : resPics) {
-            p.setPic(imagePath + p.getPic());
+            p.setPic(imageHostUtil.absImagePath(p.getPic()));
         }
         return R.OK(resPics);
     }
 
     public R<List<ResNavigation>> getNavigation() {
-        QueryWrapper qw = new QueryWrapper();
-        qw.orderByAsc("orderby");
-        qw.eq("is_deleted", 0);
-        qw.eq("is_enabled", 1);
+        LambdaQueryWrapper<XunyeeNavigation> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeNavigation::getIs_deleted, 0)
+            .eq(XunyeeNavigation::getIs_enabled, 1)
+            .orderByAsc(XunyeeNavigation::getOrderby);
         List<XunyeeNavigation> navigation = new XunyeeNavigation().selectList(qw);
         List<ResNavigation> resNavigations = CopyListUtil.copyListProperties(navigation, ResNavigation.class);
         for (ResNavigation resNavigation : resNavigations) {
-            resNavigation.setIcon(imagePath+resNavigation.getIcon());
+            resNavigation.setIcon(imageHostUtil.absImagePath(resNavigation.getIcon()));
         }
         return R.OK(resNavigations);
     }
 
     public R<List<ResSearchHot>> getSearchHot() {
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("is_deleted", false);
-        qw.orderByAsc("orderby");
-        qw.select("id", "name");
+        LambdaQueryWrapper<XunyeeSearchHot> qw = new LambdaQueryWrapper<>();
+        qw.select(XunyeeSearchHot::getId, XunyeeSearchHot::getName)
+            .eq(XunyeeSearchHot::getIs_deleted, false)
+            .orderByAsc(XunyeeSearchHot::getOrderby);
+
         List<XunyeeSearchHot> searchHot = new XunyeeSearchHot().selectList(qw);
         List<ResSearchHot> resSearchHots = CopyListUtil.copyListProperties(searchHot, ResSearchHot.class);
         return R.OK(resSearchHots);
@@ -147,11 +146,11 @@ public class XunyeeService {
 
     public R<IPage<ResSystemNotification>> systemNotification(int userId, ReqMyPage myPage) {
 
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("receive_vcuser_id", userId);
-        qw.or();
-        qw.eq("receive_vcuser_id", 0);
-        qw.orderByDesc("created");
+        LambdaQueryWrapper<XunyeeSystemNotification> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeSystemNotification::getReceive_vcuser_id, userId)
+                .or()
+                .eq(XunyeeSystemNotification::getReceive_vcuser_id, 0)
+                .orderByDesc(XunyeeSystemNotification::getCreated);
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResSystemNotification> iPage = new XunyeeSystemNotification().selectPage(page, qw);
         iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(), ResSystemNotification.class));
@@ -162,11 +161,11 @@ public class XunyeeService {
 
     public R<Integer> systemNotificationCount(int userId) {
 
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("is_read",0);
-        qw.eq("receive_vcuser_id", userId);
-        qw.or();
-        qw.eq("receive_vcuser_id", 0);
+        LambdaQueryWrapper<XunyeeSystemNotification> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeSystemNotification::getIs_read,0)
+            .eq(XunyeeSystemNotification::getReceive_vcuser_id, userId)
+            .or()
+            .eq(XunyeeSystemNotification::getReceive_vcuser_id, 0);
        int count = new XunyeeSystemNotification().selectCount(qw);
        return R.OK(count);
     }
@@ -201,17 +200,17 @@ public class XunyeeService {
     }
 
     public R vcuserBenefit(int userId) {
-        QueryWrapper qw = new QueryWrapper();
-        qw.select("start_time", "finish_time");
-        qw.eq("vcuser_id", userId);
+        LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
+        qw.select(XunyeeVcuserBenefit::getStart_time, XunyeeVcuserBenefit::getFinish_time)
+            .eq(XunyeeVcuserBenefit::getVcuser_id, userId);
         XunyeeVcuserBenefit benefit = new XunyeeVcuserBenefit().selectOne(qw);
         ResBenefit resBenefit = BeanUtil.copyProperties(benefit, ResBenefit.class);
         return R.OK(resBenefit);
     }
 
     public R vcuserBenefitCount(int benefit) {
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("benefit_id", benefit);
+        LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeVcuserBenefit::getBenefit_id, benefit);
         int count = new XunyeeVcuserBenefit().selectCount(qw);
         return R.OK(count);
 
@@ -267,7 +266,7 @@ public class XunyeeService {
             resPersonCheckCount.setPerson(personId);
             resPersonCheckCount.setId(personId);
             resPersonCheckCount.setVcuser_person("");//不知道是什么参数
-            resPersonCheckCount.setAvatar_custom(imagePath+p.getAvatar_custom());
+            resPersonCheckCount.setAvatar_custom(imageHostUtil.absImagePath(p.getAvatar_custom()));
             resPersonCheckCount.setZh_name(p.getZh_name());
 
             //-------------------- 当前用户>>艺人签到数 --------------------
@@ -363,9 +362,12 @@ public class XunyeeService {
 
 
         // 查询当前用户关注的艺人和今年签到的天数
-
-        //List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId).and("updated").gte(gteDate).lt(ltDate)), ResMonUserPersonCheck.class);
-
+        Aggregation aggregation=Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("vcuser").is(3358279).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
+                Aggregation.group("person").count().as("check")
+        );
+        AggregationResults<ResMonUserPersonCheckDays> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheckDays.class);
+        List<ResMonUserPersonCheckDays> resMonData=res.getMappedResults();
 
         // 组装数据
         List<ResPersonCheckCountIdol> resCheckCounts = new ArrayList<>();
@@ -390,7 +392,12 @@ public class XunyeeService {
                     break;
                 }
             }
-
+            for (ResMonUserPersonCheckDays c : resMonData) {
+                int tmpPerson = c.getId();
+                if (personId == tmpPerson) {
+                    resPersonCheckCount.setCheck_days(c.getCheck());
+                }
+            }
             resCheckCounts.add(resPersonCheckCount);
         }
 
@@ -418,11 +425,11 @@ public class XunyeeService {
 
     public R<ResXunyeeBenefitPrice> benefitPrice() {
         LocalDateTime nowDate = LocalDateTime.now();
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("is_enabled", true);
-        qw.le("start_time", nowDate);// >=
-        qw.ge("finish_time", nowDate);// <=
-        qw.orderByAsc("quantity");
+        LambdaQueryWrapper<XunyeeBenefitPrice> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeBenefitPrice::getIs_enabled, true)
+            .le(XunyeeBenefitPrice::getStart_time, nowDate)// >=
+            .ge(XunyeeBenefitPrice::getFinish_time, nowDate)// <=
+            .orderByAsc(XunyeeBenefitPrice::getQuantity);
         List<XunyeeBenefitPrice> benefitPrices = new XunyeeBenefitPrice().selectList(qw);
         List<ResXunyeeBenefitPrice> resXunyeeBenefitPrices = CopyListUtil.copyListProperties(benefitPrices, ResXunyeeBenefitPrice.class);
         return R.OK(resXunyeeBenefitPrices);
@@ -447,10 +454,10 @@ public class XunyeeService {
         LocalDate gteDate = LocalDate.now(); // >=
         LocalDate ltDate = gteDate.plusDays(1); // <; // <
 
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("vcuser_id", userId);
-        qw.ge("start_time", gteDate);//<=
-        qw.lt("finish_time", ltDate);// >
+        LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
+            .ge(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
+            .lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
         XunyeeVcuserBenefit userBenefit = new XunyeeVcuserBenefit().selectOne(qw);
 
         // 查询当前用户关注的艺人和当天签到数
@@ -476,15 +483,15 @@ public class XunyeeService {
         }
 
         LocalDateTime nowDate = LocalDateTime.now();
-        QueryWrapper picqw = new QueryWrapper();
-        picqw.select("title","url");
-        picqw.eq("type_id", 3);//广告图
-        picqw.le("start_time", nowDate);// >=
-        picqw.ge("finish_time", nowDate);// <=
+        LambdaQueryWrapper<XunyeePic> picqw = new LambdaQueryWrapper<>();
+        picqw.select(XunyeePic::getTitle,XunyeePic::getUrl)
+            .eq(XunyeePic::getType_id, 3)//广告图
+            .le(XunyeePic::getStart_time, nowDate)// >=
+            .ge(XunyeePic::getFinish_time, nowDate);// <=
         XunyeePic xunyeePic = new XunyeePic().selectOne(picqw);
         ResPicTitleUrl titleUrl=new ResPicTitleUrl();
         if (xunyeePic!=null){
-            titleUrl.setTitle(imagePath+xunyeePic.getPic());
+            titleUrl.setTitle(imageHostUtil.absImagePath(xunyeePic.getPic()));
             titleUrl.setUrl(xunyeePic.getUrl());
         }
         return R.OK(titleUrl);
@@ -668,7 +675,7 @@ public class XunyeeService {
     public R<ResPersonBrandInfo> vcuserPersonPersonBrand(int person) {
         List<ResBrandPersonList> brands=metaService.getBrandPersonList(person);
         for (ResBrandPersonList brand : brands) {
-            brand.setLogo(imagePath+brand.getLogo());
+            brand.setLogo(imageHostUtil.absImagePath(brand.getLogo()));
         }
         int sale_rank=starService.getJDSaleRankByPerson(person);
 
@@ -694,7 +701,7 @@ public class XunyeeService {
         ResPersonInfo info = new ResPersonInfo();
         info.setZh_name(resPerson.getZh_name());
         info.setPerson(resPerson.getId());
-        info.setAvatar_custom(imagePath + resPerson.getAvatar_custom());
+        info.setAvatar_custom(imageHostUtil.absImagePath(resPerson.getAvatar_custom()));
         info.setSex(resPerson.getSex() == 1 ? "男" : "女");
         if (resMongo != null) {
             info.setReport_1912_teleplay(resMongo.getReport_1912_teleplay());
@@ -795,7 +802,10 @@ public class XunyeeService {
     public R reportPersonAlbum(ReqMyPage myPage, int person) {
         IPage iPage = starService.getPersonGalleryByPersonId(person, myPage);
         List<SdbPersonGallery> resBlogPages = iPage.getRecords();
-        List<String> list = resBlogPages.stream().map(c -> imagePath + c.getOriginal()).collect(Collectors.toList());
+        List<String> list =new ArrayList<>();
+        for (SdbPersonGallery resBlogPage : resBlogPages) {
+            list.add(imageHostUtil.absImagePath(resBlogPage.getOriginal()));
+        }
         Map map = new HashMap();
         map.put("person", person);
         map.put("count", iPage.getTotal());
@@ -902,7 +912,7 @@ public class XunyeeService {
         IPage<ResBlogPage> iPage = myMapper.selectBlogBySearch(page, keyword, userId);
         for (ResBlogPage record : iPage.getRecords()) {
             if (StringUtils.isNotEmpty(record.getCover())) {
-                record.setCover(imagePath + record.getCover());
+                record.setCover(imageHostUtil.absImagePath(record.getCover()));
             }
         }
 
@@ -918,7 +928,7 @@ public class XunyeeService {
         IPage<ResBlogPage> iPage = myMapper.selectBlogBySearch(page, keyword, userId);
         for (ResBlogPage record : iPage.getRecords()) {
             if (StringUtils.isNotEmpty(record.getCover())) {
-                record.setCover(imagePath + record.getCover());
+                record.setCover(imageHostUtil.absImagePath(record.getCover()));
             }
         }
         return R.OK(iPage);
@@ -1278,18 +1288,15 @@ public class XunyeeService {
     }
 
     public R<ResAppVersion> appVersionCheck(Integer version_code) {
-        QueryWrapper<XunyeeAppVersion> qw=new QueryWrapper<>();
-
-        if(version_code!=null){
-            qw.gt("version_code",version_code);
-        }
-        qw.orderByDesc("version_code");
-        qw.last("limit 1");
+        LambdaQueryWrapper<XunyeeAppVersion> qw=new LambdaQueryWrapper<>();
+        qw.gt(version_code!=null,XunyeeAppVersion::getVersion_code,version_code)
+                .orderByDesc(XunyeeAppVersion::getVersion_code)
+                .last("limit 1");
         XunyeeAppVersion appVersion=new XunyeeAppVersion().selectOne(qw);
         if(appVersion==null){
             return R.ERROR("您当前已是最新版本");
         }
-        appVersion.setApk_download_url(imagePath+ appVersion.getApk_download_url());
+        appVersion.setApk_download_url(imageHostUtil.absImagePath(appVersion.getApk_download_url()));
         ResAppVersion resAppVersion=BeanUtil.copyProperties(appVersion,ResAppVersion.class);
         return R.OK(resAppVersion);
     }
