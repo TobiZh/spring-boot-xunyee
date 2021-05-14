@@ -112,6 +112,7 @@ public class XunyeeController {
     @GetMapping("brand/person")
     public R<List<ResBrandPerson>> brandPerson(@Valid ReqPersonId req){
         List<ResBrandPersonList> brands=metaService.getBrandPersonList(req.getPerson());
+
         return R.OK(brands);
     }
 

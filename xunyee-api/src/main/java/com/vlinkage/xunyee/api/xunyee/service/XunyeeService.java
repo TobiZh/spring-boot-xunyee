@@ -76,12 +76,14 @@ public class XunyeeService {
         LocalDateTime nowDate = LocalDateTime.now();
 
         LambdaQueryWrapper<XunyeePic> qw = new LambdaQueryWrapper();
-        qw.eq(XunyeePic::getType_id, 1)
-                .eq(req.getIs_enabled_5() != null,
-                        XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true)
-                .eq(req.getIs_enabled_6() != null,
-                        XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true)
-                .le(XunyeePic::getStart_time, nowDate)
+        qw.eq(XunyeePic::getType_id, 1);
+        if (req.getIs_enabled_5() != null){
+            qw.eq(XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true);
+        }
+        if (req.getIs_enabled_6() != null) {
+            qw.eq(XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true);
+        }
+                qw.le(XunyeePic::getStart_time, nowDate)
                 .ge(XunyeePic::getFinish_time, nowDate)
                 .orderByAsc(XunyeePic::getSequence);
         XunyeePic xunyeePic = new XunyeePic().selectOne(qw);
@@ -99,8 +101,12 @@ public class XunyeeService {
         LocalDateTime nowDate = LocalDateTime.now();
         LambdaQueryWrapper<XunyeePic> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeePic::getType_id, 2);//轮播广告
-        qw.eq(req.getIs_enabled_5() != null,XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true);
-        qw.eq(req.getIs_enabled_6() != null,XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true);
+        if (req.getIs_enabled_5() != null){
+            qw.eq(XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true);
+        }
+        if (req.getIs_enabled_6() != null) {
+            qw.eq(XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true);
+        }
         qw.le(XunyeePic::getStart_time, nowDate)// >=
             .ge(XunyeePic::getFinish_time, nowDate)// <=
             .orderByAsc(XunyeePic::getSequence);
@@ -200,11 +206,15 @@ public class XunyeeService {
         return R.OK();
     }
 
+
     public R vcuserBenefit(int userId) {
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.select(XunyeeVcuserBenefit::getStart_time, XunyeeVcuserBenefit::getFinish_time)
             .eq(XunyeeVcuserBenefit::getVcuser_id, userId);
         XunyeeVcuserBenefit benefit = new XunyeeVcuserBenefit().selectOne(qw);
+        if (benefit==null){
+            return R.ERROR("您还不是会员");
+        }
         ResBenefit resBenefit = BeanUtil.copyProperties(benefit, ResBenefit.class);
         return R.OK(resBenefit);
     }
@@ -675,13 +685,10 @@ public class XunyeeService {
 
     public R<ResPersonBrandInfo> vcuserPersonPersonBrand(int person) {
         List<ResBrandPersonList> brands=metaService.getBrandPersonList(person);
-        for (ResBrandPersonList brand : brands) {
-            brand.setLogo(imageHostUtil.absImagePath(brand.getLogo()));
-        }
         int sale_rank=starService.getJDSaleRankByPerson(person);
 
         ResPersonBrandInfo brandInfo=new ResPersonBrandInfo();
-        brandInfo.setClick(0);
+        brandInfo.setClick(0);//这个不需要了 设置成0
         brandInfo.setSale_rank(sale_rank);
         brandInfo.setBrand_list(brands);
        return R.OK(brandInfo);
@@ -776,7 +783,7 @@ public class XunyeeService {
             List<XunyeeVcuser> vcusers = new XunyeeVcuser().selectList(qw);
             for (XunyeeVcuser vcuser : vcusers) {
                 ResPersonFansRank.Fans fansRank = new ResPersonFansRank.Fans();
-                fansRank.setAvatar(vcuser.getAvatar());
+                fansRank.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
                 fansRank.setVcuser_id(vcuser.getId());
                 fansRank.setNickname(vcuser.getNickname());
                 fans.add(fansRank);
@@ -909,6 +916,7 @@ public class XunyeeService {
 
         String keyword = reqGlobalSearch.getName();
         List<ResPerson> persons = metaService.getPersonLimit(keyword, 3);
+
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogPage> iPage = myMapper.selectBlogBySearch(page, keyword, userId);
         for (ResBlogPage record : iPage.getRecords()) {
@@ -1301,4 +1309,6 @@ public class XunyeeService {
         ResAppVersion resAppVersion=BeanUtil.copyProperties(appVersion,ResAppVersion.class);
         return R.OK(resAppVersion);
     }
+
+
 }

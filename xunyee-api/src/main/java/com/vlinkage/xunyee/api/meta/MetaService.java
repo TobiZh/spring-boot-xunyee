@@ -15,6 +15,7 @@ import com.vlinkage.xunyee.entity.response.ResBrandPersonList;
 import com.vlinkage.xunyee.entity.response.ResPerson;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
+import com.vlinkage.xunyee.utils.ImageHostUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +31,8 @@ public class MetaService {
     @Autowired
     private MyMapper myMapper;
 
-    @Value("${sys-config.image-path}")
-    private String imagePath;
+    @Autowired
+    private ImageHostUtil imageHostUtil;
 
     public IPage<ResPerson> getPersonPage(ReqMyPage myPage,String name){
 
@@ -43,7 +44,12 @@ public class MetaService {
 
         Page page=new Page(myPage.getCurrent(),myPage.getSize());
         IPage<ResPerson> iPage=new Person().selectPage(page,qw);
-        iPage.setRecords(CopyListUtil.copyListProperties(iPage.getRecords(),ResPerson.class));
+        List<ResPerson> resPersonList=CopyListUtil.copyListProperties(iPage.getRecords(),ResPerson.class);
+        for (ResPerson resPerson : resPersonList) {
+            resPerson.setAvatar_custom(imageHostUtil.absImagePath(resPerson.getAvatar_custom()));
+        }
+        iPage.setRecords(resPersonList);
+
         return iPage;
     }
 
@@ -62,8 +68,11 @@ public class MetaService {
         qw.select("id","zh_name","avatar_custom");
         qw.last("limit "+limit);
         List<ResPerson> personList=new Person().selectList(qw);
-        List<ResPerson> resPeople=CopyListUtil.copyListProperties(personList,ResPerson.class);
-        return resPeople;
+        List<ResPerson> resPeoples=CopyListUtil.copyListProperties(personList,ResPerson.class);
+        for (ResPerson resPerson : resPeoples) {
+            resPerson.setAvatar_custom(imageHostUtil.absImagePath(resPerson.getAvatar_custom()));
+        }
+        return resPeoples;
     }
 
     /**
@@ -71,29 +80,28 @@ public class MetaService {
      * 做缓存
      * @return
      */
-    @Cacheable(value = "springboot_person_name_avatar" ,key = "#person_id")
+    @Cacheable(value = "springboot_cache_person" ,key = "#person_id")
     public Person getPersonById(int person_id){
         QueryWrapper qw=new QueryWrapper();
         qw.eq("id",person_id);
         qw.select("id","zh_name","avatar_custom","is_xunyee_check","sex");
         Person person=new Person().selectOne(qw);
+        person.setAvatar_custom(imageHostUtil.absImagePath(person.getAvatar_custom()));
         return person;
     }
 
-//    public List<ResBrandPersonList> getBrandPerson(int person_id) {
-//
-//        List<ResBrandPersonList> iPage=myMapper.selectBrandPersonList(person_id);
-//        return iPage;
-//    }
 
     /**
      * 缓存艺人代言的所有品牌列表
      * @param person_id
      * @return
      */
-    @Cacheable(value = "springboot_person_brand" ,key = "#person_id",unless = "#result == null or #result.size() == 0")
+    @Cacheable(value = "springboot_cache_person_brand" ,key = "#person_id",unless = "#result == null or #result.size() == 0")
     public List<ResBrandPersonList> getBrandPersonList(int person_id) {
         List<ResBrandPersonList> resBrandPeople=myMapper.selectBrandPersonList(person_id);
+        for (ResBrandPersonList resBrandPerson : resBrandPeople) {
+            resBrandPerson.setLogo(imageHostUtil.absImagePath(resBrandPerson.getLogo()));
+        }
         return resBrandPeople;
     }
 
@@ -102,12 +110,15 @@ public class MetaService {
      * 做缓存
      * @return
      */
-    @Cacheable(value = "springboot_all_check_person")
+    @Cacheable(value = "springboot_cache_check_person")
     public List<Person> getPersonByXunyeeCheck(){
         QueryWrapper qw=new QueryWrapper();
         qw.select("id","zh_name","avatar_custom");
         qw.eq("is_xunyee_check",true);
         List<Person> personList=new Person().selectList(qw);
+        for (Person person : personList) {
+            person.setAvatar_custom(imageHostUtil.absImagePath(person.getAvatar_custom()));
+        }
         return personList;
     }
 
@@ -119,6 +130,9 @@ public class MetaService {
             qw.in("id",ids);
         }
         List<Person> personList=new Person().selectList(qw);
+        for (Person person : personList) {
+            person.setAvatar_custom(imageHostUtil.absImagePath(person.getAvatar_custom()));
+        }
         return personList;
     }
 
@@ -127,6 +141,9 @@ public class MetaService {
         qw.select("id","zh_name","avatar_custom");
         qw.like("zh_name",name);
         List<Person> personList=new Person().selectList(qw);
+        for (Person person : personList) {
+            person.setAvatar_custom(imageHostUtil.absImagePath(person.getAvatar_custom()));
+        }
         return personList;
     }
 

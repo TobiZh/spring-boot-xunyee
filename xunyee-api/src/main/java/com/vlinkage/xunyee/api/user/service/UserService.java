@@ -175,25 +175,25 @@ public class UserService {
         LocalDate gteDate = LocalDate.now(); // >=
         LocalDate ltDate = gteDate.plusDays(1); // <; // <
 
-        QueryWrapper qw = new QueryWrapper();
-        qw.eq("vcuser_id", userId);
-        qw.ge("start_time", gteDate);//<=
-        qw.lt("finish_time", ltDate);// >
+        LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
+        qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
+                .ge(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
+                .lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
         XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
         boolean is_vip = vcuserBenefit == null;
         // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================
-        QueryWrapper fqw = new QueryWrapper();
-        fqw.eq("vcuser_id", userId);
-        fqw.eq("status", 1);
+        LambdaQueryWrapper<XunyeeFollow> fqw = new LambdaQueryWrapper<>();
+        fqw.eq(XunyeeFollow::getVcuser_id, userId)
+                .eq(XunyeeFollow::getStatus, 1);
         int follow_count = new XunyeeFollow().selectCount(fqw);
         // ===============  我的关注  ====================
 
         // ===============  我的粉丝  ====================
-        QueryWrapper tqw = new QueryWrapper();
-        tqw.eq("followed_vcuser_id", userId);
-        tqw.eq("status", 1);
+        LambdaQueryWrapper<XunyeeFollow> tqw = new LambdaQueryWrapper<>();
+        tqw.eq(XunyeeFollow::getFollowed_vcuser_id, userId)
+                .eq(XunyeeFollow::getStatus, 1);
         int fans_count = new XunyeeFollow().selectCount(tqw);
         // ===============  我的粉丝  ====================
 
@@ -225,7 +225,7 @@ public class UserService {
 
         ResMine resMine = new ResMine();
         resMine.setVcuser_id(vcuser.getId());
-        resMine.setAvatar(vcuser.getAvatar());
+        resMine.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
         resMine.setNickname(vcuser.getNickname());
         resMine.setFans_count(fans_count);
         resMine.setFollow_count(follow_count);
@@ -290,17 +290,17 @@ public class UserService {
             return R.ERROR("不能关注自己");
         }
         // ===============  我是否以前关注过该用户  ====================
-        QueryWrapper fqw = new QueryWrapper();
-        fqw.eq("followed_vcuser_id", vcuser_id);
-        fqw.eq("vcuser_id", from_userid);
+        LambdaQueryWrapper<XunyeeFollow> fqw = new LambdaQueryWrapper<>();
+        fqw.eq(XunyeeFollow::getFollowed_vcuser_id, vcuser_id)
+                .eq(XunyeeFollow::getVcuser_id, from_userid);
         XunyeeFollow temp = new XunyeeFollow().selectOne(fqw);
         // ===============  我是否以前关注过该用户  ====================
 
         // ===============  对方是否关注了我  ====================
-        QueryWrapper tqw = new QueryWrapper();
-        tqw.eq("followed_vcuser_id", from_userid);
-        tqw.eq("vcuser_id", vcuser_id);
-        tqw.eq("status", 1);
+        LambdaQueryWrapper<XunyeeFollow> tqw = new LambdaQueryWrapper<>();
+        tqw.eq(XunyeeFollow::getFollowed_vcuser_id, from_userid)
+                .eq(XunyeeFollow::getVcuser_id, vcuser_id)
+                .eq(XunyeeFollow::getStatus, 1);
         XunyeeFollow toFollow = new XunyeeFollow().selectOne(tqw);
         // ===============  对方是否关注了我  ====================
 
