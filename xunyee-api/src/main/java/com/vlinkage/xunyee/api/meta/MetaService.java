@@ -2,6 +2,7 @@ package com.vlinkage.xunyee.api.meta;
 
 
 import com.baomidou.dynamic.datasource.annotation.DS;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -41,11 +42,11 @@ public class MetaService {
 
     public IPage<ResPerson> getPersonPage(ReqMyPage myPage, String name) {
 
-        QueryWrapper qw = new QueryWrapper();
+        LambdaQueryWrapper<Person> qw = new LambdaQueryWrapper<>();
         if (StringUtils.isNotEmpty(name)) {
-            qw.like("zh_name", name);
+            qw.like(Person::getZh_name, name);
         }
-        qw.select("id", "zh_name", "avatar_custom");
+        qw.select(Person::getId, Person::getZh_name, Person::getAvatar_custom);
 
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResPerson> iPage = new Person().selectPage(page, qw);

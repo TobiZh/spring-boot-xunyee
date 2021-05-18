@@ -104,9 +104,9 @@ public class UserController {
 
     @ApiOperation("我赞过/收藏/浏览")
     @GetMapping("blog/star_favorite_brow")
-    public R blogStarFavoriteBrow(HttpServletRequest request,@Valid ReqMyPage myPage,int type) {
+    public R blogStarFavoriteBrow(HttpServletRequest request,@Valid ReqMyPage myPage,@Valid ReqStarFavoriteBrow req) {
         int userId=UserUtil.getUserId(request);
-        return userService.blogStarFavoriteBrow(userId,myPage,type);
+        return userService.blogStarFavoriteBrow(userId,myPage,req.getType());
     }
 
 }

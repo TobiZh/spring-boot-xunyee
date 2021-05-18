@@ -913,7 +913,65 @@ public class XunyeeService {
     public R<Map<String, Object>> globalSearch(Integer userId, ReqMyPage myPage, ReqGlobalSearch reqGlobalSearch) {
 
         String keyword = reqGlobalSearch.getName();
-        List<ResPerson> persons = metaService.getPersonLimit(keyword, 3);
+        //List<ResPerson> persons = metaService.getPersonLimit(keyword, 3);
+
+        //=======================  按签到排名来搜索 =============================
+        LocalDate nowDate = LocalDate.now();//今天
+        LocalDate gteDate=LocalDate.now();
+        LocalDate ltDate = gteDate.plusDays(1);
+        // 查询条件
+        Criteria criteria = Criteria.where("data_time").gte(gteDate).lt(ltDate);
+        // 根据person分组 check 求和
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(criteria),
+                Aggregation.group("person").sum("check").as("check"),
+                Aggregation.sort(Sort.by(Sort.Direction.DESC, "check"))
+        );
+        AggregationResults<ResMonPersonCheckCount> outputTypeCount = mongoTemplate.aggregate(aggregation, "person__check__count",
+                ResMonPersonCheckCount.class);
+        // 查询mongo中有签到数据的艺人
+        List<ResMonPersonCheckCount> resMgs = outputTypeCount.getMappedResults();
+        // 查询所有的可签到艺人 大概500个
+        List<Person> persons = metaService.getPersonByXunyeeCheck();
+
+        // 组装数据
+        List<ResPersonCheckCount> resCheckCounts = new ArrayList<>();
+        for (Person p : persons) {
+            int personId = p.getId();
+            ResPersonCheckCount resPersonCheckCount = new ResPersonCheckCount();
+            resPersonCheckCount.setPerson(personId);
+            resPersonCheckCount.setId(personId);
+            resPersonCheckCount.setVcuser_person("");//不知道是什么参数
+            resPersonCheckCount.setAvatar_custom(imageHostUtil.absImagePath(p.getAvatar_custom()));
+            resPersonCheckCount.setZh_name(p.getZh_name());
+
+            //-------------------- 当前艺人签到数 --------------------
+            for (int i = 0; i < resMgs.size(); i++) {
+                ResMonPersonCheckCount mon = resMgs.get(i);
+                Integer tmpPerson = mon.getId();
+                if (personId == tmpPerson) {
+                    resPersonCheckCount.setCheck(mon.getCheck());
+                    break;
+                }
+            }
+            //-------------------- 当前艺人签到数 --------------------
+            resCheckCounts.add(resPersonCheckCount);
+        }
+
+        // 排序
+        List<ResPersonCheckCount> resSortCheckCounts = resCheckCounts.stream()
+                .filter(checkCount -> checkCount.getZh_name().contains(keyword))
+                .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
+                .collect(Collectors.toList());
+
+        List<ResPerson> personList=new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            ResPerson resPerson=new ResPerson();
+            resPerson.setId(resSortCheckCounts.get(i).getId());
+            resPerson.setAvatar_custom(resSortCheckCounts.get(i).getAvatar_custom());
+            resPerson.setZh_name(resSortCheckCounts.get(i).getZh_name());
+            personList.add(resPerson);
+        }
 
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogPage> iPage = myMapper.selectBlogBySearch(page, keyword, userId);
@@ -922,9 +980,12 @@ public class XunyeeService {
                 record.setCover(imageHostUtil.absImagePath(record.getCover()));
             }
         }
+        //=======================  按签到排名来搜索 =============================
+
+
 
         Map<String, Object> map = new HashMap<>();
-        map.put("persons", persons);
+        map.put("persons", personList);
         map.put("blog_page", iPage);
         return R.OK(map);
     }

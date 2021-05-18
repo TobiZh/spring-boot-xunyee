@@ -12,7 +12,7 @@ spring:
           password: weiling@qinghai118
         vlkdj:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:p6spy:postgresql://115.29.163.237:5432/vlkdj?currentSchema=vlkdj&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+          url: jdbc:postgresql://115.29.163.237:5432/vlkdj?currentSchema=vlkdj&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
           username: vlkdj
           password: weiling@qinghai118
         meta:

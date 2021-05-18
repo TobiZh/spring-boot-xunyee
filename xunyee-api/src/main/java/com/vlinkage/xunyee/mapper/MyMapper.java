@@ -186,21 +186,21 @@ public interface MyMapper {
             "where  b.is_deleted=0 and s.blog_id=b.id and s.\"type\"=1 and s.status=1 and s.vcuser_id=u.id and b.vcuser_id=#{vcuser_id}")
     IPage<ResBlogStarPage> selectBlogStarPage(Page page, int vcuser_id);
 
-    @Select("select u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover " +
+    @Select("select b.id,u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover,true is_star " +
             "FROM xunyee_blog_star s,xunyee_blog b,xunyee_vcuser u " +
             "where b.is_deleted=0 and s.blog_id=b.id and s.status=1 and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
     IPage<ResMyBlogStarPage> selectMyBlogStarPage(Page page, int vcuser_id);
 
-    @Select("select u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover," +
+    @Select("select b.idu.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover," +
             "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star "+
             "FROM xunyee_blog_favorite s,xunyee_blog b,xunyee_vcuser u " +
-            "where  b.is_deleted=0 and s.blog_id=b.id and s.status=1 and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
+            "where b.is_deleted=0 and s.blog_id=b.id and s.status=1 and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
     IPage<ResMyBlogStarPage> selectMyBlogFavoritePage(Page page, int vcuser_id);
 
-    @Select("select u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover," +
+    @Select("select b.id,u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover," +
             "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star "+
             "FROM xunyee_blog_browsing_history s,xunyee_blog b,xunyee_vcuser u " +
-            "where  b.is_deleted=0 and s.blog_id=b.id and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
+            "where b.is_deleted=0 and s.blog_id=b.id and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
     IPage<ResMyBlogStarPage> selectMyBlogBrowHistoryPage(Page page, int vcuser_id);
 //
 //    SELECT

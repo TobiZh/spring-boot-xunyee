@@ -1,6 +1,7 @@
 package com.vlinkage.xunyee.api.user.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -147,7 +148,15 @@ public class UserService {
         // ===============  我的爱豆数量  ====================
 
         // 查询当前用户关注的艺人和今年签到的天数
+        Aggregation aggregation=Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("vcuser").is(userId).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
+                Aggregation.project("merchno", "amount")
+                        .andExpression("{ $dateToString:{format:'%Y-%m-%d',date: '$updated',timezone: 'Asia/Shanghai' }}").as("date"),
+                Aggregation.group("date").count().as("check")
+        );
 
+        AggregationResults<ResMonUserPersonCheck> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheck.class);
+        int check_days_count=res.getMappedResults().size();
         // 查询当前用户关注的艺人和今年签到的天数
 
         ResUserInfoOhter resMine = new ResUserInfoOhter();
@@ -164,7 +173,7 @@ public class UserService {
         resMine.setStar_count(star_count);
         resMine.setPersons(personList);
         resMine.setIdol_count(idol_count);
-        resMine.setCheck_days_count(0);
+        resMine.setCheck_days_count(check_days_count);
         return R.OK(resMine);
     }
 

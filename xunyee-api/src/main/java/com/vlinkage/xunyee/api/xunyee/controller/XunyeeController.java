@@ -279,7 +279,7 @@ public class XunyeeController {
         return xunyeeService.brandBrow(userId,brand_id);
     }
 
-    @ApiOperation("添加一条品牌浏览记录")
+    @ApiOperation("获取品牌浏览记录")
     @GetMapping("brand/brow/history")
     public R<List<ResBrandPersonList>> brandBrowHistory(HttpServletRequest request){
         int userId= UserUtil.getUserId(request);

@@ -52,6 +52,18 @@ class XunyeeApiApplicationTests {
         System.out.println(JSONObject.toJSONString(res.getMappedResults()));
     }
 
+    @Test
+    public void mongoCheckDays(){
+        Aggregation aggregation=Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("vcuser").is(19).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
+                Aggregation.project("merchno", "amount")
+                        .andExpression("{ $dateToString:{format:'%Y-%m-%d',date: '$updated',timezone: 'Asia/Shanghai' }}").as("date"),
+                Aggregation.group("date").count().as("check")
+        );
+
+        AggregationResults<ResMonUserPersonCheck> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheck.class);
+        System.out.println(JSONObject.toJSONString(res.getMappedResults().size()));
+    }
 
 
     @Autowired
@@ -60,6 +72,7 @@ class XunyeeApiApplicationTests {
     public void host(){
         System.out.println(imageHostUtil.absImagePath("http://blog"));
     }
+
 
 
 }

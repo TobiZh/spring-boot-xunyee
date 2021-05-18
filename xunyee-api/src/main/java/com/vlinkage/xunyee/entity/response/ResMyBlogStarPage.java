@@ -6,6 +6,8 @@ import lombok.Data;
 @Data
 public class ResMyBlogStarPage {
 
+    @ApiModelProperty("动态id,blog_id")
+    private int id;
     @ApiModelProperty("用户id")
     private int vcuser_id;
     @ApiModelProperty("头像")
