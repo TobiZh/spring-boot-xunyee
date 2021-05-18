@@ -38,15 +38,11 @@ public class VdataService {
     private MetaService metaService;
 
     public R<IPage<ResRank>> reportPersonRptTrend(ReqReportPersonRptTrend req) {
-
         int period = req.getPeriod();
         int current = req.getCurrent();
         int size = req.getSize();
         LocalDate gteDate=getGteDate(period);
         LocalDate lteDate=getYesterdayLtDate();
-
-
-
         // count的查询条件
         Criteria criteriaCount = Criteria.where("period").is(period);
         Query queryCount = new Query();

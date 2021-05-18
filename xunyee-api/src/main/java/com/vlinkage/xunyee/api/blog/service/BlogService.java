@@ -3,6 +3,7 @@ package com.vlinkage.xunyee.api.blog.service;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
@@ -12,6 +13,7 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
+import com.vlinkage.xunyee.entity.response.ResBrandNameUrl;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.ImageHostUtil;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -46,7 +49,7 @@ public class BlogService {
         BeanUtil.copyProperties(req, xunyeeBlog);
         xunyeeBlog.setVcuser_id(userId);
         if (xunyeeBlog.insert()) {
-            return R.OK();
+            return R.OK(xunyeeBlog.getId());
         }
         return R.ERROR("发布失败");
     }
@@ -122,8 +125,11 @@ public class BlogService {
         info.setImage_list(imageList);
 
         if (blog.getType() == 3) {//品牌 需要读取品牌名称
-            String brandName = metaService.getBrandNameById(blog.getType_id());
-            info.setBrand_name(brandName);
+            ResBrandNameUrl resBrandNameUrl = metaService.getBrandNameUrlById(blog.getType_id());
+            if(resBrandNameUrl!=null){
+                info.setBrand_name(resBrandNameUrl.getName());
+                info.setBrand_url(resBrandNameUrl.getUrl());
+            }
         }
         info.setCreated(blog.getCreated());
         info.setType(blog.getType());
@@ -181,6 +187,22 @@ public class BlogService {
             if (follow != null) {
                 follow_type = follow.getType();
             }
+
+            // 添加一条浏览记录
+            LambdaQueryWrapper<XunyeeBlogBrowsingHistory> hqw=new LambdaQueryWrapper();
+            hqw.eq(XunyeeBlogBrowsingHistory::getBlog_id,blogId)
+                    .eq(XunyeeBlogBrowsingHistory::getVcuser_id,userId);
+            XunyeeBlogBrowsingHistory temp=new XunyeeBlogBrowsingHistory().selectOne(hqw);
+            if (temp==null){
+                XunyeeBlogBrowsingHistory history=new XunyeeBlogBrowsingHistory();
+                history.setVcuser_id(userId);
+                history.setBlog_id(blogId);
+                history.insert();
+            }else{
+                temp.setLast_brow_time(new Date());
+                temp.updateById();
+            }
+
 
         }
         info.setIs_star(isStar);
@@ -339,5 +361,17 @@ public class BlogService {
             }
         }
         return R.OK(iPage);
+    }
+
+    public R delBlog(Integer userId, Integer blog_id) {
+        LambdaUpdateWrapper<XunyeeBlog> uw=new LambdaUpdateWrapper<>();
+        uw.eq(XunyeeBlog::getId,blog_id)
+                .eq(XunyeeBlog::getVcuser_id,userId)
+                .set(XunyeeBlog::getIs_deleted,1);
+        boolean isDel=new XunyeeBlog().update(uw);
+        if (isDel){
+            return R.OK();
+        }
+        return R.ERROR();
     }
 }

@@ -2,9 +2,11 @@ package com.vlinkage.xunyee.api.login.service;
 
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
+import com.vlinkage.xunyee.api.vlkdj.VlkdjService;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.config.redis.RedisUtil;
@@ -24,6 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.UUID;
+
 @Slf4j
 @Service
 public class LoginService {
@@ -34,12 +39,14 @@ public class LoginService {
     @Autowired
     private WxMpService wxMpService;
 
+    @Autowired
+    private VlkdjService vlkdjService;
+
     @Transactional
     public R<ResLoginSuccessApp> wxOpenLogin(String appId,String code,int site) {
         if (!this.wxMpService.switchover(appId)) {
             throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appId));
         }
-
         try {
             // ======================= 通过微信接口获取微信用户信息 ===================================
             WxOAuth2Service wxOAuth2Service=wxMpService.getOAuth2Service();
@@ -57,13 +64,25 @@ public class LoginService {
             // ======================= 通过微信接口获取微信用户信息 ===================================
 
             // ======================= 自己系统的登录逻辑 ===================================
-            QueryWrapper qw = new QueryWrapper();
-            qw.eq("unionid", unionid);
-            qw.eq("openid", openid);
-            XunyeeVcuserOauth temp = new XunyeeVcuserOauth().selectOne(qw);
-            if (temp == null) {
-                // 新增账号
+            //
+            //============================================================================
+
+
+            LambdaQueryWrapper<XunyeeVcuserOauth> qw = new LambdaQueryWrapper<>();
+            qw.eq(XunyeeVcuserOauth::getUnionid, unionid)
+                    .or()
+                    .eq(XunyeeVcuserOauth::getOpenid,openid);
+            List<XunyeeVcuserOauth> oauthList = new XunyeeVcuserOauth().selectList(qw);
+
+            if (oauthList.size()<=0){//新用户
+
+                // 新增账号 需要从 vljdk 新增一条记录后获取 id 
+                int userId=vlkdjService.loginInsertUserId(site,openid);
+                if (userId<=0){
+                    return R.ERROR();
+                }
                 XunyeeVcuser user = new XunyeeVcuser();
+                user.setId(userId);//@TableId(value = "id", type = IdType.INPUT)
                 user.setNickname(nickname);// 自己系统的头像
                 user.setAvatar(avatar);// 自己系统的昵称
                 user.setWx_nickanme(nickname);
@@ -77,45 +96,44 @@ public class LoginService {
                 }
                 // 新增第三方账号
                 XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
+                userThird.setId(UUID.randomUUID().toString());//@TableId(value = "id", type = IdType.INPUT)
+                userThird.setVcuser_id(user.getId());
                 userThird.setSite(site);
                 userThird.setOpenid(openid);
-                if (StringUtils.isNotEmpty(unionid)) {
-                    userThird.setUnionid(unionid);
-                }
-                userThird.setVcuser_id(user.getId());
+                userThird.setUnionid(unionid);
                 userThird.insert();
                 // 生成token
                 String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
                 String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
 
-//                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
-//                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
+                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
+                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
 
                 ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
                 resLoginSuccess.setToken(token);
                 resLoginSuccess.setRefresh_token(refresh_token);
                 resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
-
                 resLoginSuccess.setVcuser_id(user.getId());
                 resLoginSuccess.setNickname(user.getNickname());
                 resLoginSuccess.setAvatar(user.getAvatar());
-
-
                 return R.OK(resLoginSuccess);
             }
+
+            XunyeeVcuserOauth temp=oauthList.get(0);//随便获取一条数据 取其中的vcuser_id
             // 生成token
             XunyeeVcuser vcuser=new XunyeeVcuser().selectById(temp.getVcuser_id());
-            String token = JwtUtil.getAccessToken(String.valueOf(vcuser.getId()));
-            String refresh_token = JwtUtil.getRefreshToken(String.valueOf(temp.getVcuser_id()));
-            redisUtil.set("user_token:"+temp.getVcuser_id()+":access_token",token,24*60*60);
-            redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,30*24*60*60);
+            int vcuser_id=vcuser.getId();
+            String token = JwtUtil.getAccessToken(String.valueOf(vcuser_id));
+            String refresh_token = JwtUtil.getRefreshToken(String.valueOf(vcuser_id));
+            redisUtil.set("user_token:"+vcuser_id+":access_token",token,24*60*60);
+            redisUtil.set("user_token:"+vcuser_id+":refresh_token",refresh_token,30*24*60*60);
 
             ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
             resLoginSuccess.setToken(token);
             resLoginSuccess.setRefresh_token(refresh_token);
             resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
 
-            resLoginSuccess.setVcuser_id(vcuser.getId());
+            resLoginSuccess.setVcuser_id(vcuser_id);
             resLoginSuccess.setAvatar(vcuser.getAvatar());
             resLoginSuccess.setNickname(vcuser.getNickname());
 
@@ -136,14 +154,21 @@ public class LoginService {
             String unionid= session.getUnionid();
             String openid=session.getOpenid();
 
-            // 每个客户端的 openid 都是唯一的
-            QueryWrapper qw = new QueryWrapper();
-            qw.eq("unionid", unionid);
-            qw.eq("openid", openid);
-            XunyeeVcuserOauth temp = new XunyeeVcuserOauth().selectOne(qw);
-            if (temp == null) {
+            LambdaQueryWrapper<XunyeeVcuserOauth> qw = new LambdaQueryWrapper<>();
+            qw.eq(XunyeeVcuserOauth::getUnionid, unionid)
+                    .or()
+                    .eq(XunyeeVcuserOauth::getOpenid,openid);
+            List<XunyeeVcuserOauth> oauthList = new XunyeeVcuserOauth().selectList(qw);
+
+            if (oauthList.size()<=0){//新用户
+                // 新增账号 需要从 vljdk 新增一条记录后获取 id
+                int userId=vlkdjService.loginInsertUserId(site,openid);
+                if (userId<=0){
+                    return R.ERROR();
+                }
                 // 新增账号
                 XunyeeVcuser user = new XunyeeVcuser();
+                user.setId(userId);
                 user.setSex(1);//默认给1
                 if (!user.insert()) {
                     return R.ERROR();
@@ -175,12 +200,14 @@ public class LoginService {
 
                 return R.OK(resLoginSuccess);
             }
+            XunyeeVcuserOauth temp=oauthList.get(0);//随便获取一条数据 取其中的vcuser_id
             // 登录成功 生成token
             XunyeeVcuser vcuser=new XunyeeVcuser().selectById(temp.getVcuser_id());
-            String token = JwtUtil.getAccessToken(String.valueOf(temp.getVcuser_id()));
-            String refresh_token = JwtUtil.getRefreshToken(String.valueOf(temp.getVcuser_id()));
-            redisUtil.set("user_token:"+temp.getVcuser_id()+":access_token",token,24*60*60);
-            redisUtil.set("user_token:"+temp.getVcuser_id()+":refresh_token",refresh_token,30*24*60*60);
+            int vcuser_id=vcuser.getId();
+            String token = JwtUtil.getAccessToken(String.valueOf(vcuser_id));
+            String refresh_token = JwtUtil.getRefreshToken(String.valueOf(vcuser_id));
+            redisUtil.set("user_token:"+vcuser_id+":access_token",token,24*60*60);
+            redisUtil.set("user_token:"+vcuser_id+":refresh_token",refresh_token,30*24*60*60);
 
 
             ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
@@ -189,7 +216,7 @@ public class LoginService {
             resLoginSuccess.setRefresh_token(refresh_token);
             resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
 
-            resLoginSuccess.setVcuser_id(temp.getVcuser_id());
+            resLoginSuccess.setVcuser_id(vcuser_id);
             if (StringUtils.isNotEmpty(vcuser.getNickname())){
                 resLoginSuccess.setNickname(vcuser.getNickname());
             }

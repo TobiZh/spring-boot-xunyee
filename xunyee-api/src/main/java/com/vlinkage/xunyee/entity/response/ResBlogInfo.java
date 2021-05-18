@@ -48,6 +48,9 @@ public class ResBlogInfo {
     @ApiModelProperty("品牌名称 当type=3的时候才有值")
     private String brand_name;
 
+    @ApiModelProperty("品牌跳转链接 当type=3的时候才有值")
+    private String brand_url;
+
     @ApiModelProperty("艺人id")
     private int person_id;
 

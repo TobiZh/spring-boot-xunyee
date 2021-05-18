@@ -272,4 +272,18 @@ public class XunyeeController {
     }
 
 
+    @ApiOperation("添加一条品牌浏览记录")
+    @PostMapping("brand/brow")
+    public R brandBrow(HttpServletRequest request,int brand_id){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.brandBrow(userId,brand_id);
+    }
+
+    @ApiOperation("添加一条品牌浏览记录")
+    @GetMapping("brand/brow/history")
+    public R<List<ResBrandPersonList>> brandBrowHistory(HttpServletRequest request){
+        int userId= UserUtil.getUserId(request);
+        return xunyeeService.brandBrowHistory(userId);
+    }
+
 }

@@ -2,7 +2,6 @@ package com.vlinkage.xunyee.api.user.service;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -19,12 +18,14 @@ import com.vlinkage.xunyee.entity.request.ReqUserReport;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
+import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.ImageHostUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -67,9 +69,8 @@ public class UserService {
         XunyeeVcuser vcuser = new XunyeeVcuser().selectById(userId);
         int follow_type = 0;
         List<String> personList = new ArrayList<>();
-        if (mine_vcuser_id != null || mine_vcuser_id != userId) {
+        if (mine_vcuser_id != null && mine_vcuser_id != userId) {
             // ===============  我是否以前关注过该用户  ====================
-
             // 关注状态
             LambdaQueryWrapper<XunyeeFollow> foqw = new LambdaQueryWrapper<>();
             foqw.eq(XunyeeFollow::getVcuser_id, userId)
@@ -79,7 +80,6 @@ public class UserService {
             if (follow != null) {
                 follow_type = follow.getType();
             }
-
             // ===============  我是否以前关注过该用户  ====================
 
             // ===============  共同关注  ====================
@@ -94,13 +94,14 @@ public class UserService {
             List<ResMonUserPerson> resMGsMine = mongoTemplate.find(queryMine, ResMonUserPerson.class);
 
             // 提取person id去数据库查询电视剧信息并取出并集
-            List<Integer> personIds = resMGs.stream().map(e -> e.getPerson()).collect(Collectors.toList());
+            List<Integer> personIdsOther = resMGs.stream().map(e -> e.getPerson()).collect(Collectors.toList());
             List<Integer> personIdsMine = resMGsMine.stream().map(e -> e.getPerson()).collect(Collectors.toList());
-            List<Integer> intersection = personIds.stream().filter(item -> personIdsMine.contains(item)).collect(Collectors.toList());
+            List<Integer> intersection = personIdsOther.stream().filter(item -> personIdsMine.contains(item)).collect(Collectors.toList());
 
             if (intersection.size() > 0) {
                 // 查询数据库艺人信息
-                Integer[] personIdArr = new Integer[intersection.size()];
+                Integer[] personIdArr=intersection.toArray(new Integer[intersection.size()]);
+
                 List<Person> persons = metaService.getPerson(personIdArr);
                 for (Person person : persons) {
                     personList.add(person.getZh_name());
@@ -113,13 +114,12 @@ public class UserService {
         // ===============  是不是会员  ====================
         LocalDate gteDate = LocalDate.now(); // >=
         LocalDate ltDate = gteDate.plusDays(1); // <; // <
-
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
                 .ge(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
                 .lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
-        XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
-        boolean is_vip = vcuserBenefit == null;
+        int benefit = new XunyeeVcuserBenefit().selectCount(qw);
+        boolean is_vip = benefit>0;
         // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================
@@ -143,27 +143,28 @@ public class UserService {
 
 
         // ===============  我的爱豆数量  ====================
-        // 查询当前用户关注的艺人
-        List<ResMonUserPersonCheck> resMonUserPersonChecks = mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId)), ResMonUserPersonCheck.class);
-
-
+        int idol_count = (int) mongoTemplate.count(new Query(Criteria.where("vcuser").is(userId).and("is_enabled").is(true)),ResMonUserPerson.class);
         // ===============  我的爱豆数量  ====================
 
+        // 查询当前用户关注的艺人和今年签到的天数
+
+        // 查询当前用户关注的艺人和今年签到的天数
 
         ResUserInfoOhter resMine = new ResUserInfoOhter();
         resMine.setVcuser_id(userId);
-
-        resMine.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
         resMine.setNickname(vcuser.getNickname());
+        resMine.setBio(vcuser.getBio());
+        resMine.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
         resMine.setCover(imageHostUtil.absImagePath(vcuser.getCover()));
+
         resMine.setFans_count(fans_count);
         resMine.setFollow_count(follow_count);
         resMine.setFollow_type(follow_type);
         resMine.setIs_vip(is_vip);
         resMine.setStar_count(star_count);
         resMine.setPersons(personList);
-        resMine.setBio("");
-        resMine.setIdol_count(resMonUserPersonChecks.size());
+        resMine.setIdol_count(idol_count);
+        resMine.setCheck_days_count(0);
         return R.OK(resMine);
     }
 
@@ -179,8 +180,8 @@ public class UserService {
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
                 .ge(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
                 .lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
-        XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
-        boolean is_vip = vcuserBenefit == null;
+        int vcuserBenefit = new XunyeeVcuserBenefit().selectCount(qw);
+        boolean is_vip = vcuserBenefit>0;
         // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================
@@ -436,5 +437,27 @@ public class UserService {
             return R.OK();
         }
         return R.ERROR("封面图上传失败");
+    }
+
+    public R blogStarFavoriteBrow(int userId, ReqMyPage myPage, int type) {
+        Page page = new Page(myPage.getCurrent(), myPage.getSize());
+        IPage<ResMyBlogStarPage> iPage = null;
+        switch (type) {
+            case 1:
+                iPage = myMapper.selectMyBlogStarPage(page, userId);
+                break;
+            case 2:
+                iPage = myMapper.selectMyBlogFavoritePage(page, userId);
+                break;
+            case 3:
+                iPage = myMapper.selectMyBlogBrowHistoryPage(page, userId);
+                break;
+        }
+
+        for (ResMyBlogStarPage record : iPage.getRecords()) {
+            record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
+            record.setCover(imageHostUtil.absImagePath(record.getCover()));
+        }
+        return R.OK(iPage);
     }
 }

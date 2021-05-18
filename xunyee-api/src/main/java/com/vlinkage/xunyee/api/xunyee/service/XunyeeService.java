@@ -1,7 +1,6 @@
 package com.vlinkage.xunyee.api.xunyee.service;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -28,7 +27,6 @@ import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -170,9 +168,7 @@ public class XunyeeService {
 
         LambdaQueryWrapper<XunyeeSystemNotification> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeSystemNotification::getIs_read,0)
-            .eq(XunyeeSystemNotification::getReceive_vcuser_id, userId)
-            .or()
-            .eq(XunyeeSystemNotification::getReceive_vcuser_id, 0);
+            .eq(XunyeeSystemNotification::getReceive_vcuser_id, userId);
        int count = new XunyeeSystemNotification().selectCount(qw);
        return R.OK(count);
     }
@@ -374,7 +370,7 @@ public class XunyeeService {
 
         // 查询当前用户关注的艺人和今年签到的天数
         Aggregation aggregation=Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("vcuser").is(3358279).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
+                Aggregation.match(Criteria.where("vcuser").is(userId).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
                 Aggregation.group("person").count().as("check")
         );
         AggregationResults<ResMonUserPersonCheckDays> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheckDays.class);
@@ -569,12 +565,14 @@ public class XunyeeService {
 
         Update upUpdate = new Update();
         upUpdate.set("person", personId);
+        upUpdate.set("vcuser", userId);
         upUpdate.set("updated", LocalDateTime.now());
         upUpdate.set("is_enabled",true);
-        UpdateResult upResult = mongoTemplate.upsert(Query.query(Criteria.where("vcuser").is(userId)
-                        .and("data_time").is(LocalDate.now())),
-                upUpdate,
-                "vc_user__person");
+        UpdateResult upResult = mongoTemplate.upsert(
+                Query.query(Criteria.where("vcuser").is(userId)
+                                .and("person").is(personId)
+                                .and("data_time").is(LocalDate.now())),
+                upUpdate, "vc_user__person");
 
         Update pUpdate = new Update();
         pUpdate.set("person", personId);
@@ -1311,4 +1309,46 @@ public class XunyeeService {
     }
 
 
+    public R brandBrow(int userId, int brand_id) {
+        // 添加一条浏览记录
+        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> hqw=new LambdaQueryWrapper();
+        hqw.eq(XunyeeBrandBrowsingHistory::getBrand_id,brand_id)
+                .eq(XunyeeBrandBrowsingHistory::getVcuser_id,userId);
+        XunyeeBrandBrowsingHistory temp=new XunyeeBrandBrowsingHistory().selectOne(hqw);
+        if (temp==null){
+            XunyeeBrandBrowsingHistory history=new XunyeeBrandBrowsingHistory();
+            history.setVcuser_id(userId);
+            history.setBrand_id(brand_id);
+            if (history.insert()){
+                return R.OK();
+            }
+
+        }else{
+            temp.setLast_brow_time(new Date());
+            temp.updateById();
+            if (temp.updateById()){
+                return R.OK();
+            }
+        }
+        return R.ERROR();
+    }
+
+    public R<List<ResBrandPersonList>> brandBrowHistory(int userId) {
+
+        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> qw=new LambdaQueryWrapper();
+        qw.select(XunyeeBrandBrowsingHistory::getBrand_id)
+                .eq(XunyeeBrandBrowsingHistory::getVcuser_id,userId)
+                .orderByDesc(XunyeeBrandBrowsingHistory::getCreated)
+                .last("limit 9");
+        List<XunyeeBrandBrowsingHistory> history=new XunyeeBrandBrowsingHistory().selectList(qw);
+        List<ResBrandPersonList> resBrandPeople=new ArrayList<>();
+        if (history.size()>0){
+            // 提取teleplay id去数据库查询电视剧信息
+            List<Integer> ids = history.stream().map(e -> e.getBrand_id()).collect(Collectors.toList());
+            List<ResBrandPersonList> list=metaService.getBrandByIds(ids);
+            return R.OK(list);
+        }
+
+        return R.OK(resBrandPeople);
+    }
 }

@@ -113,4 +113,11 @@ public class BlogController {
         int userId=UserUtil.getUserId(request);
         return blogService.getBlogByFriend(myPage,userId);
     }
+
+    @ApiOperation("删除动态")
+    @GetMapping("del")
+    public R delBlog(HttpServletRequest request,@Valid ReqBlogId req){
+        Integer userId=UserUtil.getUserId(request);
+        return blogService.delBlog(userId,req.getBlog_id());
+    }
 }

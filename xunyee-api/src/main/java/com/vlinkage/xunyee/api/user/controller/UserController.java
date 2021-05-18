@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
 @Api(tags = "用户模块")
@@ -99,6 +100,13 @@ public class UserController {
     public R uploadCoverDefault(HttpServletRequest request) {
         int userId=UserUtil.getUserId(request);
         return userService.uploaduploadCoverDefaultCover(userId);
+    }
+
+    @ApiOperation("我赞过/收藏/浏览")
+    @GetMapping("blog/star_favorite_brow")
+    public R blogStarFavoriteBrow(HttpServletRequest request,@Valid ReqMyPage myPage,int type) {
+        int userId=UserUtil.getUserId(request);
+        return userService.blogStarFavoriteBrow(userId,myPage,type);
     }
 
 }
