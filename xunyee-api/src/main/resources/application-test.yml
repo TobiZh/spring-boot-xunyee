@@ -7,7 +7,7 @@ spring:
       datasource:
         xunyee:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://115.29.163.237:5432/vlkdj?currentSchema=xunyee&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+          url: jdbc:postgresql://115.29.163.237:5432/vlkdj?currentSchema=xunyee&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&stringtype=unspecified
           username: vlkdj
           password: weiling@qinghai118
         vlkdj:
@@ -43,3 +43,4 @@ xunyee:
   config:
     # 系统部署到服务器 映射域名 用于微信支付回调
     host: http:/115.29.163.237:8089
+

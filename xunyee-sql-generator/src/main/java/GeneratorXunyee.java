@@ -29,7 +29,7 @@ public class GeneratorXunyee {
         gc.setSwagger2(true);
         gc.setOpen(false);
         gc.setFileOverride(true);
-        gc.setActiveRecord(true);// 不需要ActiveRecord特性的请改为false
+        gc.setActiveRecord(true);// 不需要ActiveRecord特性的请改为falsea开启可以使用实体类crud new User().selectById();
         gc.setEnableCache(false);// XML 二级缓存
         gc.setBaseResultMap(true);// XML ResultMap
         gc.setBaseColumnList(false);// XML columList
@@ -61,6 +61,8 @@ public class GeneratorXunyee {
                 return super.processTypeConvert(config, fieldType);
             }
         });
+
+
         mpg.setDataSource(dsc);
 
         // 策略配置

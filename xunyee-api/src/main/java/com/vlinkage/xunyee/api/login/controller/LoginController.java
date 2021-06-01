@@ -8,10 +8,13 @@ import com.vlinkage.xunyee.entity.response.ResLoginSuccessApp;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessMini;
 import com.vlinkage.xunyee.entity.response.ResRefreshToken;
 import com.vlinkage.xunyee.jwt.PassToken;
+import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Api(tags = "登录注销")
 @RestController
@@ -51,5 +54,12 @@ public class LoginController {
         return loginService.refreshToken(refresh_token);
     }
 
+
+    @ApiOperation(value="注销账号")
+    @PostMapping("close_account")
+    public R closeAccount(HttpServletRequest request) {
+        int userId= UserUtil.getUserId(request);
+        return loginService.closeAccount(userId);
+    }
 
 }

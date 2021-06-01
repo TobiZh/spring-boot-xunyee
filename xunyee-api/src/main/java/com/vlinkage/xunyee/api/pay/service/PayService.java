@@ -50,8 +50,6 @@ public class PayService {
     @Autowired
     private WxPayService wxService;
 
-    @Resource
-    private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
 
     // ===========================  商品支付 app  ===================================
     public R<WxPayAppOrderResult> payBenefit(HttpServletRequest request, XunyeeVcuserBenefitPayorder order) {
@@ -85,7 +83,7 @@ public class PayService {
             // 创建一个app支付
             WxPayAppOrderResult result = wxPayService.createOrder(orderRequest);
 
-            log.info("微信支付成功:{}",JSONObject.toJSONString(result));
+            log.info("微信支付成功:{}", JSONObject.toJSONString(result));
             return R.OK(result);
         } catch (Exception e) {
             log.error("微信支付失败！订单号：{},原因:{}", order.getSite_transaction_id(), e.getMessage());
@@ -98,7 +96,6 @@ public class PayService {
         final WxPayOrderNotifyResult notifyResult = wxService.parseOrderNotifyResult(xmlData);
         String transactionId = notifyResult.getTransactionId();   // 微信交易号;
         String outTradeNo = notifyResult.getOutTradeNo();  // 用户订单号;
-
         BigDecimal totalFee = BigDecimal.valueOf(notifyResult.getTotalFee()).divide(new BigDecimal(100));
 
 
@@ -106,7 +103,7 @@ public class PayService {
         qw.eq(XunyeeVcuserBenefitPayorder::getSite_transaction_id, outTradeNo);
         XunyeeVcuserBenefitPayorder order = new XunyeeVcuserBenefitPayorder().selectOne(qw);
         if (order != null) {
-            if (order.getIs_paid()){
+            if (order.getIs_paid()) {
                 return WxPayNotifyResponse.success("此订单已经支付过了");
             }
 
@@ -115,45 +112,28 @@ public class PayService {
             order.setUpdated(date);
             order.setIs_paid(true);
             if (order.updateById()) {
-                int userId=order.getVcuser_id();
+                int userId = order.getVcuser_id();
                 int plusDays = order.getQuantity();
 
-                XunyeeBenefitPrice benefitPrice=new XunyeeBenefitPrice().selectById(order.getBenefit_price_id());
-                int benefitId=benefitPrice.getBenefit_id();
-
+                XunyeeBenefitPrice benefitPrice = new XunyeeBenefitPrice().selectById(order.getBenefit_price_id());
+                int benefitId = benefitPrice.getBenefit_id();
                 LocalDate nowDate = LocalDate.now();
-                LambdaQueryWrapper<XunyeeVcuserBenefit> bqw = new LambdaQueryWrapper<>();
-                bqw.eq(XunyeeVcuserBenefit::getVcuser_id, userId);
-                bqw.le(XunyeeVcuserBenefit::getFinish_time, nowDate);
-                XunyeeVcuserBenefit temp = new XunyeeVcuserBenefit().selectOne(bqw);
-
-                if (temp == null) {
-                    XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit();
-                    vcuserBenefit.setId(UUID.randomUUID().toString());
-                    vcuserBenefit.setBenefit_id(benefitId);
-                    vcuserBenefit.setVcuser_id(userId);
-                    vcuserBenefit.setUpdated(date);
-                    vcuserBenefit.setCreated(date);
-                    vcuserBenefit.setFinish_time(nowDate);
-                    vcuserBenefit.setFinish_time(nowDate.plusDays(plusDays));
-                    if (!vcuserBenefit.insert()) {
-                        return WxPayNotifyResponse.fail("支付失败");
-                    }
-                } else {
-                    // 这里使用xunyeeVcuserBenefitMapper 是因为 pgsql的主键使用的是uuid类型，不能updateById;
-                    QueryWrapper updateQw = new QueryWrapper();
-                    updateQw.eq("id", UUID.fromString(temp.getId()));
-                    temp.setBenefit_id(benefitId);
-                    temp.setUpdated(date);
-                    temp.setFinish_time(nowDate.plusDays(plusDays));
-                    if (xunyeeVcuserBenefitMapper.update(temp, updateQw) <= 0) {
-                        return WxPayNotifyResponse.fail("支付失败");
-                    }
+                XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit();
+                vcuserBenefit.setId(UUID.randomUUID().toString());
+                vcuserBenefit.setBenefit_id(benefitId);
+                vcuserBenefit.setVcuser_id(userId);
+                vcuserBenefit.setUpdated(date);
+                vcuserBenefit.setCreated(date);
+                vcuserBenefit.setStart_time(nowDate);
+                vcuserBenefit.setFinish_time(nowDate.plusDays(plusDays));
+                if (vcuserBenefit.insert()) {
+                    return WxPayNotifyResponse.success("成功");
                 }
-                return WxPayNotifyResponse.success("成功");
+                return WxPayNotifyResponse.fail("支付失败");
             }
+            log.error("order.updateById:{}", JSONObject.toJSONString(order));
         }
-        log.info("查不到订单号{}", JSONObject.toJSONString(outTradeNo));
+        log.error("查不到订单号{}", JSONObject.toJSONString(outTradeNo));
         return WxPayNotifyResponse.fail("查不到订单号");
     }
     // ===========================  商品支付  ===================================

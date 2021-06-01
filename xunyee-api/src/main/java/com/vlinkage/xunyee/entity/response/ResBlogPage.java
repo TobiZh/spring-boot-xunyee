@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class ResBlogPage {
 
-    @ApiModelProperty("创作id blog_id")
+    @ApiModelProperty("动态id blog_id")
     private int id;
     @ApiModelProperty("用户id")
     private int vcuser_id;

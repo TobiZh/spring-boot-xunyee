@@ -24,6 +24,10 @@ public class ResMine {
     private int idol_count;
     @ApiModelProperty("是不是会员")
     private Boolean is_vip;
+    @ApiModelProperty("会员剩余天数")
+    private int vip_days;
+    @ApiModelProperty("品牌最近点击数")
+    private int brand_brow_count;
     @ApiModelProperty("我的爱豆头像")
     private List<String> persons;
 

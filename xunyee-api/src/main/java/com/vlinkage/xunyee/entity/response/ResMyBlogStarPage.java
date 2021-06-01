@@ -18,4 +18,6 @@ public class ResMyBlogStarPage {
     private String cover;
     @ApiModelProperty("图片list")
     private Boolean is_star;
+    @ApiModelProperty("点赞数量")
+    private int star_count;
 }

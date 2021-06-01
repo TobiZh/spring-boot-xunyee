@@ -13,6 +13,7 @@ import com.vlinkage.xunyee.entity.request.ReqReportTeleplayRptTrend;
 import com.vlinkage.xunyee.entity.request.ReqReportZyRptTrend;
 import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.utils.DateUtil;
+import com.vlinkage.xunyee.utils.ImageHostUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +31,9 @@ import java.util.stream.Collectors;
 @Service
 public class VdataService {
 
-    @Value("${sys-config.image-path}")
-    private String imagePath;
+    @Autowired
+    private ImageHostUtil imageHostUtil;
+
     @Autowired
     private MongoTemplate mongoTemplate;
     @Autowired
@@ -96,7 +98,7 @@ public class VdataService {
                 int tmpPerson = p.getId();
                 if (personId == tmpPerson) {
                     personFK.setId(personId);
-                    personFK.setAvatar_custom(imagePath+p.getAvatar_custom());
+                    personFK.setAvatar_custom(imageHostUtil.absImagePath(p.getAvatar_custom()));
                     personFK.setZh_name(p.getZh_name());
                 }
             }
@@ -167,7 +169,7 @@ public class VdataService {
                 int tmpPerson = p.getId();
                 if (personId == tmpPerson) {
                     personFK.setId(personId);
-                    personFK.setAvatar_custom(imagePath+p.getAvatar_custom());
+                    personFK.setAvatar_custom(imageHostUtil.absImagePath(p.getAvatar_custom()));
                     personFK.setZh_name(p.getZh_name());
                 }
             }

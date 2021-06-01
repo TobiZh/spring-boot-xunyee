@@ -1,6 +1,7 @@
 package com.vlinkage.xunyee.api.blog.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.vlinkage.xunyee.entity.response.ResBlogStar;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.blog.service.BlogService;
@@ -72,7 +73,7 @@ public class BlogController {
 
     @ApiOperation("点赞（取消点赞）/点踩（取消点踩）")
     @PostMapping("star")
-    public R blogStar(HttpServletRequest request,@Valid ReqBlogStar req){
+    public R<ResBlogStar> blogStar(HttpServletRequest request, @Valid ReqBlogStar req){
         Integer userId=UserUtil.getUserId(request);
         return blogService.blogStar(userId,req);
     }

@@ -19,4 +19,10 @@ public class ImageHostUtil {
         return imgUrl;
     }
 
+    public String removeImagePath(String imgUrl){
+        if (StringUtils.startsWith(imgUrl,xunyeeProperties.getImageHost())){
+            imgUrl=imgUrl.replace(xunyeeProperties.getImageHost(),"");
+        }
+        return imgUrl;
+    }
 }

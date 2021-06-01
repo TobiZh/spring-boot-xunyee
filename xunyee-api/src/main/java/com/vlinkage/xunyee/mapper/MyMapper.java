@@ -25,11 +25,11 @@ public interface MyMapper {
      */
     @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar" +
             "<when test='from_user_id!=null'>",
-            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${from_user_id}) is_star ",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{from_user_id}) is_star ",
             "</when>",
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u ",
             "ON b.vcuser_id=u.id AND b.is_deleted=0 ",
-            "WHERE b.vcuser_id=${vcuser_id} order by b.star_count desc</script>"})
+            "WHERE b.vcuser_id=#{vcuser_id} order by b.star_count desc</script>"})
     IPage<ResBlogPage> selectUserBlogPage(Page page, int vcuser_id,Integer from_user_id);
 
 
@@ -43,11 +43,11 @@ public interface MyMapper {
      */
     @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
             "<when test='vcuser_id!=null'>",
-            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star ",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star ",
             "</when>",
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u ",
             "ON b.vcuser_id=u.id AND b.is_deleted=0 ",
-            "WHERE b.type=${type} ",
+            "WHERE b.type=#{type} ",
             "ORDER BY b.star_count DESC</script>"})
     IPage<ResBlogPage> selectBlogCategoryPage(Page page, Integer type, Integer vcuser_id);
 
@@ -60,9 +60,9 @@ public interface MyMapper {
      * @return
      */
     @Select("SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar, " +
-            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star " +
-            "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u " +
-            "ON b.vcuser_id=u.id AND b.is_deleted=0 " +
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star " +
+            "FROM xunyee_blog b, xunyee_follow f, xunyee_vcuser u " +
+            "where b.vcuser_id=f.followed_vcuser_id and f.vcuser_id=#{vcuser_id} and b.vcuser_id=u.id AND b.is_deleted=0 " +
             "ORDER BY b.star_count DESC")
     IPage<ResBlogPage> selectBlogFollowPage(Page page, Integer vcuser_id);
 
@@ -77,7 +77,7 @@ public interface MyMapper {
      */
     @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
             "<when test='vcuser_id!=null'>",
-            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star ",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star ",
             "</when>",
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u ",
             "ON b.vcuser_id=u.id AND b.is_deleted=0 " ,
@@ -99,10 +99,10 @@ public interface MyMapper {
     @Select({"<script>SELECT f.id,f.type,u.id vcuser_id,u.bio,u.avatar,u.nickname FROM xunyee_follow f,xunyee_vcuser u " +
             "WHERE f.status=1 " +
             "<when test='type==1' >",
-            "AND f.followed_vcuser_id=u.id AND f.vcuser_id=${vcuser_id} ",
+            "AND f.followed_vcuser_id=u.id AND f.vcuser_id=#{vcuser_id} ",
             "</when>",
             "<when test='type==2' >",
-            "AND f.vcuser_id=u.id AND f.followed_vcuser_id=${vcuser_id} ",
+            "AND f.vcuser_id=u.id AND f.followed_vcuser_id=#{vcuser_id} ",
             "</when>",
             "ORDER BY f.updated DESC</script>"})
     IPage<ResFollowPage> selectFollowPage(Page page, Integer type, Integer vcuser_id);
@@ -116,28 +116,27 @@ public interface MyMapper {
      */
     @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar" +
             "<when test='vcuser_id!=null'>",
-            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star ",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star ",
             "</when>",
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u ",
             "ON b.vcuser_id=u.id AND b.is_deleted=0 ",
-            "WHERE b.type=${req.type} AND b.person_id=${req.person_id} AND b.id!=${req.blog_id} ",
+            "WHERE b.type=#{req.type} AND b.person_id=#{req.person_id} AND b.id!=#{req.blog_id} ",
             "ORDER BY b.star_count DESC</script>"})
     IPage<ResBlogPage> selectRecommendBlogPage(Page page, Integer vcuser_id, @Param("req") ReqRecommendPage req);
 
 
     @Select("SELECT b.id,b.name,b.logo,bps.url_gen url,bps.finish_time_new FROM brand b " +
-            "LEFT JOIN meta_brand_person bp ON b.id=bp.brand_id " +
+            "LEFT JOIN meta_brand_person bp ON b.id=bp.brand_id and bp.person_id=#{person_id} " +
             "LEFT JOIN meta_brand_person_site bps ON bp.id=bps.brand_person_id " +
-            "WHERE bp.person_id=${person_id} and bps.is_enabled=true AND bps.url<>'' ORDER BY bps.finish_time_new DESC,bps.created DESC")
+            "WHERE bps.is_enabled=true AND bps.url<>'' ORDER BY bps.finish_time_new DESC,bps.created DESC")
     List<ResBrandPersonList> selectBrandPersonList(int person_id);
 
     @Select("SELECT b.id,b.name,bps.url_gen url "+
             "FROM brand b " +
-            "LEFT JOIN meta_brand_person bp ON b.id=bp.brand_id " +
+            "LEFT JOIN meta_brand_person bp ON b.id=bp.brand_id and bp.person_id=#{person_id} and bp.brand_id=#{brand_id} " +
             "LEFT JOIN meta_brand_person_site bps ON bp.id=bps.brand_person_id " +
-            "WHERE bps.is_enabled=true AND bps.url<>'' and bp.brand_id=#{brand_id}")
-    ResBrandNameUrl selectBrandNameUrlById(int brand_id);
-
+            "WHERE bps.is_enabled=true AND bps.url<>'' ")
+    ResBrandNameUrl selectBrandNameUrlById(int brand_id,int person_id);
 
 
     /**
@@ -148,11 +147,11 @@ public interface MyMapper {
      * @return
      */
     @Select("SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar," +
-            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star " +
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star " +
             "FROM xunyee_blog b " +
             "LEFT JOIN xunyee_follow f ON b.vcuser_id=f.followed_vcuser_id " +
             "LEFT JOIN xunyee_vcuser u ON b.vcuser_id=u.id " +
-            "WHERE f.type=3 AND f.status=1 AND f.vcuser_id=${vcuser_id}")
+            "WHERE f.type=3 AND f.status=1 AND f.vcuser_id=#{vcuser_id}")
     IPage<ResBlogPage> selectFriendBlogPage(Page page, int vcuser_id);
 
 
@@ -167,10 +166,10 @@ public interface MyMapper {
      */
     @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
             "<when test='vcuser_id!=null'>",
-            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star ",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star ",
             "</when>",
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u ",
-            "ON b.vcuser_id=u.id AND b.is_deleted=0 WHERE b.vcuser_id=${vcuser_id}" ,
+            "ON b.vcuser_id=u.id AND b.is_deleted=0 WHERE b.vcuser_id=#{vcuser_id}" ,
             "<when test='name!=null'>" ,
             " AND b.title like CONCAT('%',#{name},'%') " ,
             "</when>",
@@ -179,26 +178,28 @@ public interface MyMapper {
 
 
 
-    @Select("select u.id vcuser_id,u.avatar,u.nickname,s.created,SUBSTRING(b.content,1,20) \"content\",b.images," +
-            "case when (select count(*) from xunyee_vcuser_benefit where now()<=finish_time and vcuser_id=${vcuser_id})>0 " +
+    @Select("select b.id blog_id,u.id vcuser_id,u.avatar,u.nickname,s.updated created,SUBSTRING(b.content,1,20) \"content\",b.images," +
+            "case when (select count(*) from xunyee_vcuser_benefit where now()<=finish_time and vcuser_id=#{vcuser_id})>0 " +
             "then true else false end is_vip " +
             "FROM xunyee_blog_star s,xunyee_blog b,xunyee_vcuser u " +
-            "where  b.is_deleted=0 and s.blog_id=b.id and s.\"type\"=1 and s.status=1 and s.vcuser_id=u.id and b.vcuser_id=#{vcuser_id}")
+            "where  b.is_deleted=0 and s.blog_id=b.id and s.\"type\"=1 and s.status=1 " +
+            "and s.vcuser_id=u.id and b.vcuser_id=#{vcuser_id} " +
+            "order by s.updated desc")
     IPage<ResBlogStarPage> selectBlogStarPage(Page page, int vcuser_id);
 
-    @Select("select b.id,u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover,true is_star " +
+    @Select("select b.id,u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover,true is_star,b.star_count " +
             "FROM xunyee_blog_star s,xunyee_blog b,xunyee_vcuser u " +
             "where b.is_deleted=0 and s.blog_id=b.id and s.status=1 and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
     IPage<ResMyBlogStarPage> selectMyBlogStarPage(Page page, int vcuser_id);
 
-    @Select("select b.idu.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover," +
-            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star "+
+    @Select("select b.id,u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover,b.star_count," +
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star "+
             "FROM xunyee_blog_favorite s,xunyee_blog b,xunyee_vcuser u " +
             "where b.is_deleted=0 and s.blog_id=b.id and s.status=1 and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
     IPage<ResMyBlogStarPage> selectMyBlogFavoritePage(Page page, int vcuser_id);
 
-    @Select("select b.id,u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover," +
-            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=${vcuser_id}) is_star "+
+    @Select("select b.id,u.id vcuser_id,u.avatar,u.nickname,s.created,split_part(b.images,',', 1) cover,b.star_count," +
+            "(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star "+
             "FROM xunyee_blog_browsing_history s,xunyee_blog b,xunyee_vcuser u " +
             "where b.is_deleted=0 and s.blog_id=b.id and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
     IPage<ResMyBlogStarPage> selectMyBlogBrowHistoryPage(Page page, int vcuser_id);

@@ -7,7 +7,8 @@ spring:
       datasource:
         xunyee:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://116.62.236.230:5432/vlkdj?currentSchema=xunyee&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+          # stringtype=unspecified 处理插入数据时 uuid 报错
+          url: jdbc:postgresql://116.62.236.230:5432/vlkdj?currentSchema=xunyee&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&stringtype=unspecified
           username: vlkdj
           password: weiling@qinghai118
         vlkdj:

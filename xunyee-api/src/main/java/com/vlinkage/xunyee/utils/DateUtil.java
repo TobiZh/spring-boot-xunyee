@@ -1,6 +1,7 @@
 package com.vlinkage.xunyee.utils;
 
-import java.text.SimpleDateFormat;
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 
+@Slf4j
 public class DateUtil {
 
     /**
@@ -101,5 +103,6 @@ public class DateUtil {
         System.out.println(getLastDayOfMonth(year,month));
         System.out.println(getCurrYearFirst(year));
         System.out.println(getCurrYearLast(year).plusDays(1));
+        log.debug("谈恋爱真的很麻烦,所以以后就麻烦你了");
     }
 }

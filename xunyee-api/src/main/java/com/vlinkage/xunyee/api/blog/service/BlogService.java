@@ -13,6 +13,7 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;
 import com.vlinkage.xunyee.entity.response.ResBlogPage;
+import com.vlinkage.xunyee.entity.response.ResBlogStar;
 import com.vlinkage.xunyee.entity.response.ResBrandNameUrl;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.mapper.MyMapper;
@@ -125,7 +126,7 @@ public class BlogService {
         info.setImage_list(imageList);
 
         if (blog.getType() == 3) {//品牌 需要读取品牌名称
-            ResBrandNameUrl resBrandNameUrl = metaService.getBrandNameUrlById(blog.getType_id());
+            ResBrandNameUrl resBrandNameUrl = metaService.getBrandNameUrlById(blog.getType_id(),blog.getPerson_id());
             if(resBrandNameUrl!=null){
                 info.setBrand_name(resBrandNameUrl.getName());
                 info.setBrand_url(resBrandNameUrl.getUrl());
@@ -224,12 +225,11 @@ public class BlogService {
     }
 
     @Transactional
-    public R blogStar(Integer userId, ReqBlogStar req) {
-
-        String resultStr = "";
-
+    public R<ResBlogStar> blogStar(Integer userId, ReqBlogStar req) {
         int blogId = req.getBlog_id();
         int type = req.getType();
+        ResBlogStar resBlogStar=new ResBlogStar();
+
         LambdaQueryWrapper<XunyeeBlogStar> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeBlogStar::getVcuser_id, userId)
                 .eq(XunyeeBlogStar::getBlog_id, blogId);
@@ -240,20 +240,22 @@ public class BlogService {
             blogStar.setBlog_id(blogId);
             blogStar.setType(type);
             blogStar.setStatus(1);
+            blogStar.setUpdated(new Date());
             if (blogStar.insert()) {
                 // 该动态添加 star_count计数+1
                 XunyeeBlog blog = new XunyeeBlog().selectById(blogId);
                 if (type == 0) {
                     //点踩
-                    resultStr = "点踩成功";
                     blog.setUnstar_count(blog.getUnstar_count() + 1);
                 } else if (type == 1) {
                     //点赞
-                    resultStr = "点赞成功";
+                    resBlogStar.setIs_star(true);
                     blog.setStar_count(blog.getStar_count() + 1);
                 }
                 blog.updateById();
-                return R.OK(resultStr);
+                resBlogStar.setId(blog.getId());
+                resBlogStar.setStar_count(blog.getStar_count());
+                return R.OK(resBlogStar);
             }
         } else {
             int tempType = temp.getType();//获取之前的type
@@ -264,6 +266,7 @@ public class BlogService {
             } else if ((tempType == 0 && type == 1) || (tempType == 1 && type == 0)) {//点踩-点赞 点赞-点踩
                 temp.setStatus(1);
             }
+            temp.setUpdated(new Date());
             temp.setType(type);
             if (temp.updateById()) {
                 // 该动态添加 star_count计数+1
@@ -272,37 +275,40 @@ public class BlogService {
                 int unStarCount = blog.getUnstar_count();
                 if (type == 0 && tempType == 0) {//点踩
                     if (temp.getStatus() == 0) {
-                        resultStr = "取消点踩成功";
+                        //resultStr = "取消点踩成功";
                         blog.setUnstar_count(unStarCount - 1);
                     } else {
-                        resultStr = "点踩成功";
+                        //resultStr = "点踩成功";
                         blog.setUnstar_count(unStarCount + 1);
                     }
                 } else if (type == 1 && tempType == 1) {//点赞
                     if (temp.getStatus() == 0) {
-                        resultStr = "取消点赞成功";
+                        //resultStr = "取消点赞成功";
                         blog.setStar_count(starCount - 1);
                     } else {
-                        resultStr = "点赞成功";
+                        //resultStr = "点赞成功";
                         blog.setStar_count(starCount + 1);
+                        resBlogStar.setIs_star(true);
                     }
                 } else if (tempType == 0 && type == 1) {//点踩 > 点赞
                     blog.setStar_count(starCount + 1);
                     if (tempStatus == 1) {
                         blog.setUnstar_count(unStarCount - 1);
                     }
-                    resultStr = "点赞成功";
-
+                    //resultStr = "点赞成功";
+                    resBlogStar.setIs_star(true);
                 } else if (tempType == 1 && type == 0) {//点赞 > 点踩
                     blog.setUnstar_count(unStarCount + 1);
                     if (tempStatus == 1) {
                         blog.setStar_count(starCount - 1);
                     }
-                    resultStr = "点踩成功";
+                    //resultStr = "点踩成功";
 
                 }
                 blog.updateById();
-                return R.OK(resultStr);
+                resBlogStar.setId(blog.getId());
+                resBlogStar.setStar_count(blog.getStar_count());
+                return R.OK(resBlogStar);
             }
         }
         return R.ERROR(type == 0 ? "点踩失败" : "点赞失败");

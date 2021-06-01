@@ -1,13 +1,16 @@
 package com.vlinkage.xunyee.api.xunyee.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.binarywang.wxpay.bean.order.WxPayAppOrderResult;
 import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.ant.meta.entity.Person;
+import com.vlinkage.ant.star.entity.SdbJdSale;
 import com.vlinkage.ant.star.entity.SdbPersonGallery;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
@@ -15,7 +18,7 @@ import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.pay.service.PayService;
-import com.vlinkage.xunyee.api.star.service.StarService;
+import com.vlinkage.xunyee.api.star.StarService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.*;
@@ -26,6 +29,7 @@ import com.vlinkage.xunyee.utils.ImageHostUtil;
 import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.impl.NoOpLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -41,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -75,18 +80,18 @@ public class XunyeeService {
 
         LambdaQueryWrapper<XunyeePic> qw = new LambdaQueryWrapper();
         qw.eq(XunyeePic::getType_id, 1);
-        if (req.getIs_enabled_5() != null){
+        if (req.getIs_enabled_5() != null) {
             qw.eq(XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true);
         }
         if (req.getIs_enabled_6() != null) {
             qw.eq(XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true);
         }
-                qw.le(XunyeePic::getStart_time, nowDate)
+        qw.le(XunyeePic::getStart_time, nowDate)
                 .ge(XunyeePic::getFinish_time, nowDate)
                 .orderByAsc(XunyeePic::getSequence);
         XunyeePic xunyeePic = new XunyeePic().selectOne(qw);
-        if (xunyeePic!=null){
-            ResPic resPic =BeanUtil.copyProperties(xunyeePic, ResPic.class);
+        if (xunyeePic != null) {
+            ResPic resPic = BeanUtil.copyProperties(xunyeePic, ResPic.class);
             resPic.setPic(imageHostUtil.absImagePath(resPic.getPic()));
             return R.OK(resPic);
         }
@@ -95,19 +100,18 @@ public class XunyeeService {
 
 
     public R<List<ResPic>> getAdBanner(ReqPic req) {
-        System.out.println(req.getIs_enabled_5()!=null);
         LocalDateTime nowDate = LocalDateTime.now();
         LambdaQueryWrapper<XunyeePic> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeePic::getType_id, 2);//轮播广告
-        if (req.getIs_enabled_5() != null){
+        if (req.getIs_enabled_5() != null) {
             qw.eq(XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true);
         }
         if (req.getIs_enabled_6() != null) {
             qw.eq(XunyeePic::getIs_enabled_6, req.getIs_enabled_6() == 0 ? false : true);
         }
         qw.le(XunyeePic::getStart_time, nowDate)// >=
-            .ge(XunyeePic::getFinish_time, nowDate)// <=
-            .orderByAsc(XunyeePic::getSequence);
+                .ge(XunyeePic::getFinish_time, nowDate)// <=
+                .orderByAsc(XunyeePic::getSequence);
         List<XunyeePic> picList = new XunyeePic().selectList(qw);
         List<ResPic> resPics = CopyListUtil.copyListProperties(picList, ResPic.class);
         for (ResPic p : resPics) {
@@ -116,15 +120,31 @@ public class XunyeeService {
         return R.OK(resPics);
     }
 
-    public R<List<ResNavigation>> getNavigation() {
+    public R<List<ResNavigation>> getNavigation(String source) {
+
         LambdaQueryWrapper<XunyeeNavigation> qw = new LambdaQueryWrapper<>();
-        qw.eq(XunyeeNavigation::getIs_deleted, 0)
-            .eq(XunyeeNavigation::getIs_enabled, 1)
-            .orderByAsc(XunyeeNavigation::getOrderby);
+        qw.eq(XunyeeNavigation::getIs_deleted, false);
+        switch (source) {
+            case "android":
+                qw.eq(XunyeeNavigation::getIs_enabled_android, true);
+                break;
+            case "ios":
+                qw.eq(XunyeeNavigation::getIs_enabled_ios, true);
+                break;
+            case "mini":
+                qw.eq(XunyeeNavigation::getIs_enabled_mini, true);
+                break;
+        }
+        qw.orderByAsc(XunyeeNavigation::getOrderby);
         List<XunyeeNavigation> navigation = new XunyeeNavigation().selectList(qw);
         List<ResNavigation> resNavigations = CopyListUtil.copyListProperties(navigation, ResNavigation.class);
         for (ResNavigation resNavigation : resNavigations) {
             resNavigation.setIcon(imageHostUtil.absImagePath(resNavigation.getIcon()));
+            if (resNavigation.getType() == 2) {// type=2 应用内部页面
+                String params = resNavigation.getParams();
+                Map<String, Object> map = JSONObject.parseObject(params, Map.class);
+                resNavigation.setParams(map.get(source).toString());
+            }
         }
         return R.OK(resNavigations);
     }
@@ -132,8 +152,8 @@ public class XunyeeService {
     public R<List<ResSearchHot>> getSearchHot() {
         LambdaQueryWrapper<XunyeeSearchHot> qw = new LambdaQueryWrapper<>();
         qw.select(XunyeeSearchHot::getId, XunyeeSearchHot::getName)
-            .eq(XunyeeSearchHot::getIs_deleted, false)
-            .orderByAsc(XunyeeSearchHot::getOrderby);
+                .eq(XunyeeSearchHot::getIs_deleted, false)
+                .orderByAsc(XunyeeSearchHot::getOrderby);
 
         List<XunyeeSearchHot> searchHot = new XunyeeSearchHot().selectList(qw);
         List<ResSearchHot> resSearchHots = CopyListUtil.copyListProperties(searchHot, ResSearchHot.class);
@@ -167,15 +187,15 @@ public class XunyeeService {
     public R<Integer> systemNotificationCount(int userId) {
 
         LambdaQueryWrapper<XunyeeSystemNotification> qw = new LambdaQueryWrapper<>();
-        qw.eq(XunyeeSystemNotification::getIs_read,0)
-            .eq(XunyeeSystemNotification::getReceive_vcuser_id, userId);
-       int count = new XunyeeSystemNotification().selectCount(qw);
-       return R.OK(count);
+        qw.eq(XunyeeSystemNotification::getIs_read, 0)
+                .eq(XunyeeSystemNotification::getReceive_vcuser_id, userId);
+        int count = new XunyeeSystemNotification().selectCount(qw);
+        return R.OK(count);
     }
 
     public R systemNotificationRead(int userId, int id) {
         XunyeeSystemNotification notification = new XunyeeSystemNotification().selectById(id);
-        if (notification.getReceive_vcuser_id()!=userId){
+        if (notification.getReceive_vcuser_id() != userId) {
             return R.ERROR("不是你的通知");
         }
         if (notification != null) {
@@ -206,9 +226,9 @@ public class XunyeeService {
     public R vcuserBenefit(int userId) {
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.select(XunyeeVcuserBenefit::getStart_time, XunyeeVcuserBenefit::getFinish_time)
-            .eq(XunyeeVcuserBenefit::getVcuser_id, userId);
+                .eq(XunyeeVcuserBenefit::getVcuser_id, userId);
         XunyeeVcuserBenefit benefit = new XunyeeVcuserBenefit().selectOne(qw);
-        if (benefit==null){
+        if (benefit == null) {
             return R.ERROR("您还不是会员");
         }
         ResBenefit resBenefit = BeanUtil.copyProperties(benefit, ResBenefit.class);
@@ -369,12 +389,12 @@ public class XunyeeService {
 
 
         // 查询当前用户关注的艺人和今年签到的天数
-        Aggregation aggregation=Aggregation.newAggregation(
+        Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("vcuser").is(userId).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
                 Aggregation.group("person").count().as("check")
         );
-        AggregationResults<ResMonUserPersonCheckDays> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheckDays.class);
-        List<ResMonUserPersonCheckDays> resMonData=res.getMappedResults();
+        AggregationResults<ResMonUserPersonCheckDays> res = mongoTemplate.aggregate(aggregation, "vc_user__person__check", ResMonUserPersonCheckDays.class);
+        List<ResMonUserPersonCheckDays> resMonData = res.getMappedResults();
 
         // 组装数据
         List<ResPersonCheckCountIdol> resCheckCounts = new ArrayList<>();
@@ -434,9 +454,9 @@ public class XunyeeService {
         LocalDateTime nowDate = LocalDateTime.now();
         LambdaQueryWrapper<XunyeeBenefitPrice> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeBenefitPrice::getIs_enabled, true)
-            .le(XunyeeBenefitPrice::getStart_time, nowDate)// >=
-            .ge(XunyeeBenefitPrice::getFinish_time, nowDate)// <=
-            .orderByAsc(XunyeeBenefitPrice::getQuantity);
+                .le(XunyeeBenefitPrice::getStart_time, nowDate)// >=
+                .ge(XunyeeBenefitPrice::getFinish_time, nowDate)// <=
+                .orderByAsc(XunyeeBenefitPrice::getQuantity);
         List<XunyeeBenefitPrice> benefitPrices = new XunyeeBenefitPrice().selectList(qw);
         List<ResXunyeeBenefitPrice> resXunyeeBenefitPrices = CopyListUtil.copyListProperties(benefitPrices, ResXunyeeBenefitPrice.class);
         return R.OK(resXunyeeBenefitPrices);
@@ -463,8 +483,8 @@ public class XunyeeService {
 
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-            .ge(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
-            .lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
+                .le(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
+                .ge(XunyeeVcuserBenefit::getFinish_time, gteDate);// >
         XunyeeVcuserBenefit userBenefit = new XunyeeVcuserBenefit().selectOne(qw);
 
         // 查询当前用户关注的艺人和当天签到数
@@ -478,9 +498,9 @@ public class XunyeeService {
         boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson() == personId);
 
         if (b) {
-            if(userBenefit!=null){
+            if (userBenefit != null) {
                 return R.ERROR("今天已经签到过了，明天再来吧");
-            }else {
+            } else {
                 return R.ERROR(ResultCode.USER_NOT_OPEN_VIP);
             }
         }
@@ -491,13 +511,13 @@ public class XunyeeService {
 
         LocalDateTime nowDate = LocalDateTime.now();
         LambdaQueryWrapper<XunyeePic> picqw = new LambdaQueryWrapper<>();
-        picqw.select(XunyeePic::getTitle,XunyeePic::getUrl)
-            .eq(XunyeePic::getType_id, 3)//广告图
-            .le(XunyeePic::getStart_time, nowDate)// >=
-            .ge(XunyeePic::getFinish_time, nowDate);// <=
+        picqw.select(XunyeePic::getTitle, XunyeePic::getUrl)
+                .eq(XunyeePic::getType_id, 3)//广告图
+                .le(XunyeePic::getStart_time, nowDate)// >=
+                .ge(XunyeePic::getFinish_time, nowDate);// <=
         XunyeePic xunyeePic = new XunyeePic().selectOne(picqw);
-        ResPicTitleUrl titleUrl=new ResPicTitleUrl();
-        if (xunyeePic!=null){
+        ResPicTitleUrl titleUrl = new ResPicTitleUrl();
+        if (xunyeePic != null) {
             titleUrl.setTitle(imageHostUtil.absImagePath(xunyeePic.getPic()));
             titleUrl.setUrl(xunyeePic.getUrl());
         }
@@ -523,9 +543,9 @@ public class XunyeeService {
         LocalDate ltDate = gteDate.plusDays(1); // <; // <
 
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
-        qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId);
-        qw.ge(XunyeeVcuserBenefit::getStart_time, gteDate);//<=
-        qw.lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
+        qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
+                .le(XunyeeVcuserBenefit::getStart_time, gteDate)
+                .ge(XunyeeVcuserBenefit::getFinish_time, gteDate);
         XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
 
         // 查询当前用户关注的艺人和当天签到数
@@ -537,11 +557,11 @@ public class XunyeeService {
         int checkCounted = resPersonChecks.stream().collect(Collectors.summingInt(ResMonUserPersonCheck::getCheck));
         // 是否已为该艺人签到过
 
-        boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson()==personId);
+        boolean b = resPersonChecks.stream().anyMatch(task -> task.getPerson() == personId);
         if (b) {
-            if(vcuserBenefit!=null){
+            if (vcuserBenefit != null) {
                 return R.ERROR("今天已经签到过了，明天再来吧");
-            }else{
+            } else {
                 return R.ERROR(ResultCode.USER_NOT_OPEN_VIP);
             }
         }
@@ -563,25 +583,28 @@ public class XunyeeService {
         }
 
 
+        // vc_user__person idol添加一条idol信息
         Update upUpdate = new Update();
         upUpdate.set("person", personId);
         upUpdate.set("vcuser", userId);
         upUpdate.set("updated", LocalDateTime.now());
-        upUpdate.set("is_enabled",true);
+        upUpdate.set("is_enabled", true);
         UpdateResult upResult = mongoTemplate.upsert(
                 Query.query(Criteria.where("vcuser").is(userId)
-                                .and("person").is(personId)
-                                .and("data_time").is(LocalDate.now())),
+                        .and("person").is(personId)),
                 upUpdate, "vc_user__person");
+        // vc_user__person idol添加一条idol信息
 
+        // person__check__count 艺人签到数更新一条数据
         Update pUpdate = new Update();
         pUpdate.set("person", personId);
-        pUpdate.set("data_time", LocalDateTime.now());
+        pUpdate.set("data_time", LocalDate.now());
         pUpdate.inc("check", checkCount);//累加
         UpdateResult presult = mongoTemplate.upsert(Query.query(Criteria.where("person").is(personId)
-                .and("data_time").is(LocalDate.now())),
+                        .and("data_time").gte(LocalDate.now())),//大于等于当天的数据
                 pUpdate,
                 "person__check__count");
+        // person__check__count 艺人签到数更新一条数据
 
         // 更新真爱排行
         Update update = new Update();
@@ -595,9 +618,11 @@ public class XunyeeService {
                         .and("year").is(LocalDate.now().getYear())),
                 update,
                 "vc_user__person__check__count");
+        // 更新真爱排行
         if (result.getModifiedCount() <= 0) {
             log.error("更新粉丝榜单失败,用户{}，艺人{}，签到数{}", userId, personId, checkCount);
         }
+
         return R.OK(checkCount);
     }
 
@@ -682,14 +707,14 @@ public class XunyeeService {
     }
 
     public R<ResPersonBrandInfo> vcuserPersonPersonBrand(int person) {
-        List<ResBrandPersonList> brands=metaService.getBrandPersonList(person);
-        int sale_rank=starService.getJDSaleRankByPerson(person);
+        List<ResBrandPersonList> brands = metaService.getPersonBrandList(person);
+        int sale_rank = starService.getJDSaleRankByPerson(person);
 
-        ResPersonBrandInfo brandInfo=new ResPersonBrandInfo();
+        ResPersonBrandInfo brandInfo = new ResPersonBrandInfo();
         brandInfo.setClick(0);//这个不需要了 设置成0
         brandInfo.setSale_rank(sale_rank);
         brandInfo.setBrand_list(brands);
-       return R.OK(brandInfo);
+        return R.OK(brandInfo);
 
     }
 
@@ -698,8 +723,6 @@ public class XunyeeService {
         if (resPerson == null) {
             return R.ERROR("艺人id错误");
         }
-        LocalDate gteDate = LocalDate.now(); // >=
-        LocalDate ltDate = gteDate.plusDays(1); // <; // <
 
         // 当前艺人指数
         ResMonReportPersonRptTrend resMongo = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person)), ResMonReportPersonRptTrend.class);
@@ -714,27 +737,27 @@ public class XunyeeService {
             info.setReport_1912_teleplay_rank(resMongo.getReport_1912_teleplay_rank());
             info.setReport_1912_teleplay_rank_incr(resMongo.getReport_1912_teleplay_rank_incr());
         } else {
+            // 没有指数设置成5
             info.setReport_1912_teleplay(5);
         }
-
+        LocalDate nowDate = LocalDate.now();//今天
         // 当前艺人今日签到数
         ResMonPersonCheckCountCount personCheckCount = mongoTemplate.findOne(Query.query(Criteria.where("person").is(person)
-                .andOperator(Criteria.where("data_time").gte(gteDate).lt(ltDate))),
+                        .andOperator(Criteria.where("data_time").gte(nowDate))),
                 ResMonPersonCheckCountCount.class);
         if (personCheckCount != null) {
-            info.setCheck(person);
+            info.setCheck(personCheckCount.getCheck());
         }
         // 查询当前用户关注的艺人和当天签到数
         if (userId != null) {
             ResMonUserPersonCheck userPersonCheck = mongoTemplate.findOne(Query.query(Criteria.where("vcuser").is(userId)
                             .and("person").is(person)
-                            .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
+                            .andOperator(Criteria.where("updated").gte(nowDate))),
                     ResMonUserPersonCheck.class);
             if (userPersonCheck != null) {
                 info.setCheck_my(userPersonCheck.getCheck());
             }
         }
-
         return R.OK(info);
     }
 
@@ -808,7 +831,7 @@ public class XunyeeService {
     public R reportPersonAlbum(ReqMyPage myPage, int person) {
         IPage iPage = starService.getPersonGalleryByPersonId(person, myPage);
         List<SdbPersonGallery> resBlogPages = iPage.getRecords();
-        List<String> list =new ArrayList<>();
+        List<String> list = new ArrayList<>();
         for (SdbPersonGallery resBlogPage : resBlogPages) {
             list.add(imageHostUtil.absImagePath(resBlogPage.getOriginal()));
         }
@@ -840,9 +863,10 @@ public class XunyeeService {
 
 
         LocalDate nowDate = LocalDate.now();
-        QueryWrapper bqw = new QueryWrapper();
-        bqw.eq("vcuser_id", userId);
-        bqw.ge("finish_time", nowDate);// <=
+
+        LambdaQueryWrapper<XunyeeVcuserBenefit> bqw = new LambdaQueryWrapper();
+        bqw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
+                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
         XunyeeVcuserBenefit temp = new XunyeeVcuserBenefit().selectOne(bqw);
         int benefitId = benefitPrice.getBenefit_id();
         int plusDays = benefitPrice.getQuantity();
@@ -854,20 +878,21 @@ public class XunyeeService {
             vcuserBenefit.setVcuser_id(userId);
             vcuserBenefit.setUpdated(date);
             vcuserBenefit.setCreated(date);
-            vcuserBenefit.setFinish_time(nowDate);
+            vcuserBenefit.setStart_time(nowDate);
             vcuserBenefit.setFinish_time(nowDate.plusDays(plusDays));
             if (!vcuserBenefit.insert()) {
                 return R.ERROR();
             }
         } else {
-
             // 这里使用xunyeeVcuserBenefitMapper 是因为 pgsql的主键使用的是uuid类型，不能updateById;
-            QueryWrapper updateQw = new QueryWrapper();
-            updateQw.eq("id", UUID.fromString(temp.getId()));
             temp.setBenefit_id(benefitId);
             temp.setUpdated(date);
-            temp.setFinish_time(nowDate.plusDays(plusDays));
-            if (xunyeeVcuserBenefitMapper.update(temp, updateQw) <= 0) {
+            // 结束时间延长
+            temp.setFinish_time(temp.getFinish_time().plusDays(plusDays));
+            LambdaUpdateWrapper<XunyeeVcuserBenefit> updateQw = new LambdaUpdateWrapper<>();
+            updateQw.eq(XunyeeVcuserBenefit::getId, UUID.fromString(temp.getId()));
+            int updatedCount=xunyeeVcuserBenefitMapper.update(temp,updateQw);
+            if (updatedCount<=0) {
                 return R.ERROR();
             }
         }
@@ -881,7 +906,6 @@ public class XunyeeService {
 
 
         return R.OK();
-
     }
 
     public R<WxPayAppOrderResult> vcuserBenefitPayOrderSubmit(HttpServletRequest request, int userId, ReqBenefitPayOrder req) {
@@ -917,7 +941,7 @@ public class XunyeeService {
 
         //=======================  按签到排名来搜索 =============================
         LocalDate nowDate = LocalDate.now();//今天
-        LocalDate gteDate=LocalDate.now();
+        LocalDate gteDate = LocalDate.now();
         LocalDate ltDate = gteDate.plusDays(1);
         // 查询条件
         Criteria criteria = Criteria.where("data_time").gte(gteDate).lt(ltDate);
@@ -964,9 +988,9 @@ public class XunyeeService {
                 .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
                 .collect(Collectors.toList());
 
-        List<ResPerson> personList=new ArrayList<>();
+        List<ResPerson> personList = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
-            ResPerson resPerson=new ResPerson();
+            ResPerson resPerson = new ResPerson();
             resPerson.setId(resSortCheckCounts.get(i).getId());
             resPerson.setAvatar_custom(resSortCheckCounts.get(i).getAvatar_custom());
             resPerson.setZh_name(resSortCheckCounts.get(i).getZh_name());
@@ -981,7 +1005,6 @@ public class XunyeeService {
             }
         }
         //=======================  按签到排名来搜索 =============================
-
 
 
         Map<String, Object> map = new HashMap<>();
@@ -1003,8 +1026,8 @@ public class XunyeeService {
     }
 
     public R agreement(int type) throws IOException {
-        if (type==1){
-            String str="<!DOCTYPE html>" +
+        if (type == 1) {
+            String str = "<!DOCTYPE html>" +
                     "            <html>" +
                     "                <head>" +
                     "                    <title>隐私政策</title>" +
@@ -1220,8 +1243,8 @@ public class XunyeeService {
                     "                </body>" +
                     "            </html>";
             return R.OK(str);
-        }else if (type==2){
-            String str="<!DOCTYPE html>" +
+        } else if (type == 2) {
+            String str = "<!DOCTYPE html>" +
                     "        <html>" +
                     "            <head>" +
                     "                <title>“寻艺”APP用户协议</title>" +
@@ -1350,44 +1373,44 @@ public class XunyeeService {
                     "            </body>" +
                     "        </html>";
             return R.OK(str);
-        }else{
+        } else {
             return R.ERROR("type:[1,2]");
         }
     }
 
     public R<ResAppVersion> appVersionCheck(Integer version_code) {
-        LambdaQueryWrapper<XunyeeAppVersion> qw=new LambdaQueryWrapper<>();
-        qw.gt(version_code!=null,XunyeeAppVersion::getVersion_code,version_code)
+        LambdaQueryWrapper<XunyeeAppVersion> qw = new LambdaQueryWrapper<>();
+        qw.gt(version_code != null, XunyeeAppVersion::getVersion_code, version_code)
                 .orderByDesc(XunyeeAppVersion::getVersion_code)
                 .last("limit 1");
-        XunyeeAppVersion appVersion=new XunyeeAppVersion().selectOne(qw);
-        if(appVersion==null){
+        XunyeeAppVersion appVersion = new XunyeeAppVersion().selectOne(qw);
+        if (appVersion == null) {
             return R.ERROR("您当前已是最新版本");
         }
         appVersion.setApk_download_url(imageHostUtil.absImagePath(appVersion.getApk_download_url()));
-        ResAppVersion resAppVersion=BeanUtil.copyProperties(appVersion,ResAppVersion.class);
+        ResAppVersion resAppVersion = BeanUtil.copyProperties(appVersion, ResAppVersion.class);
         return R.OK(resAppVersion);
     }
 
 
     public R brandBrow(int userId, int brand_id) {
         // 添加一条浏览记录
-        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> hqw=new LambdaQueryWrapper();
-        hqw.eq(XunyeeBrandBrowsingHistory::getBrand_id,brand_id)
-                .eq(XunyeeBrandBrowsingHistory::getVcuser_id,userId);
-        XunyeeBrandBrowsingHistory temp=new XunyeeBrandBrowsingHistory().selectOne(hqw);
-        if (temp==null){
-            XunyeeBrandBrowsingHistory history=new XunyeeBrandBrowsingHistory();
+        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> hqw = new LambdaQueryWrapper();
+        hqw.eq(XunyeeBrandBrowsingHistory::getBrand_id, brand_id)
+                .eq(XunyeeBrandBrowsingHistory::getVcuser_id, userId);
+        XunyeeBrandBrowsingHistory temp = new XunyeeBrandBrowsingHistory().selectOne(hqw);
+        if (temp == null) {
+            XunyeeBrandBrowsingHistory history = new XunyeeBrandBrowsingHistory();
             history.setVcuser_id(userId);
             history.setBrand_id(brand_id);
-            if (history.insert()){
+            if (history.insert()) {
                 return R.OK();
             }
 
-        }else{
+        } else {
             temp.setLast_brow_time(new Date());
             temp.updateById();
-            if (temp.updateById()){
+            if (temp.updateById()) {
                 return R.OK();
             }
         }
@@ -1396,20 +1419,114 @@ public class XunyeeService {
 
     public R<List<ResBrandPersonList>> brandBrowHistory(int userId) {
 
-        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> qw=new LambdaQueryWrapper();
+        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> qw = new LambdaQueryWrapper();
         qw.select(XunyeeBrandBrowsingHistory::getBrand_id)
-                .eq(XunyeeBrandBrowsingHistory::getVcuser_id,userId)
+                .eq(XunyeeBrandBrowsingHistory::getVcuser_id, userId)
                 .orderByDesc(XunyeeBrandBrowsingHistory::getCreated)
                 .last("limit 9");
-        List<XunyeeBrandBrowsingHistory> history=new XunyeeBrandBrowsingHistory().selectList(qw);
-        List<ResBrandPersonList> resBrandPeople=new ArrayList<>();
-        if (history.size()>0){
+        List<XunyeeBrandBrowsingHistory> history = new XunyeeBrandBrowsingHistory().selectList(qw);
+        List<ResBrandPersonList> resBrandPeople = new ArrayList<>();
+        if (history.size() > 0) {
             // 提取teleplay id去数据库查询电视剧信息
             List<Integer> ids = history.stream().map(e -> e.getBrand_id()).collect(Collectors.toList());
-            List<ResBrandPersonList> list=metaService.getBrandByIds(ids);
+            List<ResBrandPersonList> list = metaService.getBrandByIds(ids);
             return R.OK(list);
         }
 
         return R.OK(resBrandPeople);
+    }
+
+    public R brandStarRate() {
+        List<SdbJdSale> sdbJdSales = starService.getWeekJDSaleRank();
+        if (sdbJdSales.size() <= 0) {
+            return R.ERROR("数据查询失败");
+        }
+        // 提取person id去数据库查询电视剧信息
+        Integer[] personIds = sdbJdSales.stream().map(e -> e.getPerson_id()).collect(Collectors.toList())
+                .toArray(new Integer[sdbJdSales.size()]);
+        // 查询数据库艺人信息
+        List<Person> persons = metaService.getPerson(personIds);
+
+        // 求和
+        BigDecimal volumeSum = new BigDecimal(0);
+        for (SdbJdSale sdbJdSale : sdbJdSales) {
+            volumeSum = volumeSum.add(sdbJdSale.getSales_volume());
+        }
+
+        ResSdbJdSale resSdbJdSale = new ResSdbJdSale();
+        LocalDate lastDate = sdbJdSales.get(0).getCreated();
+        resSdbJdSale.setStart_date(lastDate.minusDays(6));
+        resSdbJdSale.setFinish_date(lastDate);
+
+        List<ResSdbJdSale.Rank> ranks = new ArrayList<>();
+
+        // 防止数据不足10条
+        int size = sdbJdSales.size() > 10 ? 10 : sdbJdSales.size();
+        BigDecimal lastRate = new BigDecimal(0);
+        for (int i = 0; i < size; i++) {
+            SdbJdSale sdbJdSale = sdbJdSales.get(i);
+            ResSdbJdSale.Rank rank = new ResSdbJdSale.Rank();
+            for (Person person : persons) {
+                //这里使用equals 比较 Integer
+                if (sdbJdSale.getPerson_id().equals(person.getId())) {
+                    rank.setPerson(person.getId());
+                    rank.setZh_name(person.getZh_name());
+                    BigDecimal rate = sdbJdSale.getSales_volume().divide(volumeSum, 3, BigDecimal.ROUND_HALF_UP);
+                    lastRate = lastRate.add(rate);
+                    rank.setRate(rate);
+                    rank.setRate_percentage(rate.multiply(BigDecimal.valueOf(100)));
+                    break;
+                }
+            }
+            ranks.add(rank);
+        }
+        ResSdbJdSale.Rank rank = new ResSdbJdSale.Rank();
+        rank.setPerson(0);
+        rank.setZh_name("其他");
+        BigDecimal rate = BigDecimal.valueOf(1).subtract(lastRate);
+        rank.setRate(rate);
+        rank.setRate_percentage(rate.multiply(BigDecimal.valueOf(100)));
+        ranks.add(rank);
+        resSdbJdSale.setRank(ranks);
+        return R.OK(resSdbJdSale);
+    }
+
+    public R brandStarRank(String name) {
+
+        List<SdbJdSale> sdbJdSales = starService.getWeekJDSaleRank();
+        if (sdbJdSales.size() <= 0) {
+            return R.ERROR("数据查询失败");
+        }
+
+        // 提取person id去数据库查询电视剧信息
+        Integer[] personIds = sdbJdSales.stream().map(e -> e.getPerson_id()).collect(Collectors.toList())
+                .toArray(new Integer[sdbJdSales.size()]);
+
+        // 查询数据库艺人信息
+        List<Person> persons = metaService.getPerson(personIds);
+
+        // 查询艺人代言的品牌
+        List<ResBrandPersonList> brandPersonLists = metaService.getPersonBrandListByPersonIds(personIds);
+
+        ResSdbJdSaleRank resSdbJdSaleRank = new ResSdbJdSaleRank();
+        LocalDate lastDate = sdbJdSales.get(0).getCreated();
+        resSdbJdSaleRank.setStart_date(lastDate.minusDays(6));
+        resSdbJdSaleRank.setFinish_date(lastDate);
+
+        for (SdbJdSale sdbJdSale : sdbJdSales) {
+            ResSdbJdSaleRank.Rank rank = new ResSdbJdSaleRank.Rank();
+            for (Person person : persons) {
+                //这里使用equals 比较 Integer
+                if (sdbJdSale.getPerson_id().equals(person.getId())) {
+                    rank.setPerson(person.getId());
+                    rank.setZh_name(person.getZh_name());
+                    rank.setAvatar(imageHostUtil.absImagePath(person.getAvatar_custom()));
+                    break;
+                }
+            }
+        }
+
+        return R.OK();
+
     }
 }

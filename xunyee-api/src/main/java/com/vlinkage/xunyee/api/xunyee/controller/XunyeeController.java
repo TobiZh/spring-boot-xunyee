@@ -11,6 +11,7 @@ import com.vlinkage.xunyee.entity.response.*;
 import com.vlinkage.xunyee.jwt.PassToken;
 import com.vlinkage.xunyee.utils.UserUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -49,12 +50,14 @@ public class XunyeeController {
     }
 
     @ApiOperation("快速导航按钮")
+    @ApiImplicitParam(name = "source",value = "android,ios,mini")
     @PassToken
-    @GetMapping("navigation")
-    public R<List<ResNavigation>> getNavigation(){
+    @GetMapping("navigation/{source}")
+    public R<List<ResNavigation>> getNavigation(@PathVariable("source") String source){
 
-        return xunyeeService.getNavigation();
+        return xunyeeService.getNavigation(source);
     }
+
 
     @ApiOperation("热门搜索")
     @PassToken
@@ -111,7 +114,7 @@ public class XunyeeController {
     @PassToken
     @GetMapping("brand/person")
     public R<List<ResBrandPerson>> brandPerson(@Valid ReqPersonId req){
-        List<ResBrandPersonList> brands=metaService.getBrandPersonList(req.getPerson());
+        List<ResBrandPersonList> brands=metaService.getPersonBrandList(req.getPerson());
 
         return R.OK(brands);
     }
@@ -253,7 +256,6 @@ public class XunyeeController {
         return xunyeeService.blogSearch(userId,myPage,reqGlobalSearch);
     }
 
-
     @ApiOperation("用户隐私政策和协议")
     @PassToken
     @GetMapping("ver/agreement")
@@ -262,7 +264,6 @@ public class XunyeeController {
         return xunyeeService.agreement(t);
     }
 
-
     @ApiOperation("寻艺app检查更新")
     @PassToken
     @GetMapping("version/check")
@@ -270,7 +271,6 @@ public class XunyeeController {
 
         return xunyeeService.appVersionCheck(version_code);
     }
-
 
     @ApiOperation("添加一条品牌浏览记录")
     @PostMapping("brand/brow")
@@ -284,6 +284,22 @@ public class XunyeeController {
     public R<List<ResBrandPersonList>> brandBrowHistory(HttpServletRequest request){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.brandBrowHistory(userId);
+    }
+
+    @ApiOperation("品牌星带货排行榜")
+    @PassToken
+    @GetMapping("brand/adstar_actor_rate_data_api")
+    public R brandStarRate(){
+
+        return xunyeeService.brandStarRate();
+    }
+
+    @ApiOperation("品牌星艺人品牌列表")
+    @PassToken
+    @GetMapping("brand/adstar_actor_rank_data_api")
+    public R brandStarRank(String name){
+
+        return xunyeeService.brandStarRank(name);
     }
 
 }

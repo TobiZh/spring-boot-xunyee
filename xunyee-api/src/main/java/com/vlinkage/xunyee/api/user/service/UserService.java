@@ -1,6 +1,7 @@
 package com.vlinkage.xunyee.api.user.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUnit;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -36,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -113,12 +115,11 @@ public class UserService {
         }
 
         // ===============  是不是会员  ====================
-        LocalDate gteDate = LocalDate.now(); // >=
-        LocalDate ltDate = gteDate.plusDays(1); // <; // <
+        LocalDate nowDate = LocalDate.now();
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-                .ge(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
-                .lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
+                .le(XunyeeVcuserBenefit::getStart_time, nowDate)
+                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
         int benefit = new XunyeeVcuserBenefit().selectCount(qw);
         boolean is_vip = benefit>0;
         // ===============  是不是会员  ====================
@@ -161,8 +162,8 @@ public class UserService {
 
         ResUserInfoOhter resMine = new ResUserInfoOhter();
         resMine.setVcuser_id(userId);
-        resMine.setNickname(vcuser.getNickname());
-        resMine.setBio(vcuser.getBio());
+        resMine.setNickname(StringUtils.isNotEmpty(vcuser.getNickname())?vcuser.getNickname():"");
+        resMine.setBio(StringUtils.isNotEmpty(vcuser.getBio())?vcuser.getBio():"");
         resMine.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
         resMine.setCover(imageHostUtil.absImagePath(vcuser.getCover()));
 
@@ -182,15 +183,19 @@ public class UserService {
         XunyeeVcuser vcuser = new XunyeeVcuser().selectById(userId);
 
         // ===============  是不是会员  ====================
-        LocalDate gteDate = LocalDate.now(); // >=
-        LocalDate ltDate = gteDate.plusDays(1); // <; // <
-
+        LocalDate nowDate = LocalDate.now();
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-                .ge(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
-                .lt(XunyeeVcuserBenefit::getFinish_time, ltDate);// >
-        int vcuserBenefit = new XunyeeVcuserBenefit().selectCount(qw);
-        boolean is_vip = vcuserBenefit>0;
+                .le(XunyeeVcuserBenefit::getStart_time, nowDate)
+                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
+        XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
+        boolean is_vip = vcuserBenefit!=null;
+        int vipDays=-1;//表示非会员
+        if (is_vip){
+            //Duration duration = Duration.between(nowDate,vcuserBenefit.getFinish_time());
+            vipDays = (int) (vcuserBenefit.getFinish_time().plusDays(1).toEpochDay()-nowDate.toEpochDay()); //相差的天数
+        }
+
         // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================
@@ -232,6 +237,11 @@ public class UserService {
         }
         // ===============  我的爱豆  ====================
 
+        // ===============  品牌浏览数  ====================
+        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> brandQw=new LambdaQueryWrapper<>();
+        brandQw.eq(XunyeeBrandBrowsingHistory::getVcuser_id,userId);
+        int brandCount=new XunyeeBrandBrowsingHistory().selectCount(brandQw);
+        // ===============  品牌浏览数  ====================
 
         ResMine resMine = new ResMine();
         resMine.setVcuser_id(vcuser.getId());
@@ -242,6 +252,8 @@ public class UserService {
         resMine.setIdol_count(idol_count);
         resMine.setPersons(avatarList);
         resMine.setIs_vip(is_vip);
+        resMine.setVip_days(vipDays);
+        resMine.setBrand_brow_count(brandCount);
         resMine.setStar_count(star_count);
         return R.OK(resMine);
     }
@@ -257,7 +269,8 @@ public class UserService {
         }
 
         if (StringUtils.isNotEmpty(req.getAvatar())) {
-            vcuser.setAvatar(req.getAvatar());
+            // 防止前端传 绝对路径的图片
+            vcuser.setAvatar(imageHostUtil.removeImagePath(req.getAvatar()));
         }
 
         if (StringUtils.isNotEmpty(req.getWx_avatar())) {
@@ -407,8 +420,6 @@ public class UserService {
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogStarPage> iPage = myMapper.selectBlogStarPage(page, userId);
         for (ResBlogStarPage record : iPage.getRecords()) {
-
-
             if (StringUtils.isNotEmpty(record.getImages())) {
                 String[] s = record.getImages().split(",");
                 List<String> image_list = new ArrayList<>();

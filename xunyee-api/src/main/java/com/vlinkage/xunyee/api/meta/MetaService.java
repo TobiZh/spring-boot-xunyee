@@ -101,19 +101,41 @@ public class MetaService {
 
 
     /**
-     * 缓存艺人代言的所有品牌列表
+     * 获取单个艺人代言的品牌列表
      *
      * @param person_id
      * @return
      */
-    @Cacheable(value = "springboot_cache_person_brand", key = "#person_id", unless = "#result == null or #result.size() == 0")
-    public List<ResBrandPersonList> getBrandPersonList(int person_id) {
+    //@Cacheable(value = "springboot_cache_person_brand", key = "#person_id", unless = "#result == null or #result.size() == 0")
+    public List<ResBrandPersonList> getPersonBrandList(int person_id) {
         List<ResBrandPersonList> resBrandPeople = myMapper.selectBrandPersonList(person_id);
         for (ResBrandPersonList resBrandPerson : resBrandPeople) {
             resBrandPerson.setLogo(imageHostUtil.absImagePath(resBrandPerson.getLogo()));
         }
         return resBrandPeople;
     }
+
+
+    /**
+     * 获取多个艺人关联的品牌
+     * @param person_ids
+     * @return
+     */
+    public List<ResBrandPersonList> getPersonBrandListByPersonIds(Integer... person_ids) {
+
+        String sql="SELECT b.id,b.name,b.logo,bps.url_gen url,bps.finish_time_new FROM brand b " +
+                "LEFT JOIN meta_brand_person bp ON b.id=bp.brand_id and bp.person_id in ("+person_ids+") " +
+                "LEFT JOIN meta_brand_person_site bps ON bp.id=bps.brand_person_id " +
+                "WHERE bps.is_enabled=true AND bps.url<>'' ORDER BY bps.finish_time_new DESC,bps.created DESC";
+
+        List<ResBrandPersonList> resBrandPeople = jdbcTemplate.query(sql,new Object[]{},
+                new BeanPropertyRowMapper<ResBrandPersonList>(ResBrandPersonList.class));
+        for (ResBrandPersonList resBrandPerson : resBrandPeople) {
+            resBrandPerson.setLogo(imageHostUtil.absImagePath(resBrandPerson.getLogo()));
+        }
+        return resBrandPeople;
+    }
+
 
     /**
      * 缓存艺人代言的所有品牌列表
@@ -221,8 +243,8 @@ public class MetaService {
      * @param brandId
      * @return
      */
-    public ResBrandNameUrl getBrandNameUrlById(int brandId) {
-        ResBrandNameUrl res = myMapper.selectBrandNameUrlById(brandId);
+    public ResBrandNameUrl getBrandNameUrlById(int brandId,int person_id) {
+        ResBrandNameUrl res = myMapper.selectBrandNameUrlById(brandId,person_id);
         return res;
     }
 

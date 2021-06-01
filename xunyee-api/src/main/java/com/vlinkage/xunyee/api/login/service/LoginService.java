@@ -4,6 +4,7 @@ import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
 import com.vlinkage.xunyee.api.vlkdj.VlkdjService;
@@ -106,8 +107,8 @@ public class LoginService {
                 String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
                 String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
 
-                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
-                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
+//                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
+//                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
 
                 ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
                 resLoginSuccess.setToken(token);
@@ -120,13 +121,32 @@ public class LoginService {
             }
 
             XunyeeVcuserOauth temp=oauthList.get(0);//随便获取一条数据 取其中的vcuser_id
+            boolean isNewUserOauth=true;//默认是一个未注册的用户 新openid；
+            for (XunyeeVcuserOauth oauth : oauthList) {
+                if (oauth.getOpenid().equals(openid)){
+                    isNewUserOauth=false;
+                }
+            }
+
+            if (isNewUserOauth){
+                // 新增第三方账号
+                XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
+                userThird.setId(UUID.randomUUID().toString());//@TableId(value = "id", type = IdType.INPUT)
+                userThird.setVcuser_id(temp.getVcuser_id());
+                userThird.setSite(site);
+                userThird.setOpenid(openid);
+                userThird.setUnionid(unionid);
+                userThird.insert();
+            }
+
             // 生成token
             XunyeeVcuser vcuser=new XunyeeVcuser().selectById(temp.getVcuser_id());
             int vcuser_id=vcuser.getId();
             String token = JwtUtil.getAccessToken(String.valueOf(vcuser_id));
             String refresh_token = JwtUtil.getRefreshToken(String.valueOf(vcuser_id));
-            redisUtil.set("user_token:"+vcuser_id+":access_token",token,24*60*60);
-            redisUtil.set("user_token:"+vcuser_id+":refresh_token",refresh_token,30*24*60*60);
+
+//            redisUtil.set("user_token:"+vcuser_id+":access_token",token,24*60*60);
+//            redisUtil.set("user_token:"+vcuser_id+":refresh_token",refresh_token,30*24*60*60);
 
             ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
             resLoginSuccess.setToken(token);
@@ -185,8 +205,8 @@ public class LoginService {
                 // 登录成功 生成token
                 String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
                 String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
-                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
-                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
+//                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
+//                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
 
                 ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
                 resLoginSuccess.setSession_key(sessionKey);
@@ -201,13 +221,30 @@ public class LoginService {
                 return R.OK(resLoginSuccess);
             }
             XunyeeVcuserOauth temp=oauthList.get(0);//随便获取一条数据 取其中的vcuser_id
+            boolean isNewUserOauth=true;//默认是一个未注册的用户 新openid；
+            for (XunyeeVcuserOauth oauth : oauthList) {
+                if (oauth.getOpenid().equals(openid)){
+                    isNewUserOauth=false;
+                }
+            }
+
+            if (isNewUserOauth){
+                // 新增第三方账号
+                XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
+                userThird.setId(UUID.randomUUID().toString());//@TableId(value = "id", type = IdType.INPUT)
+                userThird.setVcuser_id(temp.getVcuser_id());
+                userThird.setSite(site);
+                userThird.setOpenid(openid);
+                userThird.setUnionid(unionid);
+                userThird.insert();
+            }
             // 登录成功 生成token
             XunyeeVcuser vcuser=new XunyeeVcuser().selectById(temp.getVcuser_id());
             int vcuser_id=vcuser.getId();
             String token = JwtUtil.getAccessToken(String.valueOf(vcuser_id));
             String refresh_token = JwtUtil.getRefreshToken(String.valueOf(vcuser_id));
-            redisUtil.set("user_token:"+vcuser_id+":access_token",token,24*60*60);
-            redisUtil.set("user_token:"+vcuser_id+":refresh_token",refresh_token,30*24*60*60);
+//            redisUtil.set("user_token:"+vcuser_id+":access_token",token,24*60*60);
+//            redisUtil.set("user_token:"+vcuser_id+":refresh_token",refresh_token,30*24*60*60);
 
 
             ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
@@ -241,8 +278,8 @@ public class LoginService {
         String token=JwtUtil.getAccessToken(userId);
         String refresh_token=JwtUtil.getRefreshToken(userId);
 
-        redisUtil.set("user_token:"+userId+":access_token",token,24*60*60);
-        redisUtil.set("user_token:"+userId+":refresh_token",refresh_token,30*24*60*60);
+//        redisUtil.set("user_token:"+userId+":access_token",token,24*60*60);
+//        redisUtil.set("user_token:"+userId+":refresh_token",refresh_token,30*24*60*60);
 
 
         ResRefreshToken app=new ResRefreshToken();
@@ -251,5 +288,19 @@ public class LoginService {
         app.setRefresh_token(refresh_token);
         return R.OK(app);
 
+    }
+
+    @Transactional
+    public R closeAccount(int userId) {
+
+        return R.OK();
+
+//        LambdaUpdateWrapper<XunyeeVcuser> uw=new LambdaUpdateWrapper();
+//        uw.eq(XunyeeVcuser::getId,userId).set(XunyeeVcuser::getIs_enabled,false);//注销账号
+//        boolean isClose=new XunyeeVcuser().update(uw);
+//        if (isClose){
+//            return R.OK();
+//        }
+//        return R.ERROR();
     }
 }
