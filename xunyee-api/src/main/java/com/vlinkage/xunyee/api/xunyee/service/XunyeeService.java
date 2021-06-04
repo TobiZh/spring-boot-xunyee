@@ -226,7 +226,9 @@ public class XunyeeService {
     public R vcuserBenefit(int userId) {
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.select(XunyeeVcuserBenefit::getStart_time, XunyeeVcuserBenefit::getFinish_time)
-                .eq(XunyeeVcuserBenefit::getVcuser_id, userId);
+                .eq(XunyeeVcuserBenefit::getVcuser_id, userId)
+                .le(XunyeeVcuserBenefit::getStart_time,LocalDateTime.now())
+                .ge(XunyeeVcuserBenefit::getFinish_time,LocalDateTime.now());
         XunyeeVcuserBenefit benefit = new XunyeeVcuserBenefit().selectOne(qw);
         if (benefit == null) {
             return R.ERROR("您还不是会员");
@@ -761,24 +763,24 @@ public class XunyeeService {
         return R.OK(info);
     }
 
-    public R<List<ResPersonCurve>> reportPersonRptTrendAll(int person) {
+    public R<List<ResPersonCurve>> reportPersonRptTrendAll(ReqPersonQuxian req) {
         // 当前艺人指数
         LocalDate gteDate = LocalDate.now().minusDays(10);
         LocalDate ltDate = LocalDate.now();
-        // count的查询条件
-        Criteria criteria = Criteria.where("period").is(1).and("person").in(person)
-                .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate));
+        // 查询条件
+        Criteria criteria = Criteria.where("is_eighty").is(req.getIs_eighty()).and("person").in(req.getPerson())
+                .andOperator(Criteria.where("start_data_time").gte(gteDate).lt(ltDate));
         Query query = new Query();
         query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Direction.ASC, "updated"));
-        List<ResMonReportPersonRptTrend> resMongo = mongoTemplate.find(query, ResMonReportPersonRptTrend.class);
+        query.with(Sort.by(Sort.Direction.ASC, "start_data_time"));
+        List<ResMonReportAllPersonRptTrend> resMongo = mongoTemplate.find(query, ResMonReportAllPersonRptTrend.class);
 
         List<ResPersonCurve> quxes = new ArrayList<>();
-        for (ResMonReportPersonRptTrend mongo : resMongo) {
+        for (ResMonReportAllPersonRptTrend mongo : resMongo) {
             ResPersonCurve qux = new ResPersonCurve();
             qux.setReport_1912_teleplay(mongo.getReport_1912_teleplay());
             qux.setReport_1912_teleplay_rank(mongo.getReport_1912_teleplay_rank());
-            qux.setData_time(mongo.getUpdated().toLocalDate());
+            qux.setData_time(mongo.getStart_data_time().toLocalDate());
             quxes.add(qux);
         }
         return R.OK(quxes);

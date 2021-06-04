@@ -170,8 +170,8 @@ public interface MyMapper {
             "</when>",
             "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u ",
             "ON b.vcuser_id=u.id AND b.is_deleted=0 WHERE b.vcuser_id=#{vcuser_id}" ,
-            "<when test='name!=null'>" ,
-            " AND b.title like CONCAT('%',#{name},'%') " ,
+            "<when test='name!=null and name!=\"\"'>" ,
+            " AND b.title like CONCAT('%',#{name}::text,'%') " ,
             "</when>",
             "ORDER BY b.star_count DESC</script>"})
     IPage<ResBlogPage> selectMineBlogPage(Page page, int vcuser_id, String name);

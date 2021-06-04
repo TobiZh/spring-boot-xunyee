@@ -207,7 +207,7 @@ public class XunyeeController {
     @PassToken
     @GetMapping("report_person/rpt_trend_all")
     public R<List<ResPersonCurve>> reportPersonRptTrendAll(@Valid ReqPersonQuxian req){
-        return xunyeeService.reportPersonRptTrendAll(req.getPerson());
+        return xunyeeService.reportPersonRptTrendAll(req);
     }
 
     @ApiOperation("真爱排行")

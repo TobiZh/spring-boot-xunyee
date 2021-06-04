@@ -420,6 +420,7 @@ public class UserService {
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogStarPage> iPage = myMapper.selectBlogStarPage(page, userId);
         for (ResBlogStarPage record : iPage.getRecords()) {
+            record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
             if (StringUtils.isNotEmpty(record.getImages())) {
                 String[] s = record.getImages().split(",");
                 List<String> image_list = new ArrayList<>();

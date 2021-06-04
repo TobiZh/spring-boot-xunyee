@@ -134,7 +134,7 @@ public class JwtUtil {
         System.out.println(ACCESS_EXPIRE_TIME);
         System.out.println(sd.format(date));
 
-        System.out.println(getAccessToken("19"));
-        System.out.println(getRefreshToken("19"));
+        System.out.println(getAccessToken("20"));
+        System.out.println(getRefreshToken("20"));
     }
 }
