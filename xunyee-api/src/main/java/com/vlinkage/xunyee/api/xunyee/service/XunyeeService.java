@@ -452,10 +452,14 @@ public class XunyeeService {
         return R.ERROR();
     }
 
-    public R<ResXunyeeBenefitPrice> benefitPrice() {
+    public R<ResXunyeeBenefitPrice> benefitPrice(Integer benefit) {
+        if (benefit==null){
+            benefit=1;
+        }
         LocalDateTime nowDate = LocalDateTime.now();
         LambdaQueryWrapper<XunyeeBenefitPrice> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeBenefitPrice::getIs_enabled, true)
+                .eq(XunyeeBenefitPrice::getBenefit_id,benefit)
                 .le(XunyeeBenefitPrice::getStart_time, nowDate)// >=
                 .ge(XunyeeBenefitPrice::getFinish_time, nowDate)// <=
                 .orderByAsc(XunyeeBenefitPrice::getQuantity);
@@ -868,7 +872,9 @@ public class XunyeeService {
 
         LambdaQueryWrapper<XunyeeVcuserBenefit> bqw = new LambdaQueryWrapper();
         bqw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
+                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate)
+                .orderByDesc(XunyeeVcuserBenefit::getFinish_time)
+                .last("limit 1");
         XunyeeVcuserBenefit temp = new XunyeeVcuserBenefit().selectOne(bqw);
         int benefitId = benefitPrice.getBenefit_id();
         int plusDays = benefitPrice.getQuantity();

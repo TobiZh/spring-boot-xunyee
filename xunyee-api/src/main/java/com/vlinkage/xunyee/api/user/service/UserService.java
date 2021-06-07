@@ -76,8 +76,8 @@ public class UserService {
             // ===============  我是否以前关注过该用户  ====================
             // 关注状态
             LambdaQueryWrapper<XunyeeFollow> foqw = new LambdaQueryWrapper<>();
-            foqw.eq(XunyeeFollow::getVcuser_id, userId)
-                    .eq(XunyeeFollow::getFollowed_vcuser_id, mine_vcuser_id)
+            foqw.eq(XunyeeFollow::getVcuser_id, mine_vcuser_id)
+                    .eq(XunyeeFollow::getFollowed_vcuser_id, userId)
                     .eq(XunyeeFollow::getStatus, 1);
             XunyeeFollow follow = new XunyeeFollow().selectOne(foqw);
             if (follow != null) {

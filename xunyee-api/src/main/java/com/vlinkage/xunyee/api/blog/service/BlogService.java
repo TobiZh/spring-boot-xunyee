@@ -125,7 +125,7 @@ public class BlogService {
         }
         info.setImage_list(imageList);
 
-        if (blog.getType() == 3) {//品牌 需要读取品牌名称
+        if (blog.getType() == 3 && blog.getType_id()!=null) {//品牌 需要读取品牌名称
             ResBrandNameUrl resBrandNameUrl = metaService.getBrandNameUrlById(blog.getType_id(),blog.getPerson_id());
             if(resBrandNameUrl!=null){
                 info.setBrand_name(resBrandNameUrl.getName());

@@ -61,7 +61,7 @@ public class BlogController {
         return blogService.blogInfo(userId,req.getBlog_id());
     }
 
-    @ApiOperation("推荐动态")
+    @ApiOperation(value = "推荐动态",notes = "参数在动态详情接口中有对应名称的字段")
     @PassToken
     @GetMapping("recommend")
     public R<IPage<ResBlogPage>> recommend(HttpServletRequest request,ReqMyPage myPage,@Valid ReqRecommendPage req){
@@ -71,14 +71,22 @@ public class BlogController {
     }
 
 
-    @ApiOperation("点赞（取消点赞）/点踩（取消点踩）")
+    @ApiOperation(value = "点赞（取消点赞）/点踩（取消点踩）",notes = "进入动态详情，接口返回 is_star 、is_unstar 两个字段;" +
+            "- 点赞和取消点赞 传参数一致;" +
+            "  当 is_star=false 的时候，调用接口 点赞成功;" +
+            "  当 is_star=true 的时候，调用接口 取消点赞成功;" +
+            "- 点踩和取消点踩 传参一致;" +
+            "  当 is_unstar=false 的时候，调用接口 点踩成功;" +
+            "  当 is_unstar=true 的时候，调用接口 取消点踩成功;" +
+            "  *is_favorite 同理*")
     @PostMapping("star")
     public R<ResBlogStar> blogStar(HttpServletRequest request, @Valid ReqBlogStar req){
         Integer userId=UserUtil.getUserId(request);
         return blogService.blogStar(userId,req);
     }
 
-    @ApiOperation("收藏/取消收藏")
+    @ApiOperation(value = "收藏/取消收藏",notes = "点赞和取消点赞 传参数一致，当 is_favorite=false 的时候，调用接口 收藏成功，" +
+            "当 is_favorite=true 的时候，调用接口 取消收藏成功")
     @PostMapping("favorite")
     public R blogFavorite(HttpServletRequest request,@Valid ReqBlogId req){
         Integer userId=UserUtil.getUserId(request);

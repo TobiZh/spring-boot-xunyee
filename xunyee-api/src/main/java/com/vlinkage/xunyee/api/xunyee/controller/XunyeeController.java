@@ -142,7 +142,12 @@ public class XunyeeController {
         return xunyeeService.personCheckCount(userId,req);
     }
 
-    @ApiOperation("签到之前先获调用这个验证一下")
+    @ApiOperation(value = "签到之前先获调用这个验证一下",notes = "通过 code 来控制弹窗，" +
+            "code = 0 弹 去签到，data返回一个对象；前端通过判断 data是否为空来控制显示隐藏，" +
+            "data为空的时候隐藏广告链接；data不为空的时候显示广告链接，" +
+            "code = -1 弹 toast" +
+            "code = 30001 弹 登录，" +
+            "code = 20004 弹 开通会员...")
     @GetMapping("vcuser_person_check/verify")
     public R vcuserPersonCheckVerify(HttpServletRequest request,@Valid ReqPersonId req){
         int userId= UserUtil.getUserId(request);
@@ -171,12 +176,15 @@ public class XunyeeController {
         return xunyeeService.vcuserPerson(userId,req);
     }
 
-    @ApiOperation("权益价格")
+    @ApiOperation(value = "权益价格",notes = "benefit 可以不传 ，不传默认为1，以三合一签到即benefit=1为例，在返回结果中，id是该权益价格的主键，" +
+            "也是后文提交订单时参数benefit_price的值。price是该权益价格的实际价格，tag_price是该权益价格的划线价格。quantity是该权益价格的天数。" +
+            "比如月卡的quantity为30，季卡的的quantity为90。" +
+            "返回结果的顺序是按quantity升序排列。")
     @PassToken
     @GetMapping("benefit_price/current")
-    public R<ResXunyeeBenefitPrice> benefitPrice(){
+    public R<ResXunyeeBenefitPrice> benefitPrice(Integer benefit){
 
-        return xunyeeService.benefitPrice();
+        return xunyeeService.benefitPrice(benefit);
     }
 
     @ApiOperation("签到日历")
