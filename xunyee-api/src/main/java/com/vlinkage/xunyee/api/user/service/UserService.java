@@ -67,27 +67,39 @@ public class UserService {
     @Resource
     private XunyeeVcuserMapper vcuserMapper;
 
-    public R<ResUserInfoOhter> other(Integer mine_vcuser_id, Integer userId) {
+    public R<ResUserInfoOhter> other(Integer mine_vcuser_id, Integer to_vcuser_id) {
+        int follow_type = 0;//前端直接显示 0 关注， 1 回关，2 已关注，3 互相关注
+        List<String> personList = new ArrayList<>();//共同关注的艺人
 
-        XunyeeVcuser vcuser = new XunyeeVcuser().selectById(userId);
-        int follow_type = 0;
-        List<String> personList = new ArrayList<>();
-        if (mine_vcuser_id != null && mine_vcuser_id != userId) {
-            // ===============  我是否以前关注过该用户  ====================
-            // 关注状态
+        if (mine_vcuser_id != null && mine_vcuser_id != to_vcuser_id) {
+            // ===============  我是否以前关注过该用户 follow_type 关注状态 ====================
             LambdaQueryWrapper<XunyeeFollow> foqw = new LambdaQueryWrapper<>();
             foqw.eq(XunyeeFollow::getVcuser_id, mine_vcuser_id)
-                    .eq(XunyeeFollow::getFollowed_vcuser_id, userId)
+                    .eq(XunyeeFollow::getFollowed_vcuser_id, to_vcuser_id)
+                    .eq(XunyeeFollow::getStatus, 1)
+                    .or()
+                    .eq(XunyeeFollow::getVcuser_id,to_vcuser_id)
+                    .eq(XunyeeFollow::getFollowed_vcuser_id,mine_vcuser_id)
                     .eq(XunyeeFollow::getStatus, 1);
-            XunyeeFollow follow = new XunyeeFollow().selectOne(foqw);
-            if (follow != null) {
-                follow_type = follow.getType();
+            List<XunyeeFollow> follows = new XunyeeFollow().selectList(foqw);
+            if (follows.size()>0) {
+                for (XunyeeFollow follow : follows) {
+                    if (follow.getType()==3){
+                        follow_type = follow.getType();
+                    }else{
+                        if (follow.getVcuser_id()==to_vcuser_id){
+                            follow_type = follow.getType();
+                        }else{
+                            follow_type = 2;//回关
+                        }
+                    }
+                }
             }
             // ===============  我是否以前关注过该用户  ====================
 
             // ===============  共同关注  ====================
             // 查询对方关注的艺人
-            Criteria criteria = new Criteria().where("vcuser").is(userId).and("is_enabled").is(true);
+            Criteria criteria = new Criteria().where("vcuser").is(to_vcuser_id).and("is_enabled").is(true);
             Query query = new Query(criteria);
             List<ResMonUserPerson> resMGs = mongoTemplate.find(query, ResMonUserPerson.class);
 
@@ -117,7 +129,7 @@ public class UserService {
         // ===============  是不是会员  ====================
         LocalDate nowDate = LocalDate.now();
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper();
-        qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
+        qw.eq(XunyeeVcuserBenefit::getVcuser_id, to_vcuser_id)
                 .le(XunyeeVcuserBenefit::getStart_time, nowDate)
                 .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
         int benefit = new XunyeeVcuserBenefit().selectCount(qw);
@@ -126,31 +138,31 @@ public class UserService {
 
         // ===============  我的关注  ====================
         LambdaQueryWrapper<XunyeeFollow> fqw = new LambdaQueryWrapper<>();
-        fqw.eq(XunyeeFollow::getVcuser_id, userId)
+        fqw.eq(XunyeeFollow::getVcuser_id, to_vcuser_id)
                 .eq(XunyeeFollow::getStatus, 1);
         int follow_count = new XunyeeFollow().selectCount(fqw);
         // ===============  我的关注  ====================
 
         // ===============  我的粉丝  ====================
         LambdaQueryWrapper<XunyeeFollow> tqw = new LambdaQueryWrapper<>();
-        tqw.eq(XunyeeFollow::getFollowed_vcuser_id, userId)
+        tqw.eq(XunyeeFollow::getFollowed_vcuser_id, to_vcuser_id)
                 .eq(XunyeeFollow::getStatus, 1);
         int fans_count = new XunyeeFollow().selectCount(tqw);
         // ===============  我的粉丝  ====================
 
         // ===============  我的点赞  ====================
-        String sql = "SELECT COALESCE(sum(star_count),0) star_count FROM xunyee_blog where vcuser_id=" + userId;
+        String sql = "SELECT COALESCE(sum(star_count),0) star_count FROM xunyee_blog where vcuser_id=" + to_vcuser_id;
         int star_count = jdbcTemplate.queryForObject(sql, int.class);
         // ===============  我的点赞  ====================
 
 
         // ===============  我的爱豆数量  ====================
-        int idol_count = (int) mongoTemplate.count(new Query(Criteria.where("vcuser").is(userId).and("is_enabled").is(true)),ResMonUserPerson.class);
+        int idol_count = (int) mongoTemplate.count(new Query(Criteria.where("vcuser").is(to_vcuser_id).and("is_enabled").is(true)),ResMonUserPerson.class);
         // ===============  我的爱豆数量  ====================
 
-        // 查询当前用户关注的艺人和今年签到的天数
+        // =============== 查询当前用户关注的艺人和今年签到的天数 ===============
         Aggregation aggregation=Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("vcuser").is(userId).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
+                Aggregation.match(Criteria.where("vcuser").is(to_vcuser_id).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
                 Aggregation.project("merchno", "amount")
                         .andExpression("{ $dateToString:{format:'%Y-%m-%d',date: '$updated',timezone: 'Asia/Shanghai' }}").as("date"),
                 Aggregation.group("date").count().as("check")
@@ -158,14 +170,23 @@ public class UserService {
 
         AggregationResults<ResMonUserPersonCheck> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheck.class);
         int check_days_count=res.getMappedResults().size();
-        // 查询当前用户关注的艺人和今年签到的天数
+        // =============== 查询当前用户关注的艺人和今年签到的天数 ===============
+
+
 
         ResUserInfoOhter resMine = new ResUserInfoOhter();
-        resMine.setVcuser_id(userId);
-        resMine.setNickname(StringUtils.isNotEmpty(vcuser.getNickname())?vcuser.getNickname():"");
-        resMine.setBio(StringUtils.isNotEmpty(vcuser.getBio())?vcuser.getBio():"");
-        resMine.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
-        resMine.setCover(imageHostUtil.absImagePath(vcuser.getCover()));
+
+        // =========================== 用户信息 ===========================
+        LambdaQueryWrapper<XunyeeVcuser> uqw=new LambdaQueryWrapper<>();
+        uqw.select(XunyeeVcuser::getId,XunyeeVcuser::getNickname,XunyeeVcuser::getBio,XunyeeVcuser::getAvatar,XunyeeVcuser::getCover)
+            .eq(XunyeeVcuser::getId,to_vcuser_id);
+        XunyeeVcuser toVcuser = new XunyeeVcuser().selectOne(uqw);
+        resMine.setVcuser_id(toVcuser.getId());
+        resMine.setNickname(StringUtils.isNotEmpty(toVcuser.getNickname())?toVcuser.getNickname():"");
+        resMine.setBio(StringUtils.isNotEmpty(toVcuser.getBio())?toVcuser.getBio():"");
+        resMine.setAvatar(imageHostUtil.absImagePath(toVcuser.getAvatar()));
+        resMine.setCover(imageHostUtil.absImagePath(toVcuser.getCover()));
+        // =========================== 用户信息 ===========================
 
         resMine.setFans_count(fans_count);
         resMine.setFollow_count(follow_count);
@@ -319,13 +340,13 @@ public class UserService {
         XunyeeFollow temp = new XunyeeFollow().selectOne(fqw);
         // ===============  我是否以前关注过该用户  ====================
 
-        // ===============  对方是否关注了我  ====================
+        // ===============  对方是否关注了我 status=1  ====================
         LambdaQueryWrapper<XunyeeFollow> tqw = new LambdaQueryWrapper<>();
         tqw.eq(XunyeeFollow::getFollowed_vcuser_id, from_userid)
                 .eq(XunyeeFollow::getVcuser_id, vcuser_id)
                 .eq(XunyeeFollow::getStatus, 1);
         XunyeeFollow toFollow = new XunyeeFollow().selectOne(tqw);
-        // ===============  对方是否关注了我  ====================
+        // ===============  对方是否关注了我 status=1 ====================
 
 
         if (temp != null) {//如果当前用户之前关注过该用户

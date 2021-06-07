@@ -41,7 +41,13 @@ public class BlogService {
 
 
     public R blog(int userId, ReqBlog req) {
-
+        LambdaQueryWrapper<XunyeeVcuser> qw=new LambdaQueryWrapper<>();
+        qw.select(XunyeeVcuser::getStatus)
+            .eq(XunyeeVcuser::getId,userId);
+        XunyeeVcuser vcuser=new XunyeeVcuser().selectOne(qw);
+        if (vcuser.getStatus()==1){
+            return R.ERROR("您的账号已被锁定");
+        }
         if (req.getImages().split(",").length > 9) {
             return R.ERROR("图片最多上传9张");
         }
@@ -179,15 +185,33 @@ public class BlogService {
                     .eq(XunyeeBlogFavorite::getStatus, 1);
             isFavorite = new XunyeeBlogFavorite().selectCount(faqw) > 0;
 
-            // 关注状态
+
+            // ===============  我是否以前关注过该用户 follow_type 关注状态 ====================
             LambdaQueryWrapper<XunyeeFollow> foqw = new LambdaQueryWrapper<>();
-            foqw.eq(XunyeeFollow::getVcuser_id, blog.getVcuser_id())
-                    .eq(XunyeeFollow::getFollowed_vcuser_id, userId)
+            foqw.eq(XunyeeFollow::getVcuser_id, userId)
+                    .eq(XunyeeFollow::getFollowed_vcuser_id, blog.getVcuser_id())
+                    .eq(XunyeeFollow::getStatus, 1)
+                    .or()
+                    .eq(XunyeeFollow::getVcuser_id,blog.getVcuser_id())
+                    .eq(XunyeeFollow::getFollowed_vcuser_id,userId)
                     .eq(XunyeeFollow::getStatus, 1);
-            XunyeeFollow follow = new XunyeeFollow().selectOne(foqw);
-            if (follow != null) {
-                follow_type = follow.getType();
+            List<XunyeeFollow> follows = new XunyeeFollow().selectList(foqw);
+            if (follows.size()>0) {
+                for (XunyeeFollow follow : follows) {
+                    if (follow.getType()==3){
+                        follow_type = follow.getType();
+                    }else{
+                        if (follow.getVcuser_id()==blog.getVcuser_id()){
+                            follow_type = follow.getType();
+                        }else{
+                            follow_type = 2;//回关
+                        }
+                    }
+                }
+
             }
+            // ===============  我是否以前关注过该用户  ====================
+
 
             // 添加一条浏览记录
             LambdaQueryWrapper<XunyeeBlogBrowsingHistory> hqw=new LambdaQueryWrapper();
