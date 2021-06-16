@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.binarywang.wxpay.bean.order.WxPayAppOrderResult;
 import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.ant.meta.entity.Person;
-import com.vlinkage.ant.star.entity.SdbJdSale;
 import com.vlinkage.ant.star.entity.SdbPersonGallery;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
@@ -18,7 +17,7 @@ import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.meta.MetaService;
 import com.vlinkage.xunyee.api.pay.service.PayService;
-import com.vlinkage.xunyee.api.star.StarService;
+import com.vlinkage.xunyee.api.star.StarProvideService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.*;
@@ -29,7 +28,6 @@ import com.vlinkage.xunyee.utils.ImageHostUtil;
 import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.impl.NoOpLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -45,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -65,7 +62,7 @@ public class XunyeeService {
     @Autowired
     private MetaService metaService;
     @Autowired
-    private StarService starService;
+    private StarProvideService starProvideService;
     @Autowired
     private PayService payService;
     @Autowired
@@ -227,8 +224,8 @@ public class XunyeeService {
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.select(XunyeeVcuserBenefit::getStart_time, XunyeeVcuserBenefit::getFinish_time)
                 .eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-                .le(XunyeeVcuserBenefit::getStart_time,LocalDateTime.now())
-                .ge(XunyeeVcuserBenefit::getFinish_time,LocalDateTime.now());
+                .le(XunyeeVcuserBenefit::getStart_time, LocalDateTime.now())
+                .ge(XunyeeVcuserBenefit::getFinish_time, LocalDateTime.now());
         XunyeeVcuserBenefit benefit = new XunyeeVcuserBenefit().selectOne(qw);
         if (benefit == null) {
             return R.ERROR("您还不是会员");
@@ -453,13 +450,13 @@ public class XunyeeService {
     }
 
     public R<ResXunyeeBenefitPrice> benefitPrice(Integer benefit) {
-        if (benefit==null){
-            benefit=1;
+        if (benefit == null) {
+            benefit = 1;
         }
         LocalDateTime nowDate = LocalDateTime.now();
         LambdaQueryWrapper<XunyeeBenefitPrice> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeBenefitPrice::getIs_enabled, true)
-                .eq(XunyeeBenefitPrice::getBenefit_id,benefit)
+                .eq(XunyeeBenefitPrice::getBenefit_id, benefit)
                 .le(XunyeeBenefitPrice::getStart_time, nowDate)// >=
                 .ge(XunyeeBenefitPrice::getFinish_time, nowDate)// <=
                 .orderByAsc(XunyeeBenefitPrice::getQuantity);
@@ -714,7 +711,7 @@ public class XunyeeService {
 
     public R<ResPersonBrandInfo> vcuserPersonPersonBrand(int person) {
         List<ResBrandPersonList> brands = metaService.getPersonBrandList(person);
-        int sale_rank = starService.getJDSaleRankByPerson(person);
+        int sale_rank = starProvideService.getJDSaleRankByPerson(person);
 
         ResPersonBrandInfo brandInfo = new ResPersonBrandInfo();
         brandInfo.setClick(0);//这个不需要了 设置成0
@@ -835,7 +832,7 @@ public class XunyeeService {
     }
 
     public R reportPersonAlbum(ReqMyPage myPage, int person) {
-        IPage iPage = starService.getPersonGalleryByPersonId(person, myPage);
+        IPage iPage = starProvideService.getPersonGalleryByPersonId(person, myPage);
         List<SdbPersonGallery> resBlogPages = iPage.getRecords();
         List<String> list = new ArrayList<>();
         for (SdbPersonGallery resBlogPage : resBlogPages) {
@@ -899,8 +896,8 @@ public class XunyeeService {
             temp.setFinish_time(temp.getFinish_time().plusDays(plusDays));
             LambdaUpdateWrapper<XunyeeVcuserBenefit> updateQw = new LambdaUpdateWrapper<>();
             updateQw.eq(XunyeeVcuserBenefit::getId, UUID.fromString(temp.getId()));
-            int updatedCount=xunyeeVcuserBenefitMapper.update(temp,updateQw);
-            if (updatedCount<=0) {
+            int updatedCount = xunyeeVcuserBenefitMapper.update(temp, updateQw);
+            if (updatedCount <= 0) {
                 return R.ERROR();
             }
         }
@@ -1074,7 +1071,7 @@ public class XunyeeService {
                     "            <h3 id=\"我们获取的您的信息\">我们获取的您的信息</h3>" +
                     "            <p>您使用服务时我们可能收集如下信息：</p>" +
                     "            <br>" +
-                    "            <p>我们的产品集成友盟+SDK，友盟+SDK需要收集您的设备Mac地址、唯一设备识别码（IMEI/android ID/IDFA/OPENUDID/GUID、SIM 卡 IMSI 信息）以提供统计分析服务，并通过地理位置校准报表数据准确性，提供基础反作弊能力。</p>"+
+                    "            <p>我们的产品集成友盟+SDK，友盟+SDK需要收集您的设备Mac地址、唯一设备识别码（IMEI/android ID/IDFA/OPENUDID/GUID、SIM 卡 IMSI 信息）以提供统计分析服务，并通过地理位置校准报表数据准确性，提供基础反作弊能力。</p>" +
                     "            <br>" +
                     "            <p>日志信息，指您使用我们的服务时，系统可能通过cookies、web beacon或其他方式自动采集的技术信息，包括：</p>" +
                     "            <br>" +
@@ -1446,97 +1443,6 @@ public class XunyeeService {
         return R.OK(resBrandPeople);
     }
 
-    public R brandStarRate() {
-        List<SdbJdSale> sdbJdSales = starService.getWeekJDSaleRank();
-        if (sdbJdSales.size() <= 0) {
-            return R.ERROR("数据查询失败");
-        }
-        // 提取person id去数据库查询电视剧信息
-        Integer[] personIds = sdbJdSales.stream().map(e -> e.getPerson_id()).collect(Collectors.toList())
-                .toArray(new Integer[sdbJdSales.size()]);
-        // 查询数据库艺人信息
-        List<Person> persons = metaService.getPerson(personIds);
 
-        // 求和
-        BigDecimal volumeSum = new BigDecimal(0);
-        for (SdbJdSale sdbJdSale : sdbJdSales) {
-            volumeSum = volumeSum.add(sdbJdSale.getSales_volume());
-        }
 
-        ResSdbJdSale resSdbJdSale = new ResSdbJdSale();
-        LocalDate lastDate = sdbJdSales.get(0).getCreated();
-        resSdbJdSale.setStart_date(lastDate.minusDays(6));
-        resSdbJdSale.setFinish_date(lastDate);
-
-        List<ResSdbJdSale.Rank> ranks = new ArrayList<>();
-
-        // 防止数据不足10条
-        int size = sdbJdSales.size() > 10 ? 10 : sdbJdSales.size();
-        BigDecimal lastRate = new BigDecimal(0);
-        for (int i = 0; i < size; i++) {
-            SdbJdSale sdbJdSale = sdbJdSales.get(i);
-            ResSdbJdSale.Rank rank = new ResSdbJdSale.Rank();
-            for (Person person : persons) {
-                //这里使用equals 比较 Integer
-                if (sdbJdSale.getPerson_id().equals(person.getId())) {
-                    rank.setPerson(person.getId());
-                    rank.setZh_name(person.getZh_name());
-                    BigDecimal rate = sdbJdSale.getSales_volume().divide(volumeSum, 3, BigDecimal.ROUND_HALF_UP);
-                    lastRate = lastRate.add(rate);
-                    rank.setRate(rate);
-                    rank.setRate_percentage(rate.multiply(BigDecimal.valueOf(100)));
-                    break;
-                }
-            }
-            ranks.add(rank);
-        }
-        ResSdbJdSale.Rank rank = new ResSdbJdSale.Rank();
-        rank.setPerson(0);
-        rank.setZh_name("其他");
-        BigDecimal rate = BigDecimal.valueOf(1).subtract(lastRate);
-        rank.setRate(rate);
-        rank.setRate_percentage(rate.multiply(BigDecimal.valueOf(100)));
-        ranks.add(rank);
-        resSdbJdSale.setRank(ranks);
-        return R.OK(resSdbJdSale);
-    }
-
-    public R brandStarRank(String name) {
-
-        List<SdbJdSale> sdbJdSales = starService.getWeekJDSaleRank();
-        if (sdbJdSales.size() <= 0) {
-            return R.ERROR("数据查询失败");
-        }
-
-        // 提取person id去数据库查询电视剧信息
-        Integer[] personIds = sdbJdSales.stream().map(e -> e.getPerson_id()).collect(Collectors.toList())
-                .toArray(new Integer[sdbJdSales.size()]);
-
-        // 查询数据库艺人信息
-        List<Person> persons = metaService.getPerson(personIds);
-
-        // 查询艺人代言的品牌
-        List<ResBrandPersonList> brandPersonLists = metaService.getPersonBrandListByPersonIds(personIds);
-
-        ResSdbJdSaleRank resSdbJdSaleRank = new ResSdbJdSaleRank();
-        LocalDate lastDate = sdbJdSales.get(0).getCreated();
-        resSdbJdSaleRank.setStart_date(lastDate.minusDays(6));
-        resSdbJdSaleRank.setFinish_date(lastDate);
-
-        for (SdbJdSale sdbJdSale : sdbJdSales) {
-            ResSdbJdSaleRank.Rank rank = new ResSdbJdSaleRank.Rank();
-            for (Person person : persons) {
-                //这里使用equals 比较 Integer
-                if (sdbJdSale.getPerson_id().equals(person.getId())) {
-                    rank.setPerson(person.getId());
-                    rank.setZh_name(person.getZh_name());
-                    rank.setAvatar(imageHostUtil.absImagePath(person.getAvatar_custom()));
-                    break;
-                }
-            }
-        }
-
-        return R.OK();
-
-    }
 }

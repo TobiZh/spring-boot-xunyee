@@ -16,7 +16,7 @@ import java.util.List;
 
 @DS("star")
 @Service
-public class StarService {
+public class StarProvideService {
 
     public IPage getPersonGalleryByPersonId(int person, ReqMyPage myPage) {
 

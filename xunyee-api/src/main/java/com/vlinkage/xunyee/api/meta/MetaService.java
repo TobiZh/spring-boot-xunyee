@@ -14,6 +14,7 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.response.ResBrandNameUrl;
 import com.vlinkage.xunyee.entity.response.ResBrandPersonList;
 import com.vlinkage.xunyee.entity.response.ResPerson;
+import com.vlinkage.xunyee.entity.response.ResSdbJdPersonBrand;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.ImageHostUtil;
@@ -59,29 +60,6 @@ public class MetaService {
         return iPage;
     }
 
-    /**
-     * 模糊查询有限数量艺人
-     *
-     * @param name
-     * @param limit
-     * @return
-     */
-    public List<ResPerson> getPersonLimit(String name, int limit) {
-
-        QueryWrapper qw = new QueryWrapper();
-        if (StringUtils.isNotEmpty(name)) {
-            qw.eq("zh_name", name);
-        }
-        qw.select("id", "zh_name", "avatar_custom");
-        qw.orderByDesc("created");
-        qw.last("limit " + limit);
-        List<ResPerson> personList = new Person().selectList(qw);
-        List<ResPerson> resPeoples = CopyListUtil.copyListProperties(personList, ResPerson.class);
-        for (ResPerson resPerson : resPeoples) {
-            resPerson.setAvatar_custom(imageHostUtil.absImagePath(resPerson.getAvatar_custom()));
-        }
-        return resPeoples;
-    }
 
     /**
      * 查询某个艺人的头像昵称
@@ -121,20 +99,41 @@ public class MetaService {
      * @param person_ids
      * @return
      */
-    public List<ResBrandPersonList> getPersonBrandListByPersonIds(Integer... person_ids) {
+    public List<ResBrandPersonList> getPersonBrandListByPersonIds(String person_ids) {
 
-        String sql="SELECT b.id,b.name,b.logo,bps.url_gen url,bps.finish_time_new FROM brand b " +
+        String sql="SELECT b.id,b.name,b.logo,bp.person_id,bps.url_gen url,bps.finish_time_new FROM brand b " +
                 "LEFT JOIN meta_brand_person bp ON b.id=bp.brand_id and bp.person_id in ("+person_ids+") " +
                 "LEFT JOIN meta_brand_person_site bps ON bp.id=bps.brand_person_id " +
                 "WHERE bps.is_enabled=true AND bps.url<>'' ORDER BY bps.finish_time_new DESC,bps.created DESC";
 
         List<ResBrandPersonList> resBrandPeople = jdbcTemplate.query(sql,new Object[]{},
-                new BeanPropertyRowMapper<ResBrandPersonList>(ResBrandPersonList.class));
+                new BeanPropertyRowMapper(ResBrandPersonList.class));
         for (ResBrandPersonList resBrandPerson : resBrandPeople) {
             resBrandPerson.setLogo(imageHostUtil.absImagePath(resBrandPerson.getLogo()));
         }
         return resBrandPeople;
     }
+
+
+
+    /**
+     * 获取有品牌代言的艺人头像昵称
+     * @param name
+     * @return
+     */
+    public List<ResPerson> getPersonsBrandByPersonName(String name) {
+        // 去重 distinct
+        String sql="SELECT distinct p.id,p.zh_name,p.avatar_custom " +
+                "FROM meta_brand_person bp,person p where p.id=bp.person_id and bp.is_enabled=true and p.zh_name like '%"+name+"%'";
+        List<ResPerson> resBrandPeople = jdbcTemplate.query(sql,new Object[]{},
+                new BeanPropertyRowMapper(ResPerson.class));
+        for (ResPerson resBrandPerson : resBrandPeople) {
+            resBrandPerson.setAvatar_custom(imageHostUtil.absImagePath(resBrandPerson.getAvatar_custom()));
+        }
+        return resBrandPeople;
+    }
+
+
 
 
     /**

@@ -294,20 +294,6 @@ public class XunyeeController {
         return xunyeeService.brandBrowHistory(userId);
     }
 
-    @ApiOperation("品牌星带货排行榜")
-    @PassToken
-    @GetMapping("brand/adstar_actor_rate_data_api")
-    public R brandStarRate(){
 
-        return xunyeeService.brandStarRate();
-    }
-
-    @ApiOperation("品牌星艺人品牌列表")
-    @PassToken
-    @GetMapping("brand/adstar_actor_rank_data_api")
-    public R brandStarRank(String name){
-
-        return xunyeeService.brandStarRank(name);
-    }
 
 }
