@@ -21,7 +21,7 @@ public enum ResultCode {
     USER_LOGIN_FAIL(20002,"账号或密码错误"),
     USER_HAS_EXIST(20003,"账号已存在"),
     USER_NOT_EXIST(20003,"用户不存在，请重新登录"),
-    USER_NOT_OPEN_VIP(20004,"开通三合一签到：一天可以同一个明星签到3次"),
+    USER_NOT_OPEN_VIP(20004,"开通寻艺大会员签到：一天可以同一个明星签到3次"),
 
 
     /* 认证失败错误：30001-39999*/
