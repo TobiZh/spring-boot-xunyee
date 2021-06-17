@@ -76,8 +76,6 @@ public class GeneratorXunyee {
         PackageConfig pc = new PackageConfig();
         pc.setParent("com.vlinkage.ant");
         pc.setModuleName("xunyee");
-        pc.setMapper("mapper");
-        pc.setXml("sqlxml");
         mpg.setPackageInfo(pc);
 
         //自定义模板配置，可以 copy 源码 mybatis-plus/src/main/resources/templates 下面内容修改，
