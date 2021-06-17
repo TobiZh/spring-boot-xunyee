@@ -1,4 +1,4 @@
-package com.vlinkage.xunyee.api.vlkdj;
+package com.vlinkage.xunyee.api.provide;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.vlinkage.ant.vlkdj.entity.AuthUser;

@@ -1,9 +1,8 @@
 package com.vlinkage.xunyee.api.xunyee.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.github.binarywang.wxpay.bean.order.WxPayAppOrderResult;
 import com.vlinkage.xunyee.entity.result.R;
-import com.vlinkage.xunyee.api.meta.MetaService;
+import com.vlinkage.xunyee.api.provide.MetaService;
 import com.vlinkage.xunyee.api.xunyee.service.XunyeeService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
@@ -134,14 +133,6 @@ public class XunyeeController {
     }
 
 
-    @ApiOperation("签到榜")
-    @PassToken
-    @GetMapping("person_check_count/rank")
-    public R<ResRank<ResPersonCheckCount>> personCheckCountRank(HttpServletRequest request, @Valid ReqPersonCheckCount req){
-        Integer userId= UserUtil.getUserId(request);
-        return xunyeeService.personCheckCount(userId,req);
-    }
-
     @ApiOperation(value = "签到之前先获调用这个验证一下",notes = "通过 code 来控制弹窗，" +
             "code = 0 弹 去签到，data返回一个对象；前端通过判断 data是否为空来控制显示隐藏，" +
             "data为空的时候隐藏广告链接；data不为空的时候显示广告链接，" +
@@ -238,13 +229,6 @@ public class XunyeeController {
     public R vcuserBenefitVoucher(HttpServletRequest request,@Valid ReqVoucher req){
         int userId= UserUtil.getUserId(request);
         return xunyeeService.vcuserBenefitVoucher(userId,req.getVoucher());
-    }
-
-    @ApiOperation("微信支付统一下单")
-    @PostMapping("vcuser_benefit_payorder/submit")
-    public R<WxPayAppOrderResult> vcuserBenefitPayOrderSubmit(HttpServletRequest request, @Valid ReqBenefitPayOrder req){
-        int userId= UserUtil.getUserId(request);
-        return xunyeeService.vcuserBenefitPayOrderSubmit(request,userId,req);
     }
 
 

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-@Api(tags = "动态相关")
+@Api(tags = "动态")
 @RequestMapping("blog")
 @RestController
 public class BlogController {

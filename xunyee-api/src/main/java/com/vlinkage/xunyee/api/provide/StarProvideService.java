@@ -1,4 +1,4 @@
-package com.vlinkage.xunyee.api.star;
+package com.vlinkage.xunyee.api.provide;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

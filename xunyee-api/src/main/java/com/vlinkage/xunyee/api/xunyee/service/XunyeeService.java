@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.github.binarywang.wxpay.bean.order.WxPayAppOrderResult;
 import com.mongodb.client.result.UpdateResult;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.star.entity.SdbPersonGallery;
@@ -15,9 +14,9 @@ import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.entity.result.code.ResultCode;
-import com.vlinkage.xunyee.api.meta.MetaService;
+import com.vlinkage.xunyee.api.provide.MetaService;
 import com.vlinkage.xunyee.api.pay.service.PayService;
-import com.vlinkage.xunyee.api.star.StarProvideService;
+import com.vlinkage.xunyee.api.provide.StarProvideService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.*;
@@ -25,7 +24,6 @@ import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.ImageHostUtil;
-import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +39,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -242,121 +239,7 @@ public class XunyeeService {
 
     }
 
-    public R<ResRank<ResPersonCheckCount>> personCheckCount(Integer userId, ReqPersonCheckCount req) {
 
-        int period = req.getPeriod();
-        int current = req.getCurrent();
-        int size = req.getSize();
-        int rankStart = 1; // 分页rank起始值
-
-        LocalDate nowDate = LocalDate.now();//今天
-        LocalDate gteDate;
-        LocalDate ltDate;
-        if (period <= 1) {//获取今天签到榜
-            gteDate = nowDate;
-            ltDate = gteDate.plusDays(1);
-        } else {
-            gteDate = nowDate.minusDays(period);// 减去 7||30
-            ltDate = nowDate;
-        }
-
-        // 查询条件
-        Criteria criteria = Criteria.where("data_time").gte(gteDate).lt(ltDate);
-        // 根据person分组 check 求和
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(criteria),
-                Aggregation.group("person").sum("check").as("check"),
-                Aggregation.sort(Sort.by(Sort.Direction.DESC, "check"))
-        );
-        AggregationResults<ResMonPersonCheckCount> outputTypeCount = mongoTemplate.aggregate(aggregation, "person__check__count",
-                ResMonPersonCheckCount.class);
-        // 查询mongo中有签到数据的艺人
-        List<ResMonPersonCheckCount> resMgs = outputTypeCount.getMappedResults();
-
-        // 查询所有的可签到艺人 大概500个
-        List<Person> persons = metaService.getPersonByXunyeeCheck();
-        // 查询记录总数 数据总页数
-        int totalCount = persons.size();
-        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
-        // 查询当前用户关注的艺人和当天签到数
-        List<ResMonUserPersonCheck> userPersonChecks = period <= 1 && userId != null ?
-                mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId)
-                                .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
-                        ResMonUserPersonCheck.class) : new ArrayList<>();
-
-        // 组装数据
-        List<ResPersonCheckCount> resCheckCounts = new ArrayList<>();
-        for (Person p : persons) {
-            int personId = p.getId();
-            ResPersonCheckCount resPersonCheckCount = new ResPersonCheckCount();
-            resPersonCheckCount.setPerson(personId);
-            resPersonCheckCount.setId(personId);
-            resPersonCheckCount.setVcuser_person("");//不知道是什么参数
-            resPersonCheckCount.setAvatar_custom(imageHostUtil.absImagePath(p.getAvatar_custom()));
-            resPersonCheckCount.setZh_name(p.getZh_name());
-
-            //-------------------- 当前用户>>艺人签到数 --------------------
-            if (period <= 1) {
-                for (ResMonUserPersonCheck userPersonCheck : userPersonChecks) {
-                    if (personId == userPersonCheck.getPerson()) {
-                        resPersonCheckCount.setCheck_my(userPersonCheck.getCheck());
-                        break;
-                    }
-                }
-            }
-            //-------------------- 当前用户>>艺人签到数 --------------------
-
-            //-------------------- 当前艺人签到数 --------------------
-            for (int i = 0; i < resMgs.size(); i++) {
-                ResMonPersonCheckCount mon = resMgs.get(i);
-                Integer tmpPerson = mon.getId();
-                if (personId == tmpPerson) {
-                    resPersonCheckCount.setCheck(mon.getCheck());
-                    break;
-                }
-            }
-            //-------------------- 当前艺人签到数 --------------------
-            resCheckCounts.add(resPersonCheckCount);
-        }
-
-        // 排序
-        List<ResPersonCheckCount> resSortCheckCounts = resCheckCounts.stream()
-                .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
-                .collect(Collectors.toList());
-        // rank
-        for (int i = 0; i < resSortCheckCounts.size(); i++) {
-            resSortCheckCounts.get(i).setRank(rankStart + i);
-        }
-        if (StringUtils.isNotEmpty(req.getPerson__zh_name__icontains())) {
-            resSortCheckCounts = resCheckCounts.stream()
-                    .filter(checkCount -> checkCount.getZh_name().contains(req.getPerson__zh_name__icontains()))
-                    .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
-                    .collect(Collectors.toList());
-
-            // 搜索的总数和页数
-            totalCount = resSortCheckCounts.size();
-            totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
-        } else {
-            resSortCheckCounts = resCheckCounts.stream()
-                    .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
-                    .collect(Collectors.toList());
-        }
-
-        // 分页
-        List<ResPersonCheckCount> pageList = resSortCheckCounts.stream().skip((current - 1) * size).limit(size).collect(Collectors.toList());
-
-
-        ResRank resRank = new ResRank();
-        resRank.setCount(totalCount);
-        resRank.setPages(totalPage);
-        resRank.setCurrent(current);
-        resRank.setData_time__gte(gteDate);
-        resRank.setData_time__lte(period > 1 ? nowDate.minusDays(1) : nowDate);
-        resRank.setSystime(LocalDateTime.now());
-        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
-        resRank.setResults(pageList);
-        return R.OK(resRank);
-    }
 
     public R<ResRank<ResPersonCheckCountIdol>> personCheckCountIdol(Integer userId, ReqMyPage req) {
 
@@ -913,31 +796,7 @@ public class XunyeeService {
         return R.OK();
     }
 
-    public R<WxPayAppOrderResult> vcuserBenefitPayOrderSubmit(HttpServletRequest request, int userId, ReqBenefitPayOrder req) {
-        int site = req.getSite();
 
-        XunyeeBenefitPrice price = new XunyeeBenefitPrice().selectById(req.getBenefit_price());
-        if (price == null) {
-            return R.ERROR("您购买的会员服务不存在");
-        }
-        // 生成一条付款记录 状态是未支付
-        XunyeeVcuserBenefitPayorder payorder = new XunyeeVcuserBenefitPayorder();
-        payorder.setVcuser_id(userId);
-        payorder.setBenefit_price_id(price.getId());
-        payorder.setIs_paid(false);
-        payorder.setQuantity(price.getQuantity());
-        payorder.setSite(site);
-        payorder.setPrice(price.getPrice());
-        String orderNo = OrderCodeFactory.getOrderCode((long) userId);
-        payorder.setSite_transaction_id(orderNo);
-        Date nowDate = new Date();
-        payorder.setUpdated(nowDate);
-        payorder.setCreated(nowDate);
-        if (payorder.insert()) {
-            return payService.payBenefit(request, payorder);
-        }
-        return R.ERROR("下单失败");
-    }
 
     public R<Map<String, Object>> globalSearch(Integer userId, ReqMyPage myPage, ReqGlobalSearch reqGlobalSearch) {
 

@@ -1,8 +1,6 @@
 package com.vlinkage.xunyee.api.user.service;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateUnit;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,8 +9,8 @@ import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserMapper;
 import com.vlinkage.xunyee.entity.result.R;
-import com.vlinkage.xunyee.api.common.service.CommonService;
-import com.vlinkage.xunyee.api.meta.MetaService;
+import com.vlinkage.xunyee.api.upload.service.UploadService;
+import com.vlinkage.xunyee.api.provide.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.ReqPageFollow;
 import com.vlinkage.xunyee.entity.request.ReqUserInfo;
@@ -35,9 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.validation.Valid;
 import java.io.IOException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -62,7 +58,7 @@ public class UserService {
     private MetaService metaService;
 
     @Autowired
-    private CommonService commonService;
+    private UploadService uploadService;
 
     @Resource
     private XunyeeVcuserMapper vcuserMapper;
@@ -458,7 +454,7 @@ public class UserService {
     }
 
     public R uploadCover(int userId, MultipartFile file) throws IOException {
-        R<String> result = commonService.qiNiuYunUploadImage(file, "user/cover/");
+        R<String> result = uploadService.qiNiuYunUploadImage(file, "user/cover/");
         if (result.getCode() == 0) {
             UpdateWrapper<XunyeeVcuser> wrapper = new UpdateWrapper<>();
             wrapper.eq("id", userId).set("cover", result.getData());

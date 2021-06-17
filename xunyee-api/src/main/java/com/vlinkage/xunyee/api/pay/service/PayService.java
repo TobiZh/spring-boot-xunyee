@@ -20,9 +20,11 @@ import com.vlinkage.ant.xunyee.entity.XunyeeBenefitPrice;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefit;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefitPayorder;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
+import com.vlinkage.xunyee.entity.request.ReqBenefitPayOrder;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.config.weixin.WxMpProperties;
 import com.vlinkage.xunyee.config.weixin.WxPayProperties;
+import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import com.vlinkage.xunyee.utils.weixin.WeiXinUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,34 @@ public class PayService {
     private WxPayService wxService;
     @Resource
     private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
+
+
+    public R<WxPayAppOrderResult> vcuserBenefitPayOrderSubmit(HttpServletRequest request, int userId, ReqBenefitPayOrder req) {
+        int site = req.getSite();
+
+        XunyeeBenefitPrice price = new XunyeeBenefitPrice().selectById(req.getBenefit_price());
+        if (price == null) {
+            return R.ERROR("您购买的会员服务不存在");
+        }
+        // 生成一条付款记录 状态是未支付
+        XunyeeVcuserBenefitPayorder payorder = new XunyeeVcuserBenefitPayorder();
+        payorder.setVcuser_id(userId);
+        payorder.setBenefit_price_id(price.getId());
+        payorder.setIs_paid(false);
+        payorder.setQuantity(price.getQuantity());
+        payorder.setSite(site);
+        payorder.setPrice(price.getPrice());
+        String orderNo = OrderCodeFactory.getOrderCode((long) userId);
+        payorder.setSite_transaction_id(orderNo);
+        Date nowDate = new Date();
+        payorder.setUpdated(nowDate);
+        payorder.setCreated(nowDate);
+        if (payorder.insert()) {
+            return payBenefit(request, payorder);
+        }
+        return R.ERROR("下单失败");
+    }
+
 
     // ===========================  商品支付 app  ===================================
     public R<WxPayAppOrderResult> payBenefit(HttpServletRequest request, XunyeeVcuserBenefitPayorder order) {

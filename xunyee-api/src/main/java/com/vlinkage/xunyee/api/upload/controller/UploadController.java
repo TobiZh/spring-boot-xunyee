@@ -1,7 +1,7 @@
-package com.vlinkage.xunyee.api.common.controller;
+package com.vlinkage.xunyee.api.upload.controller;
 
 import com.vlinkage.xunyee.entity.result.R;
-import com.vlinkage.xunyee.api.common.service.CommonService;
+import com.vlinkage.xunyee.api.upload.service.UploadService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-@Api(tags = "公共接口")
+@Api(tags = "图片上传")
 @RestController
-public class CommonController {
+public class UploadController {
 
 
     @Autowired
-    private CommonService commonService;
+    private UploadService uploadService;
     private String pre="blog/";
 
     @ApiOperation(value="多图上传")
@@ -27,7 +27,7 @@ public class CommonController {
     public R<List<String>> qiNiuYunUploadImages(@RequestParam("file") MultipartFile[] file) throws IOException {
 
 
-        return commonService.qiNiuYunUploadImages(file,pre);
+        return uploadService.qiNiuYunUploadImages(file,pre);
     }
 
     @ApiOperation(value="单张图片上传")
@@ -35,6 +35,6 @@ public class CommonController {
     public R qiNiuYunUploadImage(@RequestParam("file") MultipartFile file) throws IOException {
 
 
-        return commonService.qiNiuYunUploadImage(file,pre);
+        return uploadService.qiNiuYunUploadImage(file,pre);
     }
 }

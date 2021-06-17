@@ -3,11 +3,10 @@ package com.vlinkage.xunyee.api.login.service;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.vlinkage.ant.xunyee.entity.XunyeeBlog;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
-import com.vlinkage.xunyee.api.vlkdj.VlkdjService;
+import com.vlinkage.xunyee.api.provide.VlkdjService;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.config.redis.RedisUtil;
@@ -27,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -290,17 +290,12 @@ public class LoginService {
 
     }
 
-    @Transactional
     public R closeAccount(int userId) {
-
-        return R.OK();
-
-//        LambdaUpdateWrapper<XunyeeVcuser> uw=new LambdaUpdateWrapper();
-//        uw.eq(XunyeeVcuser::getId,userId).set(XunyeeVcuser::getIs_enabled,false);//注销账号
-//        boolean isClose=new XunyeeVcuser().update(uw);
-//        if (isClose){
-//            return R.OK();
-//        }
-//        return R.ERROR();
+        XunyeeVcuser xunyeeVcuser=new XunyeeVcuser().selectById(userId);
+        xunyeeVcuser.setIs_enabled(false);
+        if (xunyeeVcuser.updateById()){
+            return R.OK();
+        }
+        return R.ERROR();
     }
 }

@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
-import com.vlinkage.xunyee.api.meta.MetaService;
+import com.vlinkage.xunyee.api.provide.MetaService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;

@@ -1,4 +1,4 @@
-package com.vlinkage.xunyee.api.common.service;
+package com.vlinkage.xunyee.api.upload.service;
 
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.config.QiNiuYunConfig;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class CommonService {
+public class UploadService {
     @Autowired
     private QiNiuYunConfig qiNiuYunConfig;
 

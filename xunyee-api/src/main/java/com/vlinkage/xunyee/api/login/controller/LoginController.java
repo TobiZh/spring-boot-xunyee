@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @Api(tags = "登录注销")
+@RequestMapping("auth")
 @RestController
 public class LoginController {
 
@@ -45,8 +46,10 @@ public class LoginController {
         return loginService.wxLoginMini(appId,code,5);
     }
 
-
-    @ApiOperation(value="使用refresh_token刷新token")
+    @ApiOperation(value="使用refresh_token刷新token",notes = "登录成功后都会返回token和refresh_token，token用于登录认证，" +
+            "refresh_token用于刷新token，当本系统接口code返回30001的时候表示token和refresh_token都过期了，" +
+            "需要重新登录（login/wx/app或login/wx/miniprogram），当code返回30002可以通过refresh_token调用此接口换取新的token避免" +
+            "用户频繁登录")
     @PassToken
     @GetMapping("refresh/token")
     public R<ResRefreshToken> refreshToken(String refresh_token) {
@@ -55,7 +58,8 @@ public class LoginController {
     }
 
 
-    @ApiOperation(value="注销账号")
+    @ApiOperation(value="注销账号",notes = "用户注销账号，所有数据都是逻辑删除，首先他的账号会被标记is_enabled=false，" +
+            "动态is_deleted=true，关联的东西都会被标记is_deleted=true")
     @PostMapping("close_account")
     public R closeAccount(HttpServletRequest request) {
         int userId= UserUtil.getUserId(request);

@@ -1,4 +1,4 @@
-package com.vlinkage.xunyee.api.meta;
+package com.vlinkage.xunyee.api.provide;
 
 
 import com.baomidou.dynamic.datasource.annotation.DS;
@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.vlinkage.ant.meta.entity.Brand;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.meta.entity.Teleplay;
 import com.vlinkage.ant.meta.entity.Zy;
@@ -14,7 +13,6 @@ import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.response.ResBrandNameUrl;
 import com.vlinkage.xunyee.entity.response.ResBrandPersonList;
 import com.vlinkage.xunyee.entity.response.ResPerson;
-import com.vlinkage.xunyee.entity.response.ResSdbJdPersonBrand;
 import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.ImageHostUtil;

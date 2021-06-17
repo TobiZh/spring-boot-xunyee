@@ -6,8 +6,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.meta.entity.Teleplay;
 import com.vlinkage.ant.meta.entity.Zy;
+import com.vlinkage.xunyee.entity.request.ReqPersonCheckCount;
 import com.vlinkage.xunyee.entity.result.R;
-import com.vlinkage.xunyee.api.meta.MetaService;
+import com.vlinkage.xunyee.api.provide.MetaService;
 import com.vlinkage.xunyee.entity.request.ReqReportPersonRptTrend;
 import com.vlinkage.xunyee.entity.request.ReqReportTeleplayRptTrend;
 import com.vlinkage.xunyee.entity.request.ReqReportZyRptTrend;
@@ -16,9 +17,10 @@ import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.ImageHostUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,122 @@ public class VdataService {
     private MongoTemplate mongoTemplate;
     @Autowired
     private MetaService metaService;
+
+    public R<ResRank<ResPersonCheckCount>> personCheckCount(Integer userId, ReqPersonCheckCount req) {
+
+        int period = req.getPeriod();
+        int current = req.getCurrent();
+        int size = req.getSize();
+        int rankStart = 1; // 分页rank起始值
+
+        LocalDate nowDate = LocalDate.now();//今天
+        LocalDate gteDate;
+        LocalDate ltDate;
+        if (period <= 1) {//获取今天签到榜
+            gteDate = nowDate;
+            ltDate = gteDate.plusDays(1);
+        } else {
+            gteDate = nowDate.minusDays(period);// 减去 7||30
+            ltDate = nowDate;
+        }
+
+        // 查询条件
+        Criteria criteria = Criteria.where("data_time").gte(gteDate).lt(ltDate);
+        // 根据person分组 check 求和
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(criteria),
+                Aggregation.group("person").sum("check").as("check"),
+                Aggregation.sort(Sort.by(Sort.Direction.DESC, "check"))
+        );
+        AggregationResults<ResMonPersonCheckCount> outputTypeCount = mongoTemplate.aggregate(aggregation, "person__check__count",
+                ResMonPersonCheckCount.class);
+        // 查询mongo中有签到数据的艺人
+        List<ResMonPersonCheckCount> resMgs = outputTypeCount.getMappedResults();
+
+        // 查询所有的可签到艺人 大概500个
+        List<Person> persons = metaService.getPersonByXunyeeCheck();
+        // 查询记录总数 数据总页数
+        int totalCount = persons.size();
+        int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
+        // 查询当前用户关注的艺人和当天签到数
+        List<ResMonUserPersonCheck> userPersonChecks = period <= 1 && userId != null ?
+                mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId)
+                                .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
+                        ResMonUserPersonCheck.class) : new ArrayList<>();
+
+        // 组装数据
+        List<ResPersonCheckCount> resCheckCounts = new ArrayList<>();
+        for (Person p : persons) {
+            int personId = p.getId();
+            ResPersonCheckCount resPersonCheckCount = new ResPersonCheckCount();
+            resPersonCheckCount.setPerson(personId);
+            resPersonCheckCount.setId(personId);
+            resPersonCheckCount.setVcuser_person("");//不知道是什么参数
+            resPersonCheckCount.setAvatar_custom(imageHostUtil.absImagePath(p.getAvatar_custom()));
+            resPersonCheckCount.setZh_name(p.getZh_name());
+
+            //-------------------- 当前用户>>艺人签到数 --------------------
+            if (period <= 1) {
+                for (ResMonUserPersonCheck userPersonCheck : userPersonChecks) {
+                    if (personId == userPersonCheck.getPerson()) {
+                        resPersonCheckCount.setCheck_my(userPersonCheck.getCheck());
+                        break;
+                    }
+                }
+            }
+            //-------------------- 当前用户>>艺人签到数 --------------------
+
+            //-------------------- 当前艺人签到数 --------------------
+            for (int i = 0; i < resMgs.size(); i++) {
+                ResMonPersonCheckCount mon = resMgs.get(i);
+                Integer tmpPerson = mon.getId();
+                if (personId == tmpPerson) {
+                    resPersonCheckCount.setCheck(mon.getCheck());
+                    break;
+                }
+            }
+            //-------------------- 当前艺人签到数 --------------------
+            resCheckCounts.add(resPersonCheckCount);
+        }
+
+        // 排序
+        List<ResPersonCheckCount> resSortCheckCounts = resCheckCounts.stream()
+                .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
+                .collect(Collectors.toList());
+        // rank
+        for (int i = 0; i < resSortCheckCounts.size(); i++) {
+            resSortCheckCounts.get(i).setRank(rankStart + i);
+        }
+        if (StringUtils.isNotEmpty(req.getPerson__zh_name__icontains())) {
+            resSortCheckCounts = resCheckCounts.stream()
+                    .filter(checkCount -> checkCount.getZh_name().contains(req.getPerson__zh_name__icontains()))
+                    .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
+                    .collect(Collectors.toList());
+
+            // 搜索的总数和页数
+            totalCount = resSortCheckCounts.size();
+            totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
+        } else {
+            resSortCheckCounts = resCheckCounts.stream()
+                    .sorted(Comparator.comparing(ResPersonCheckCount::getCheck).reversed())// 按签到数 倒叙
+                    .collect(Collectors.toList());
+        }
+
+        // 分页
+        List<ResPersonCheckCount> pageList = resSortCheckCounts.stream().skip((current - 1) * size).limit(size).collect(Collectors.toList());
+
+
+        ResRank resRank = new ResRank();
+        resRank.setCount(totalCount);
+        resRank.setPages(totalPage);
+        resRank.setCurrent(current);
+        resRank.setData_time__gte(gteDate);
+        resRank.setData_time__lte(period > 1 ? nowDate.minusDays(1) : nowDate);
+        resRank.setSystime(LocalDateTime.now());
+        resRank.setToday_reamin_second(DateUtil.getDayRemainingTime(new Date()));
+        resRank.setResults(pageList);
+        return R.OK(resRank);
+    }
 
     public R<IPage<ResRank>> reportPersonRptTrend(ReqReportPersonRptTrend req) {
         int period = req.getPeriod();
