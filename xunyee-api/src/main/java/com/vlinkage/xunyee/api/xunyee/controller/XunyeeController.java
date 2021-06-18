@@ -133,25 +133,6 @@ public class XunyeeController {
     }
 
 
-    @ApiOperation(value = "签到之前先获调用这个验证一下",notes = "通过 code 来控制弹窗，" +
-            "code = 0 弹 去签到，data返回一个对象；前端通过判断 data是否为空来控制显示隐藏，" +
-            "data为空的时候隐藏广告链接；data不为空的时候显示广告链接，" +
-            "code = -1 弹 toast" +
-            "code = 30001 弹 登录，" +
-            "code = 20004 弹 开通会员...")
-    @GetMapping("vcuser_person_check/verify")
-    public R vcuserPersonCheckVerify(HttpServletRequest request,@Valid ReqPersonId req){
-        int userId= UserUtil.getUserId(request);
-        return xunyeeService.vcuserPersonCheckVerify(userId,req.getPerson());
-    }
-
-    @ApiOperation("签到")
-    @PostMapping("vcuser_person_check")
-    public R vcuserPersonCheck(HttpServletRequest request,@Valid ReqPersonId req){
-        int userId= UserUtil.getUserId(request);
-        return xunyeeService.vcuserPersonCheck(userId,req.getPerson());
-    }
-
     @ApiOperation("我的爱豆")
     @GetMapping("person_check_count/idol")
     public R<ResRank<ResPersonCheckCountIdol>> personCheckCountIdol(HttpServletRequest request,ReqMyPage myPage){
