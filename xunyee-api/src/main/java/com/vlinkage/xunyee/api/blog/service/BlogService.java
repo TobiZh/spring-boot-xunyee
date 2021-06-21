@@ -329,7 +329,7 @@ public class BlogService {
                         blog.setStar_count(starCount - 1);
                     }
                     //resultStr = "点踩成功";
-
+                    resBlogStar.setIs_unstar(true);
                 }
                 blog.updateById();
                 resBlogStar.setId(blog.getId());

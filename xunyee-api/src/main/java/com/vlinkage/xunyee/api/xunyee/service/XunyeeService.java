@@ -65,11 +65,11 @@ public class XunyeeService {
     private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
 
 
-    public R<ResPic> getAdLaunch(ReqPic req) {
+    public R<ResPic> getAdLaunch(ReqPic req,int type_id) {
         LocalDateTime nowDate = LocalDateTime.now();
 
         LambdaQueryWrapper<XunyeePic> qw = new LambdaQueryWrapper();
-        qw.eq(XunyeePic::getType_id, 1);
+        qw.eq(XunyeePic::getType_id, type_id);
         if (req.getIs_enabled_5() != null) {
             qw.eq(XunyeePic::getIs_enabled_5, req.getIs_enabled_5() == 0 ? false : true);
         }
@@ -1123,11 +1123,10 @@ public class XunyeeService {
         qw.select(XunyeeBrandBrowsingHistory::getBrand_id)
                 .eq(XunyeeBrandBrowsingHistory::getVcuser_id, userId)
                 .orderByDesc(XunyeeBrandBrowsingHistory::getCreated)
-                .last("limit 9");
+                .last("limit 12");
         List<XunyeeBrandBrowsingHistory> history = new XunyeeBrandBrowsingHistory().selectList(qw);
         List<ResBrandPersonList> resBrandPeople = new ArrayList<>();
         if (history.size() > 0) {
-            // 提取teleplay id去数据库查询电视剧信息
             List<Integer> ids = history.stream().map(e -> e.getBrand_id()).collect(Collectors.toList());
             List<ResBrandPersonList> list = metaService.getBrandByIds(ids);
             return R.OK(list);

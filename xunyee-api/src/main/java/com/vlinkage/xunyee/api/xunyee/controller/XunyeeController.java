@@ -31,14 +31,22 @@ public class XunyeeController {
     @Autowired
     private MetaService metaService;
 
+
+    @ApiOperation("签到弹窗的广告")
+    @PassToken
+    @GetMapping("ad")
+    public R<ResPic> getAd(@Valid ReqPic req){
+
+        return xunyeeService.getAdLaunch(req,3);
+    }
+
     @ApiOperation("启动广告（不是闪屏页）")
     @PassToken
     @GetMapping("ad/launch")
     public R<ResPic> getAdLaunch(@Valid ReqPic req){
 
-        return xunyeeService.getAdLaunch(req);
+        return xunyeeService.getAdLaunch(req,1);
     }
-
 
     @ApiOperation("轮播图")
     @PassToken
