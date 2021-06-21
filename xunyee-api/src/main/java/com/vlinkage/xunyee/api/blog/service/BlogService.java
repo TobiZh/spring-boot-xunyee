@@ -270,6 +270,7 @@ public class BlogService {
                 XunyeeBlog blog = new XunyeeBlog().selectById(blogId);
                 if (type == 0) {
                     //点踩
+                    resBlogStar.setUnstar_count(blog.getUnstar_count());//点踩数量
                     blog.setUnstar_count(blog.getUnstar_count() + 1);
                 } else if (type == 1) {
                     //点赞
@@ -304,6 +305,7 @@ public class BlogService {
                     } else {
                         //resultStr = "点踩成功";
                         blog.setUnstar_count(unStarCount + 1);
+                        resBlogStar.setIs_unstar(true);
                     }
                 } else if (type == 1 && tempType == 1) {//点赞
                     if (temp.getStatus() == 0) {
@@ -331,7 +333,8 @@ public class BlogService {
                 }
                 blog.updateById();
                 resBlogStar.setId(blog.getId());
-                resBlogStar.setStar_count(blog.getStar_count());
+                resBlogStar.setStar_count(blog.getStar_count());//点赞数量
+                resBlogStar.setUnstar_count(blog.getUnstar_count());//点踩数量
                 return R.OK(resBlogStar);
             }
         }

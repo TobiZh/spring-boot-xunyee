@@ -3,13 +3,12 @@ package com.vlinkage.xunyee.api.login.service;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.vlinkage.ant.xunyee.entity.XunyeeBlog;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
 import com.vlinkage.xunyee.api.provide.VlkdjService;
+import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.entity.result.code.ResultCode;
-import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.config.weixin.WxMaConfiguration;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessApp;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessMini;
@@ -26,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 

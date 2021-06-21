@@ -2,6 +2,7 @@ package com.vlinkage.xunyee;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefit;
+import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.entity.response.ResMonUserPersonCheck;
 import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.ImageHostUtil;
@@ -31,6 +32,9 @@ class XunyeeApiApplicationTests {
 
     @Autowired
     private ImageHostUtil imageHostUtil;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
 
     @Test
@@ -92,4 +96,9 @@ class XunyeeApiApplicationTests {
     }
 
 
+    @Test
+    public void redisIncr(){
+        redisUtil.incr("tobi_incr",1);
+
+    }
 }

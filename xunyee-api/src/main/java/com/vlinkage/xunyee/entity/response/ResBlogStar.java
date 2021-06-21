@@ -14,4 +14,8 @@ public class ResBlogStar {
     private Boolean is_star=false;
     @ApiModelProperty("点赞数量")
     private int star_count;
+    @ApiModelProperty("是否点踩")
+    private Boolean is_unstar=false;
+    @ApiModelProperty("点踩数量")
+    private int unstar_count;
 }
