@@ -1,9 +1,9 @@
 package com.vlinkage.xunyee.api.pay.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.binarywang.wxpay.bean.WxPayApiData;
 import com.github.binarywang.wxpay.bean.notify.WxPayNotifyResponse;
 import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
@@ -24,6 +24,7 @@ import com.vlinkage.xunyee.entity.request.ReqBenefitPayOrder;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.config.weixin.WxMpProperties;
 import com.vlinkage.xunyee.config.weixin.WxPayProperties;
+import com.vlinkage.xunyee.utils.JsonUtils;
 import com.vlinkage.xunyee.utils.OrderCodeFactory;
 import com.vlinkage.xunyee.utils.weixin.WeiXinUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,8 @@ public class PayService {
 
     @Autowired
     private WxPayService wxService;
+
+
     @Resource
     private XunyeeVcuserBenefitMapper xunyeeVcuserBenefitMapper;
 
@@ -182,9 +185,9 @@ public class PayService {
                     }
                 }
             }
-            log.error("order.updateById:{}", JSONObject.toJSONString(order));
+            log.error("order.updateById:{}", JsonUtils.objectToJson(order));
         }
-        log.error("查不到订单号{}", JSONObject.toJSONString(outTradeNo));
+        log.error("查不到订单号{}", JsonUtils.objectToJson(outTradeNo));
         return WxPayNotifyResponse.fail("查不到订单号");
     }
     // ===========================  商品支付  ===================================

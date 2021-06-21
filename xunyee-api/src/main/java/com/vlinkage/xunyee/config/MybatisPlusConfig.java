@@ -21,15 +21,17 @@ public class MybatisPlusConfig {
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         // 分页插件
-        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.POSTGRE_SQL));
+        PaginationInnerInterceptor paginationInnerInterceptor=new PaginationInnerInterceptor(DbType.POSTGRE_SQL);
+        paginationInnerInterceptor.setMaxLimit(100L);//最大100条
+        interceptor.addInnerInterceptor(paginationInnerInterceptor);
         // 防全表更新删除
         interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         return interceptor;
     }
 
-    @Bean
-    public ConfigurationCustomizer configurationCustomizer() {
-        return configuration -> configuration.setUseDeprecatedExecutor(false);
-    }
+//    @Bean
+//    public ConfigurationCustomizer configurationCustomizer() {
+//        return configuration -> configuration.setUseDeprecatedExecutor(false);
+//    }
 }
 

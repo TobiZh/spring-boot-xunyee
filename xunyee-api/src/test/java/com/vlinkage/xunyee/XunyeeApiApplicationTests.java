@@ -1,14 +1,11 @@
 package com.vlinkage.xunyee;
 
-import cn.hutool.Hutool;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefit;
-import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.xunyee.entity.response.ResMonUserPersonCheck;
 import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.ImageHostUtil;
+import com.vlinkage.xunyee.utils.JsonUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,17 +48,17 @@ class XunyeeApiApplicationTests {
     }
 
     @Test
-    public void mongo(){
+    public void mongo() {
         Aggregation aggregation=Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("vcuser").is(3358279).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
                 Aggregation.group("person").count().as("check")
         );
         AggregationResults<ResMonUserPersonCheck> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheck.class);
-        System.out.println(JSONObject.toJSONString(res.getMappedResults()));
+        System.out.println(JsonUtils.objectToJson(res.getMappedResults()));
     }
 
     @Test
-    public void mongoCheckDays(){
+    public void mongoCheckDays() {
         Aggregation aggregation=Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("vcuser").is(19).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
                 Aggregation.project("merchno", "amount")
@@ -70,7 +67,7 @@ class XunyeeApiApplicationTests {
         );
 
         AggregationResults<ResMonUserPersonCheck> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheck.class);
-        System.out.println(JSONObject.toJSONString(res.getMappedResults().size()));
+        System.out.println(JsonUtils.objectToJson(res.getMappedResults().size()));
     }
 
 

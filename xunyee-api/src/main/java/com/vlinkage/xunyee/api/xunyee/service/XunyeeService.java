@@ -1,7 +1,6 @@
 package com.vlinkage.xunyee.api.xunyee.service;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -13,9 +12,7 @@ import com.vlinkage.ant.star.entity.SdbPersonGallery;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserBenefitMapper;
 import com.vlinkage.xunyee.entity.result.R;
-import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.api.provide.MetaService;
-import com.vlinkage.xunyee.api.pay.service.PayService;
 import com.vlinkage.xunyee.api.provide.StarProvideService;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
@@ -24,6 +21,7 @@ import com.vlinkage.xunyee.mapper.MyMapper;
 import com.vlinkage.xunyee.utils.CopyListUtil;
 import com.vlinkage.xunyee.utils.DateUtil;
 import com.vlinkage.xunyee.utils.ImageHostUtil;
+import com.vlinkage.xunyee.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +132,7 @@ public class XunyeeService {
             resNavigation.setIcon(imageHostUtil.absImagePath(resNavigation.getIcon()));
             if (resNavigation.getType() == 2) {// type=2 应用内部页面
                 String params = resNavigation.getParams();
-                Map<String, Object> map = JSONObject.parseObject(params, Map.class);
+                Map<String, Object> map = JsonUtils.jsonToMap(params);
                 resNavigation.setParams(map.get(source).toString());
             }
         }

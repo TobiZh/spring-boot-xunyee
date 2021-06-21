@@ -2,7 +2,7 @@ package com.vlinkage.xunyee.config.redis;
 
 import java.util.concurrent.TimeUnit;
 
-public abstract  class Status {
+public abstract class Status {
 
     /**
      * 过期时间相关枚举

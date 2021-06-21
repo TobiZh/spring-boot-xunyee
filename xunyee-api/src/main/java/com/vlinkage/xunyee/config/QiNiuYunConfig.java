@@ -1,6 +1,6 @@
 package com.vlinkage.xunyee.config;
 
-import com.alibaba.fastjson.JSONArray;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
 import com.qiniu.storage.Configuration;
@@ -23,6 +23,8 @@ public class QiNiuYunConfig {
 
     @Resource
     private QiNiuProperties qiNiuProperties;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public String uploadImgToQiNiu(FileInputStream file, String filename) {
         //构造一个带指定 Region 对象的配置类
@@ -36,7 +38,7 @@ public class QiNiuYunConfig {
             try {
                 Response response = uploadManager.put(file, filename, upToken, null, null);
                 // 解析上传成功的结果
-                DefaultPutRet putRet = JSONArray.parseObject(response.bodyString(), DefaultPutRet.class);
+                DefaultPutRet putRet = objectMapper.readValue(response.bodyString(), DefaultPutRet.class);
                 // 这个returnPath是获得到的外链地址,通过这个地址可以直接打开图片
                 String returnPath = putRet.key;
                 return returnPath;

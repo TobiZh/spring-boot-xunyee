@@ -112,13 +112,6 @@
         </dependency>
         <!-- api可视化 -->
 
-        <!-- fastjson -->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-        </dependency>
-        <!-- fastjson -->
-
         <!-- 执行 SQL 分析打印 -->
         <dependency>
             <groupId>p6spy</groupId>
@@ -175,4 +168,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
