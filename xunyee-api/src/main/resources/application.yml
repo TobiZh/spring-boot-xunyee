@@ -3,6 +3,8 @@ server:
 spring:
   profiles:
     active: test
+  application:
+    name: xunyee-api
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
@@ -22,11 +24,30 @@ spring:
     format:
       date: yyyy-MM-dd
       date-time: yyyy-MM-dd HH:mm:ss
+  boot:
+    admin:
+      client:
+        url: http://localhost:8088
+
 # mybatis-plus配置
 mybatis-plus:
   configuration:
     # 关闭下划线转驼峰 不然获取数据为null
     map-underscore-to-camel-case: false
+
+
+# acturator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS
+
+
+
 
 #微信配置
 wx:
@@ -53,6 +74,7 @@ wx:
     mchKey: Vlinkage20191108vvkk321Qinghailu
 
 
+
 #七牛
 qiniu:
   accessKey: pMl4it5o_EuifiT-PRkhjQXJAHqJqktEIQfmxrpK
@@ -73,3 +95,4 @@ xunyee:
   config:
     # 图片地址
     image-host: https://img.xunyee.cn/
+

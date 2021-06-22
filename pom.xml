@@ -26,16 +26,28 @@
         <knife4j.version>2.0.8</knife4j.version>
         <hutool.version>5.5.7</hutool.version>
         <wx.binarywang.version>4.0.0</wx.binarywang.version>
+        <spring-boot-admin.version>2.3.1</spring-boot-admin.version>
     </properties>
 
     <modules>
         <module>xunyee-api</module>
+        <module>xunyee-admin</module>
         <module>xunyee-common</module>
         <module>xunyee-sql-generator</module>
     </modules>
 
+
+
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>de.codecentric</groupId>
+                <artifactId>spring-boot-admin-dependencies</artifactId>
+                <version>${spring-boot-admin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
             <!-- mybatis-plus -->
             <dependency>

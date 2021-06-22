@@ -392,6 +392,9 @@ public class UserService {
     public R<IPage<ResFollowPage>> getFollows(Integer vcuser_id, ReqPageFollow req) {
         Page page = new Page(req.getCurrent(), req.getSize());
         IPage<ResFollowPage> iPage = myMapper.selectFollowPage(page, req.getType(), vcuser_id);
+        for (ResFollowPage record : iPage.getRecords()) {
+            record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
+        }
         return R.OK(iPage);
     }
 
