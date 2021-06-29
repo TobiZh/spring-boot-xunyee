@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.xunyee.api.provide.MetaService;
+import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.entity.ReqMyPage;
 import com.vlinkage.xunyee.entity.request.*;
 import com.vlinkage.xunyee.entity.response.ResBlogInfo;
@@ -39,6 +40,9 @@ public class BlogService {
     @Autowired
     private MetaService metaService;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
 
     public R blog(int userId, ReqBlog req) {
         LambdaQueryWrapper<XunyeeVcuser> qw=new LambdaQueryWrapper<>();
@@ -46,7 +50,7 @@ public class BlogService {
             .eq(XunyeeVcuser::getId,userId);
         XunyeeVcuser vcuser=new XunyeeVcuser().selectOne(qw);
         if (vcuser.getStatus()==1){
-            return R.ERROR("您的账号已被锁定");
+            return R.ERROR("你已被锁定，不可发布动态、点赞点踩");
         }
         if (req.getImages().split(",").length > 9) {
             return R.ERROR("图片最多上传9张");
@@ -250,6 +254,13 @@ public class BlogService {
 
     @Transactional
     public R<ResBlogStar> blogStar(Integer userId, ReqBlogStar req) {
+        LambdaQueryWrapper<XunyeeVcuser> userQw=new LambdaQueryWrapper<>();
+        userQw.select(XunyeeVcuser::getStatus)
+                .eq(XunyeeVcuser::getId,userId);
+        XunyeeVcuser vcuser=new XunyeeVcuser().selectOne(userQw);
+        if (vcuser.getStatus()==1){
+            return R.ERROR("你已被锁定，不可发布动态、点赞点踩");
+        }
         int blogId = req.getBlog_id();
         int type = req.getType();
         ResBlogStar resBlogStar=new ResBlogStar();
@@ -276,6 +287,7 @@ public class BlogService {
                     //点赞
                     resBlogStar.setIs_star(true);
                     blog.setStar_count(blog.getStar_count() + 1);
+                    redisUtil.incr("blog_new_star:"+blog.getVcuser_id(),1);
                 }
                 blog.updateById();
                 resBlogStar.setId(blog.getId());
@@ -315,6 +327,7 @@ public class BlogService {
                         //resultStr = "点赞成功";
                         blog.setStar_count(starCount + 1);
                         resBlogStar.setIs_star(true);
+                        redisUtil.incr("blog_new_star:"+blog.getVcuser_id(),1);
                     }
                 } else if (tempType == 0 && type == 1) {//点踩 > 点赞
                     blog.setStar_count(starCount + 1);
@@ -323,6 +336,7 @@ public class BlogService {
                     }
                     //resultStr = "点赞成功";
                     resBlogStar.setIs_star(true);
+                    redisUtil.incr("blog_new_star:"+blog.getVcuser_id(),1);
                 } else if (tempType == 1 && type == 0) {//点赞 > 点踩
                     blog.setUnstar_count(unStarCount + 1);
                     if (tempStatus == 1) {

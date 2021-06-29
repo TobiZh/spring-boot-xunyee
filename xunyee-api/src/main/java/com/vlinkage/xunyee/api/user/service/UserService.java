@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vlinkage.ant.meta.entity.Person;
 import com.vlinkage.ant.xunyee.entity.*;
 import com.vlinkage.ant.xunyee.mapper.XunyeeVcuserMapper;
+import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.entity.result.R;
 import com.vlinkage.xunyee.api.upload.service.UploadService;
 import com.vlinkage.xunyee.api.provide.MetaService;
@@ -63,6 +64,9 @@ public class UserService {
     @Resource
     private XunyeeVcuserMapper vcuserMapper;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
     public R<ResUserInfoOhter> other(Integer mine_vcuser_id, Integer to_vcuser_id) {
         int follow_type = 0;//前端直接显示 0 关注， 1 回关，2 已关注，3 互相关注
         List<String> personList = new ArrayList<>();//共同关注的艺人
@@ -74,18 +78,18 @@ public class UserService {
                     .eq(XunyeeFollow::getFollowed_vcuser_id, to_vcuser_id)
                     .eq(XunyeeFollow::getStatus, 1)
                     .or()
-                    .eq(XunyeeFollow::getVcuser_id,to_vcuser_id)
-                    .eq(XunyeeFollow::getFollowed_vcuser_id,mine_vcuser_id)
+                    .eq(XunyeeFollow::getVcuser_id, to_vcuser_id)
+                    .eq(XunyeeFollow::getFollowed_vcuser_id, mine_vcuser_id)
                     .eq(XunyeeFollow::getStatus, 1);
             List<XunyeeFollow> follows = new XunyeeFollow().selectList(foqw);
-            if (follows.size()>0) {
+            if (follows.size() > 0) {
                 for (XunyeeFollow follow : follows) {
-                    if (follow.getType()==3){
+                    if (follow.getType() == 3) {
                         follow_type = follow.getType();
-                    }else{
-                        if (follow.getVcuser_id()==to_vcuser_id){
+                    } else {
+                        if (follow.getVcuser_id() == to_vcuser_id) {
                             follow_type = follow.getType();
-                        }else{
+                        } else {
                             follow_type = 2;//回关
                         }
                     }
@@ -111,7 +115,7 @@ public class UserService {
 
             if (intersection.size() > 0) {
                 // 查询数据库艺人信息
-                Integer[] personIdArr=intersection.toArray(new Integer[intersection.size()]);
+                Integer[] personIdArr = intersection.toArray(new Integer[intersection.size()]);
 
                 List<Person> persons = metaService.getPerson(personIdArr);
                 for (Person person : persons) {
@@ -129,7 +133,7 @@ public class UserService {
                 .le(XunyeeVcuserBenefit::getStart_time, nowDate)
                 .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
         int benefit = new XunyeeVcuserBenefit().selectCount(qw);
-        boolean is_vip = benefit>0;
+        boolean is_vip = benefit > 0;
         // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================
@@ -153,33 +157,32 @@ public class UserService {
 
 
         // ===============  我的爱豆数量  ====================
-        int idol_count = (int) mongoTemplate.count(new Query(Criteria.where("vcuser").is(to_vcuser_id).and("is_enabled").is(true)),ResMonUserPerson.class);
+        int idol_count = (int) mongoTemplate.count(new Query(Criteria.where("vcuser").is(to_vcuser_id).and("is_enabled").is(true)), ResMonUserPerson.class);
         // ===============  我的爱豆数量  ====================
 
         // =============== 查询当前用户关注的艺人和今年签到的天数 ===============
-        Aggregation aggregation=Aggregation.newAggregation(
+        Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("vcuser").is(to_vcuser_id).and("updated").gte(DateUtil.getCurrYearFirst(LocalDate.now().getYear()))),
                 Aggregation.project("merchno", "amount")
                         .andExpression("{ $dateToString:{format:'%Y-%m-%d',date: '$updated',timezone: 'Asia/Shanghai' }}").as("date"),
                 Aggregation.group("date").count().as("check")
         );
 
-        AggregationResults<ResMonUserPersonCheck> res=mongoTemplate.aggregate(aggregation,"vc_user__person__check",ResMonUserPersonCheck.class);
-        int check_days_count=res.getMappedResults().size();
+        AggregationResults<ResMonUserPersonCheck> res = mongoTemplate.aggregate(aggregation, "vc_user__person__check", ResMonUserPersonCheck.class);
+        int check_days_count = res.getMappedResults().size();
         // =============== 查询当前用户关注的艺人和今年签到的天数 ===============
-
 
 
         ResUserInfoOhter resMine = new ResUserInfoOhter();
 
         // =========================== 用户信息 ===========================
-        LambdaQueryWrapper<XunyeeVcuser> uqw=new LambdaQueryWrapper<>();
-        uqw.select(XunyeeVcuser::getId,XunyeeVcuser::getNickname,XunyeeVcuser::getBio,XunyeeVcuser::getAvatar,XunyeeVcuser::getCover)
-            .eq(XunyeeVcuser::getId,to_vcuser_id);
+        LambdaQueryWrapper<XunyeeVcuser> uqw = new LambdaQueryWrapper<>();
+        uqw.select(XunyeeVcuser::getId, XunyeeVcuser::getNickname, XunyeeVcuser::getBio, XunyeeVcuser::getAvatar, XunyeeVcuser::getCover)
+                .eq(XunyeeVcuser::getId, to_vcuser_id);
         XunyeeVcuser toVcuser = new XunyeeVcuser().selectOne(uqw);
         resMine.setVcuser_id(toVcuser.getId());
-        resMine.setNickname(StringUtils.isNotEmpty(toVcuser.getNickname())?toVcuser.getNickname():"");
-        resMine.setBio(StringUtils.isNotEmpty(toVcuser.getBio())?toVcuser.getBio():"");
+        resMine.setNickname(StringUtils.isNotEmpty(toVcuser.getNickname()) ? toVcuser.getNickname() : "");
+        resMine.setBio(StringUtils.isNotEmpty(toVcuser.getBio()) ? toVcuser.getBio() : "");
         resMine.setAvatar(imageHostUtil.absImagePath(toVcuser.getAvatar()));
         resMine.setCover(imageHostUtil.absImagePath(toVcuser.getCover()));
         // =========================== 用户信息 ===========================
@@ -192,6 +195,12 @@ public class UserService {
         resMine.setPersons(personList);
         resMine.setIdol_count(idol_count);
         resMine.setCheck_days_count(check_days_count);
+        if (mine_vcuser_id != null && mine_vcuser_id == to_vcuser_id) {
+            if (redisUtil.hasKey("blog_new_star:" + mine_vcuser_id)) {
+                int newStar = (int) redisUtil.get("blog_new_star:" + mine_vcuser_id);
+                resMine.setNew_star(newStar);
+            }
+        }
         return R.OK(resMine);
     }
 
@@ -206,11 +215,11 @@ public class UserService {
                 .le(XunyeeVcuserBenefit::getStart_time, nowDate)
                 .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
         XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
-        boolean is_vip = vcuserBenefit!=null;
-        int vipDays=-1;//表示非会员
-        if (is_vip){
+        boolean is_vip = vcuserBenefit != null;
+        int vipDays = -1;//表示非会员
+        if (is_vip) {
             //Duration duration = Duration.between(nowDate,vcuserBenefit.getFinish_time());
-            vipDays = (int) (vcuserBenefit.getFinish_time().plusDays(1).toEpochDay()-nowDate.toEpochDay()); //相差的天数
+            vipDays = (int) (vcuserBenefit.getFinish_time().plusDays(1).toEpochDay() - nowDate.toEpochDay()); //相差的天数
         }
 
         // ===============  是不是会员  ====================
@@ -255,9 +264,9 @@ public class UserService {
         // ===============  我的爱豆  ====================
 
         // ===============  品牌浏览数  ====================
-        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> brandQw=new LambdaQueryWrapper<>();
-        brandQw.eq(XunyeeBrandBrowsingHistory::getVcuser_id,userId);
-        int brandCount=new XunyeeBrandBrowsingHistory().selectCount(brandQw);
+        LambdaQueryWrapper<XunyeeBrandBrowsingHistory> brandQw = new LambdaQueryWrapper<>();
+        brandQw.eq(XunyeeBrandBrowsingHistory::getVcuser_id, userId);
+        int brandCount = new XunyeeBrandBrowsingHistory().selectCount(brandQw);
         // ===============  品牌浏览数  ====================
 
         ResMine resMine = new ResMine();
@@ -272,6 +281,11 @@ public class UserService {
         resMine.setVip_days(vipDays);
         resMine.setBrand_brow_count(brandCount);
         resMine.setStar_count(star_count);
+
+        if (redisUtil.hasKey("blog_new_star:" + userId)) {
+            int newStar = (int) redisUtil.get("blog_new_star:" + userId);
+            resMine.setNew_star(newStar);
+        }
         return R.OK(resMine);
     }
 
@@ -437,6 +451,8 @@ public class UserService {
     }
 
     public R<IPage<ResBlogStarPage>> getBlogStar(int userId, ReqMyPage myPage) {
+        //先删除新的点赞数据
+        redisUtil.setRemove("blog_new_star:"+userId);
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogStarPage> iPage = myMapper.selectBlogStarPage(page, userId);
         for (ResBlogStarPage record : iPage.getRecords()) {
@@ -451,7 +467,6 @@ public class UserService {
                 record.setImage_list(image_list);
             }
         }
-
         return R.OK(iPage);
 
     }

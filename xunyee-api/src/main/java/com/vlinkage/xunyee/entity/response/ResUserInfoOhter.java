@@ -32,6 +32,9 @@ public class ResUserInfoOhter {
     @ApiModelProperty("是不是会员")
     private Boolean is_vip;
 
+    @ApiModelProperty("是否有新的点赞 0 表示没有， >0表示有新的点赞")
+    private int new_star;
+
     @ApiModelProperty("关注类型 0 关注， 1 回关，2 已关注，3 互相关注")
     private int follow_type;
 
