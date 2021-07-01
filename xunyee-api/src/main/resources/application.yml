@@ -2,7 +2,7 @@ server:
   port: 80
 spring:
   profiles:
-    active: test
+    active: local
   application:
     name: xunyee-api
   datasource:

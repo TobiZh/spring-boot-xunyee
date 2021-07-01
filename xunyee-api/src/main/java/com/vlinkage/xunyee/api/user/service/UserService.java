@@ -87,7 +87,7 @@ public class UserService {
                     if (follow.getType() == 3) {
                         follow_type = follow.getType();
                     } else {
-                        if (follow.getVcuser_id() == to_vcuser_id) {
+                        if (follow.getVcuser_id().equals(to_vcuser_id)) {
                             follow_type = follow.getType();
                         } else {
                             follow_type = 2;//回关
@@ -127,14 +127,13 @@ public class UserService {
         }
 
         // ===============  是不是会员  ====================
-        LocalDate nowDate = LocalDate.now();
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, to_vcuser_id)
-                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate)
+                .ge(XunyeeVcuserBenefit::getFinish_time, LocalDate.now())
                 .orderByDesc(XunyeeVcuserBenefit::getFinish_time)
                 .last("limit 1");
-        int benefit = new XunyeeVcuserBenefit().selectCount(qw);
-        boolean is_vip = benefit > 0;
+        XunyeeVcuserBenefit benefit = new XunyeeVcuserBenefit().selectOne(qw);
+        boolean is_vip = benefit!=null;
         // ===============  是不是会员  ====================
 
         // ===============  我的关注  ====================

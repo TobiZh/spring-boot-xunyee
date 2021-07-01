@@ -205,7 +205,7 @@ public class BlogService {
                     if (follow.getType()==3){
                         follow_type = follow.getType();
                     }else{
-                        if (follow.getVcuser_id()==blog.getVcuser_id()){
+                        if (follow.getVcuser_id().equals(blog.getVcuser_id())){
                             follow_type = follow.getType();
                         }else{
                             follow_type = 2;//回关
