@@ -130,8 +130,9 @@ public class UserService {
         LocalDate nowDate = LocalDate.now();
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, to_vcuser_id)
-                .le(XunyeeVcuserBenefit::getStart_time, nowDate)
-                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
+                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate)
+                .orderByDesc(XunyeeVcuserBenefit::getFinish_time)
+                .last("limit 1");
         int benefit = new XunyeeVcuserBenefit().selectCount(qw);
         boolean is_vip = benefit > 0;
         // ===============  是不是会员  ====================
@@ -212,8 +213,9 @@ public class UserService {
         LocalDate nowDate = LocalDate.now();
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-                .le(XunyeeVcuserBenefit::getStart_time, nowDate)
-                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate);
+                .ge(XunyeeVcuserBenefit::getFinish_time, nowDate)
+                .orderByDesc(XunyeeVcuserBenefit::getFinish_time)
+                .last("limit 1");
         XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
         boolean is_vip = vcuserBenefit != null;
         int vipDays = -1;//表示非会员

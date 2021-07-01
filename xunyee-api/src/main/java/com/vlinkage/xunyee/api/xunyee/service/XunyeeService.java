@@ -214,11 +214,13 @@ public class XunyeeService {
 
 
     public R vcuserBenefit(int userId) {
+
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.select(XunyeeVcuserBenefit::getStart_time, XunyeeVcuserBenefit::getFinish_time)
                 .eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-                .le(XunyeeVcuserBenefit::getStart_time, LocalDateTime.now())
-                .ge(XunyeeVcuserBenefit::getFinish_time, LocalDateTime.now());
+                .ge(XunyeeVcuserBenefit::getFinish_time, LocalDate.now())
+                .orderByDesc(XunyeeVcuserBenefit::getFinish_time)
+                .last("limit 1");
         XunyeeVcuserBenefit benefit = new XunyeeVcuserBenefit().selectOne(qw);
         if (benefit == null) {
             return R.ERROR("您还不是会员");
@@ -1081,6 +1083,7 @@ public class XunyeeService {
     public R<ResAppVersion> appVersionCheck(Integer version_code) {
         LambdaQueryWrapper<XunyeeAppVersion> qw = new LambdaQueryWrapper<>();
         qw.gt(version_code != null, XunyeeAppVersion::getVersion_code, version_code)
+                .eq(XunyeeAppVersion::getIs_deleted,false)
                 .orderByDesc(XunyeeAppVersion::getVersion_code)
                 .last("limit 1");
         XunyeeAppVersion appVersion = new XunyeeAppVersion().selectOne(qw);

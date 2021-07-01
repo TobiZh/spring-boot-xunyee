@@ -57,8 +57,9 @@ public class SigninService {
 
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-                .le(XunyeeVcuserBenefit::getStart_time, gteDate)//<=
-                .ge(XunyeeVcuserBenefit::getFinish_time, gteDate);// >
+                .ge(XunyeeVcuserBenefit::getFinish_time, gteDate)
+                .orderByDesc(XunyeeVcuserBenefit::getFinish_time)
+                .last("limit 1");
         XunyeeVcuserBenefit userBenefit = new XunyeeVcuserBenefit().selectOne(qw);
 
         // 查询当前用户关注的艺人和当天签到数
@@ -119,8 +120,9 @@ public class SigninService {
 
         LambdaQueryWrapper<XunyeeVcuserBenefit> qw = new LambdaQueryWrapper<>();
         qw.eq(XunyeeVcuserBenefit::getVcuser_id, userId)
-                .le(XunyeeVcuserBenefit::getStart_time, gteDate)
-                .ge(XunyeeVcuserBenefit::getFinish_time, gteDate);
+                .ge(XunyeeVcuserBenefit::getFinish_time, gteDate)
+                .orderByDesc(XunyeeVcuserBenefit::getFinish_time)
+                .last("limit 1");
         XunyeeVcuserBenefit vcuserBenefit = new XunyeeVcuserBenefit().selectOne(qw);
 
         // 查询当前用户关注的艺人和当天签到数
