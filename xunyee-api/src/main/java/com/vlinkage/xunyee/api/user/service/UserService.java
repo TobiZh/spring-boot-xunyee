@@ -453,7 +453,7 @@ public class UserService {
 
     public R<IPage<ResBlogStarPage>> getBlogStar(int userId, ReqMyPage myPage) {
         //先删除新的点赞数据
-        redisUtil.setRemove("blog_new_star:"+userId);
+        redisUtil.del("blog_new_star:"+userId);
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogStarPage> iPage = myMapper.selectBlogStarPage(page, userId);
         for (ResBlogStarPage record : iPage.getRecords()) {

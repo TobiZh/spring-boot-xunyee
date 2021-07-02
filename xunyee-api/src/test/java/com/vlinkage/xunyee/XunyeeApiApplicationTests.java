@@ -1,7 +1,9 @@
 package com.vlinkage.xunyee;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.vlinkage.ant.vlkdj.entity.AuthUser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserBenefit;
+import com.vlinkage.xunyee.api.provide.VlkdjService;
 import com.vlinkage.xunyee.config.redis.RedisUtil;
 import com.vlinkage.xunyee.entity.response.ResMonUserPersonCheck;
 import com.vlinkage.xunyee.utils.DateUtil;
@@ -20,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @RunWith(SpringRunner.class)
@@ -100,5 +103,14 @@ class XunyeeApiApplicationTests {
     public void redisIncr(){
         redisUtil.incr("tobi_incr",1);
 
+    }
+
+
+    @Autowired
+    private VlkdjService vlkdjService;
+    @Test
+    public void vlkdjSelect(){
+        List<AuthUser> authUsers=vlkdjService.getUser();
+        System.out.println(JsonUtils.objectToJson(authUsers));
     }
 }

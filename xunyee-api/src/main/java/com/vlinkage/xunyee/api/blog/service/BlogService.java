@@ -93,6 +93,19 @@ public class BlogService {
     }
 
 
+    public R<IPage<ResBlogPage>> blogRecommend(ReqMyPage myPage, Integer userId) {
+        Page page = new Page(myPage.getCurrent(), myPage.getSize());
+        IPage<ResBlogPage> iPage = myMapper.selectBlogRecommendPage(page, userId);
+        for (ResBlogPage record : iPage.getRecords()) {
+            record.setAvatar(imageHostUtil.absImagePath(record.getAvatar()));
+            if (StringUtils.isNotEmpty(record.getCover())) {
+                record.setCover(imageHostUtil.absImagePath(record.getCover()));
+            }
+        }
+        return R.OK(iPage);
+    }
+
+
     public R<IPage<ResBlogPage>> blogCategory(ReqMyPage myPage, Integer type, Integer userId) {
         Page page = new Page(myPage.getCurrent(), myPage.getSize());
         IPage<ResBlogPage> iPage = myMapper.selectBlogCategoryPage(page, type, userId);
@@ -411,12 +424,15 @@ public class BlogService {
     }
 
     public R delBlog(Integer userId, Integer blog_id) {
-        LambdaUpdateWrapper<XunyeeBlog> uw=new LambdaUpdateWrapper<>();
-        uw.eq(XunyeeBlog::getId,blog_id)
-                .eq(XunyeeBlog::getVcuser_id,userId)
-                .set(XunyeeBlog::getIs_deleted,1);
-        boolean isDel=new XunyeeBlog().update(uw);
-        if (isDel){
+        LambdaQueryWrapper<XunyeeBlog> qw=new LambdaQueryWrapper<>();
+        qw.eq(XunyeeBlog::getId,blog_id)
+                .eq(XunyeeBlog::getVcuser_id,userId);
+        XunyeeBlog blog=new XunyeeBlog().selectOne(qw);
+        if (blog==null){
+            return R.ERROR("动态不存在");
+        }
+        blog.setIs_deleted(true);
+        if (blog.updateById()){
             return R.OK();
         }
         return R.ERROR();

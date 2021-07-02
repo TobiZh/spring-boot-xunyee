@@ -51,6 +51,23 @@ public interface MyMapper {
             "ORDER BY b.star_count DESC</script>"})
     IPage<ResBlogPage> selectBlogCategoryPage(Page page, Integer type, Integer vcuser_id);
 
+
+    /**
+     * 获取动态 无需登录
+     * 推荐
+     * @param page
+     * @return
+     */
+    @Select({"<script>SELECT b.id,b.title,SUBSTRING(b.content,1,10) \"content\",b.star_count,split_part(b.images,',', 1) cover,u.id vcuser_id,u.nickname,u.avatar " +
+            "<when test='vcuser_id!=null'>",
+            ",(SELECT CASE status WHEN 1 THEN true ELSE false END FROM xunyee_blog_star WHERE type=1 AND blog_id=b.id AND vcuser_id=#{vcuser_id}) is_star ",
+            "</when>",
+            "FROM xunyee_blog b LEFT JOIN xunyee_vcuser u ",
+            "ON b.vcuser_id=u.id ",
+            "WHERE b.is_deleted=false ",
+            "ORDER BY b.star_count DESC</script>"})
+    IPage<ResBlogPage> selectBlogRecommendPage(Page page, Integer userId);
+
     /**
      * 获取动态 需要登录
      * 关注
@@ -203,7 +220,9 @@ public interface MyMapper {
             "FROM xunyee_blog_browsing_history s,xunyee_blog b,xunyee_vcuser u " +
             "where b.is_deleted=false and s.blog_id=b.id and b.vcuser_id=u.id and s.vcuser_id=#{vcuser_id}")
     IPage<ResMyBlogStarPage> selectMyBlogBrowHistoryPage(Page page, int vcuser_id);
-//
+
+
+
 //    SELECT
 //    xbar.x_star,
 //    xbar.x_unstar,

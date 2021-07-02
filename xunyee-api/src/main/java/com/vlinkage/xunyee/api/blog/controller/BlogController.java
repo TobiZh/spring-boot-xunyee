@@ -47,7 +47,7 @@ public class BlogController {
             }
             return blogService.blogFollow(myPage,userId);
         }else if (type==1){//推荐
-            return blogService.blogCategory(myPage,type,userId);
+            return blogService.blogRecommend(myPage,userId);
         }else{//截屏、现场热拍、品牌代言
             return blogService.blogCategory(myPage,type-1,userId);
         }

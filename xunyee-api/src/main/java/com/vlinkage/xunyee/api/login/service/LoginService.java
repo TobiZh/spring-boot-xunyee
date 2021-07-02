@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,12 +77,13 @@ public class LoginService {
             if (oauthList.size()<=0){//新用户
 
                 // 新增账号 需要从 vljdk 新增一条记录后获取 id 
-                int userId=vlkdjService.loginInsertUserId(site,openid);
+                Integer userId=vlkdjService.loginInsertUserId(site,openid);
                 if (userId<=0){
                     return R.ERROR();
                 }
                 XunyeeVcuser user = new XunyeeVcuser();
                 user.setId(userId);//@TableId(value = "id", type = IdType.INPUT)
+                user.setIs_enabled(true);
                 user.setNickname(nickname);// 自己系统的头像
                 user.setAvatar(avatar);// 自己系统的昵称
                 user.setWx_nickanme(nickname);
@@ -90,6 +92,7 @@ public class LoginService {
                 user.setWx_country(country);
                 user.setWx_province(province);
                 user.setSex(sex);
+                user.setUpdated(new Date());
                 if (!user.insert()) {
                     return R.ERROR();
                 }
@@ -98,6 +101,8 @@ public class LoginService {
                 userThird.setId(UUID.randomUUID().toString());//@TableId(value = "id", type = IdType.INPUT)
                 userThird.setVcuser_id(user.getId());
                 userThird.setSite(site);
+                userThird.setIs_enabled(true);
+                userThird.setUpdated(new Date());
                 userThird.setOpenid(openid);
                 userThird.setUnionid(unionid);
                 userThird.insert();
@@ -131,6 +136,8 @@ public class LoginService {
                 XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
                 userThird.setId(UUID.randomUUID().toString());//@TableId(value = "id", type = IdType.INPUT)
                 userThird.setVcuser_id(temp.getVcuser_id());
+                userThird.setIs_enabled(true);
+                userThird.setUpdated(new Date());
                 userThird.setSite(site);
                 userThird.setOpenid(openid);
                 userThird.setUnionid(unionid);
@@ -180,13 +187,15 @@ public class LoginService {
 
             if (oauthList.size()<=0){//新用户
                 // 新增账号 需要从 vljdk 新增一条记录后获取 id
-                int userId=vlkdjService.loginInsertUserId(site,openid);
+                Integer userId=vlkdjService.loginInsertUserId(site,openid);
                 if (userId<=0){
                     return R.ERROR();
                 }
                 // 新增账号
                 XunyeeVcuser user = new XunyeeVcuser();
                 user.setId(userId);
+                user.setIs_enabled(true);
+                user.setUpdated(new Date());
                 user.setSex(1);//默认给1
                 if (!user.insert()) {
                     return R.ERROR();
@@ -195,6 +204,8 @@ public class LoginService {
                 XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
                 userThird.setSite(site);
                 userThird.setOpenid(openid);
+                userThird.setIs_enabled(true);
+                userThird.setUpdated(new Date());
                 if (StringUtils.isNotEmpty(unionid)) {
                     userThird.setUnionid(unionid);
                 }
@@ -231,6 +242,8 @@ public class LoginService {
                 XunyeeVcuserOauth userThird = new XunyeeVcuserOauth();
                 userThird.setId(UUID.randomUUID().toString());//@TableId(value = "id", type = IdType.INPUT)
                 userThird.setVcuser_id(temp.getVcuser_id());
+                userThird.setIs_enabled(true);
+                userThird.setUpdated(new Date());
                 userThird.setSite(site);
                 userThird.setOpenid(openid);
                 userThird.setUnionid(unionid);
