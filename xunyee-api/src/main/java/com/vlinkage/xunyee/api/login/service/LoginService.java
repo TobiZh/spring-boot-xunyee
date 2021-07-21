@@ -6,14 +6,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuser;
 import com.vlinkage.ant.xunyee.entity.XunyeeVcuserOauth;
 import com.vlinkage.xunyee.api.provide.VlkdjService;
-import com.vlinkage.xunyee.config.redis.RedisUtil;
-import com.vlinkage.xunyee.entity.result.R;
-import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.config.weixin.WxMaConfiguration;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessApp;
 import com.vlinkage.xunyee.entity.response.ResLoginSuccessMini;
 import com.vlinkage.xunyee.entity.response.ResRefreshToken;
+import com.vlinkage.xunyee.entity.result.R;
+import com.vlinkage.xunyee.entity.result.code.ResultCode;
 import com.vlinkage.xunyee.jwt.JwtUtil;
+import com.vlinkage.xunyee.utils.ImageHostUtil;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
@@ -34,13 +34,13 @@ import java.util.UUID;
 public class LoginService {
 
     @Autowired
-    private RedisUtil redisUtil;
-
-    @Autowired
     private WxMpService wxMpService;
 
     @Autowired
     private VlkdjService vlkdjService;
+
+    @Autowired
+    private ImageHostUtil imageHostUtil;
 
     @Transactional
     public R<ResLoginSuccessApp> wxOpenLogin(String appId,String code,int site) {
@@ -110,16 +110,13 @@ public class LoginService {
                 String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
                 String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
 
-//                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
-//                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
-
                 ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
                 resLoginSuccess.setToken(token);
                 resLoginSuccess.setRefresh_token(refresh_token);
                 resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
                 resLoginSuccess.setVcuser_id(user.getId());
                 resLoginSuccess.setNickname(user.getNickname());
-                resLoginSuccess.setAvatar(user.getAvatar());
+                resLoginSuccess.setAvatar(imageHostUtil.absImagePath(user.getAvatar()));
                 return R.OK(resLoginSuccess);
             }
 
@@ -150,16 +147,13 @@ public class LoginService {
             String token = JwtUtil.getAccessToken(String.valueOf(vcuser_id));
             String refresh_token = JwtUtil.getRefreshToken(String.valueOf(vcuser_id));
 
-//            redisUtil.set("user_token:"+vcuser_id+":access_token",token,24*60*60);
-//            redisUtil.set("user_token:"+vcuser_id+":refresh_token",refresh_token,30*24*60*60);
-
             ResLoginSuccessApp resLoginSuccess = new ResLoginSuccessApp();
             resLoginSuccess.setToken(token);
             resLoginSuccess.setRefresh_token(refresh_token);
             resLoginSuccess.setExpires_in(JwtUtil.ACCESS_EXPIRE_TIME/1000);
 
             resLoginSuccess.setVcuser_id(vcuser_id);
-            resLoginSuccess.setAvatar(vcuser.getAvatar());
+            resLoginSuccess.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
             resLoginSuccess.setNickname(vcuser.getNickname());
 
             return R.OK(resLoginSuccess);
@@ -214,8 +208,6 @@ public class LoginService {
                 // 登录成功 生成token
                 String token = JwtUtil.getAccessToken(String.valueOf(user.getId()));
                 String refresh_token = JwtUtil.getRefreshToken(String.valueOf(user.getId()));
-//                redisUtil.set("user_token:"+user.getId()+":access_token",token,24*60*60);
-//                redisUtil.set("user_token:"+user.getId()+"refresh_token",refresh_token,30*24*60*60);
 
                 ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
                 resLoginSuccess.setSession_key(sessionKey);
@@ -225,7 +217,7 @@ public class LoginService {
 
                 resLoginSuccess.setVcuser_id(user.getId());
                 resLoginSuccess.setNickname(user.getNickname());
-                resLoginSuccess.setAvatar(user.getAvatar());
+                resLoginSuccess.setAvatar(imageHostUtil.absImagePath(user.getAvatar()));
 
                 return R.OK(resLoginSuccess);
             }
@@ -254,8 +246,6 @@ public class LoginService {
             int vcuser_id=vcuser.getId();
             String token = JwtUtil.getAccessToken(String.valueOf(vcuser_id));
             String refresh_token = JwtUtil.getRefreshToken(String.valueOf(vcuser_id));
-//            redisUtil.set("user_token:"+vcuser_id+":access_token",token,24*60*60);
-//            redisUtil.set("user_token:"+vcuser_id+":refresh_token",refresh_token,30*24*60*60);
 
 
             ResLoginSuccessMini resLoginSuccess = new ResLoginSuccessMini();
@@ -270,7 +260,7 @@ public class LoginService {
             }
 
             if (StringUtils.isNotEmpty(vcuser.getAvatar())){
-                resLoginSuccess.setAvatar(vcuser.getAvatar());
+                resLoginSuccess.setAvatar(imageHostUtil.absImagePath(vcuser.getAvatar()));
             }
 
             return R.OK(resLoginSuccess);
@@ -288,10 +278,6 @@ public class LoginService {
 
         String token=JwtUtil.getAccessToken(userId);
         String refresh_token=JwtUtil.getRefreshToken(userId);
-
-//        redisUtil.set("user_token:"+userId+":access_token",token,24*60*60);
-//        redisUtil.set("user_token:"+userId+":refresh_token",refresh_token,30*24*60*60);
-
 
         ResRefreshToken app=new ResRefreshToken();
         app.setToken(token);

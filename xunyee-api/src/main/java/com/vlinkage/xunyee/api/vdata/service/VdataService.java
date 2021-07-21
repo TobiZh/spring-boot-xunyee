@@ -78,9 +78,9 @@ public class VdataService {
         int totalCount = persons.size();
         int totalPage = totalCount % size == 0 ? totalCount / size : totalCount / size + 1;
         // 查询当前用户关注的艺人和当天签到数
-        List<ResMonUserPersonCheck> userPersonChecks = period <= 1 && userId != null ?
+        List<ResMonUserPersonCheck> userPersonChecks = userId != null ?
                 mongoTemplate.find(new Query(Criteria.where("vcuser").is(userId)
-                                .andOperator(Criteria.where("updated").gte(gteDate).lt(ltDate))),
+                                .andOperator(Criteria.where("updated").gte(nowDate).lt(nowDate.plusDays(1)))),
                         ResMonUserPersonCheck.class) : new ArrayList<>();
 
         // 组装数据
@@ -95,12 +95,10 @@ public class VdataService {
             resPersonCheckCount.setZh_name(p.getZh_name());
 
             //-------------------- 当前用户>>艺人签到数 --------------------
-            if (period <= 1) {
-                for (ResMonUserPersonCheck userPersonCheck : userPersonChecks) {
-                    if (personId == userPersonCheck.getPerson()) {
-                        resPersonCheckCount.setCheck_my(userPersonCheck.getCheck());
-                        break;
-                    }
+            for (ResMonUserPersonCheck userPersonCheck : userPersonChecks) {
+                if (personId == userPersonCheck.getPerson()) {
+                    resPersonCheckCount.setCheck_my(userPersonCheck.getCheck());
+                    break;
                 }
             }
             //-------------------- 当前用户>>艺人签到数 --------------------

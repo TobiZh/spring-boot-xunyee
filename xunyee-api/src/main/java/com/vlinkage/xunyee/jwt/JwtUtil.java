@@ -19,7 +19,7 @@ public class JwtUtil {
      * 过期时间 7天过期
      * refresh 15天过期
      */
-    public static final long ACCESS_EXPIRE_TIME = 1L * 60 * 60 * 24 * 1000;
+    public static final long ACCESS_EXPIRE_TIME = 30L * 60 * 60 * 24 * 1000;
     public static final long REFRESH_EXPIRE_TIME = 30L * 60 * 60 * 24 * 1000;
 
 
@@ -134,7 +134,7 @@ public class JwtUtil {
         System.out.println(ACCESS_EXPIRE_TIME);
         System.out.println(sd.format(date));
 
-        System.out.println(getAccessToken("3753216"));
+        System.out.println(getAccessToken("2448389"));
         System.out.println(getRefreshToken("3753216"));
     }
 }
